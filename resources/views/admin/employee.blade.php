@@ -5,17 +5,17 @@
 
 @section('breadcrumb')
 <div class="col-sm-6">
-    <h4 class="page-title text-left">Punonjësit</h4>
+    <h4 class="page-title text-left">Employees</h4>
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-        <li class="breadcrumb-item"><a href="javascript:void(0);">Punonjësit</a></li>
-        <li class="breadcrumb-item"><a href="javascript:void(0);">Lista e punonjësve</a></li>
+        <li class="breadcrumb-item"><a href="javascript:void(0);">Employees</a></li>
+        <li class="breadcrumb-item"><a href="javascript:void(0);">Employees List</a></li>
   
     </ol>
 </div>
 @endsection
 @section('button')
-<a href="#addnew" data-toggle="modal" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Shto punëtor të ri</a>
+<a href="#addnew" data-toggle="modal" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Add New Employee</a>
         
 
 @endsection
@@ -34,12 +34,12 @@
                                                     <thead class="thead-dark">
                                                     <tr>
                                                         <th data-priority="1">ID</th>
-                                                        <th data-priority="2">Emri</th>
+                                                        <th data-priority="2">Name</th>
                                                         <th data-priority="3">Area</th>
                                                         <th data-priority="4">Email</th>
-                                                        <th data-priority="5">Departamenti</th>
-                                                        <th data-priority="6">I punësuar nga</th>
-                                                        <th data-priority="7">Veprime</th>
+                                                        <th data-priority="5">Department</th>
+                                                        <th data-priority="6">Member Since</th>
+                                                        <th data-priority="7">Actions</th>
                                                      
                                                     </tr>
                                                     </thead>

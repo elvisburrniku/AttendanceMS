@@ -5,7 +5,7 @@
     <div class="wrapper-page">
         <div class="card overflow-hidden account-card mx-3">
             <div class="bg-secondary p-4 text-white text-center position-relative">
-                <h4 class="font-20 m-b-5">Sistemi i Menaxhimit të Pjesëmarrjes</h4>
+                <h4 class="font-20 m-b-5">Simple Attendance Management System</h4>
                 <p class="text-white-50 mb-4"></p>
                 <a href="{{ route('welcome') }}" class="logo logo-admin">
                     <h1>CA</h1>
@@ -16,7 +16,7 @@
                     @csrf
 
                     <div class="form-group">
-                        <label for="email" class="col-form-label ">{{ __('Email Adresa') }}</label>
+                        <label for="email" class="col-form-label ">{{ __('Email Address') }}</label>
 
                         <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                             name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
@@ -29,7 +29,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="password" class="col-form-label ">{{ __('Fjalëkalimi') }}</label>
+                        <label for="password" class="col-form-label ">{{ __('Password') }}</label>
 
 
                         <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
@@ -49,12 +49,12 @@
                                     {{ old('remember') ? 'checked' : '' }}>
 
                                 <label class="form-check-label" for="remember">
-                                    {{ __('Mbaj mend') }}
+                                    {{ __('Remember Me') }}
                                 </label>
                             </div>
                         </div>
                         <div class="col-sm-6 text-right">
-                            <button class="btn btn-success w-md waves-effect waves-light" type="submit">Kyçu</button>
+                            <button class="btn btn-success w-md waves-effect waves-light" type="submit">Log In</button>
                         </div>
                     </div>
 

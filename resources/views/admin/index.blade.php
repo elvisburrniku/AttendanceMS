@@ -9,7 +9,7 @@
 <div class="col-sm-6 text-left" >
      <h4 class="page-title">Dashboard</h4>
      <ol class="breadcrumb">
-         <li class="breadcrumb-item active">Mirësevini në Sistemin e Menaxhimit të Pjesëmarrjes</li>
+         <li class="breadcrumb-item active">Welcome to Simple Attendance Management System</li>
      </ol>
 </div>
 @endsection
@@ -23,7 +23,7 @@
                                             <div class="float-left mini-stat-img mr-4">
                                                 <span class="ti-id-badge" style="font-size: 30px"></span>
                                             </div>
-                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Të gjithë <br> Punëtorët</h5> 
+                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Total <br> Employees</h5> 
                                         </div>
 										<!-- Log on to codeastro.com for more projects! -->
                                         <h1 class="font-500 float-right">{{$data[0]}} </h1>
@@ -45,7 +45,7 @@
                                             <div class="float-left mini-stat-img mr-4">
                                                 <i class=" ti-check-box " style="font-size: 30px"></i>
                                             </div>
-                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Në kohë <br> Sot</h5>
+                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">On Time <br> Today</h5>
                                             
                                              
                                         </div>
@@ -69,7 +69,7 @@
                                             <div class="float-left mini-stat-img mr-4">
                                                 <i class="ti-alert" style="font-size: 30px"></i>
                                             </div>
-                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Me vonesë <br> Sot</h5>
+                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Late <br> Today</h5>
                                             
                                              
                                         </div>
@@ -93,7 +93,7 @@
                                             <div class="float-left mini-stat-img mr-4">
                                                 <i class="ti-alarm-clock" style="font-size: 30px"></i>
                                             </div>
-                                            <h6  class="font-16 text-uppercase mt-0 text-white-50" >Në kohë <br> Përqindja</h6>
+                                            <h6  class="font-16 text-uppercase mt-0 text-white-50" >On Time <br> Percentage</h6>
                                             
                                                        
                                         </div>
@@ -123,7 +123,7 @@
                                             <div class="float-left mini-stat-img mr-4">
                                                 <span class="ti-panel" style="font-size: 30px"></span>
                                             </div>
-                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Orare <br> Aktive</h5> 
+                                            <h5 class="font-16 text-uppercase mt-0 text-white-50">Availabe <br> Schedules</h5> 
                                         </div>
                                         <h1 class="font-500 float-right">{{$data[4]}} </h1>
                                         <span class="ti-time float-left" style="font-size: 71px"></span>
