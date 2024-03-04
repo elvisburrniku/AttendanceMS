@@ -22,29 +22,62 @@ class EmployeeController extends Controller
 
         $employee = $api->get();
         
+        $employee_count = $employee['count'];
+
         $employees = $api->getData()->map(function($e) {
             return (object) $e;
         });
-        return view('admin.employee')->with(['employees'=> $employees, 'schedules'=>Schedule::all()]);
+
+        $dep_api = new ApiHelper();
+
+        $dep_api->url(ApiUrlHelper::url('Department'))->get();
+        
+        $departments = $dep_api->getData()->map(function($e) {
+            return (object) $e;
+        });
+
+        $pos_api = new ApiHelper();
+
+        $pos_api->url(ApiUrlHelper::url('Position'))->get();
+        
+        $positions = $pos_api->getData()->map(function($e) {
+            return (object) $e;
+        });
+
+        $area_api = new ApiHelper();
+
+        $area_api->url(ApiUrlHelper::url('Area'))->get();
+        
+        $areas = $area_api->getData()->map(function($e) {
+            return (object) $e;
+        });
+
+        return view('admin.employee')->with(['employees'=> $employees, 'employee_count' => $employee_count, 'departments' => $departments, 'positions' => $positions, 'areas' => $areas, 'schedules'=>Schedule::all()]);
     }
 
     public function store(EmployeeRec $request)
     {
         $request->validated();
 
-        $employee = new Employee;
-        $employee->name = $request->name;
-        $employee->position = $request->position;
-        $employee->email = $request->email;
-        $employee->pin_code = bcrypt($request->pin_code);
-        $employee->save();
+        $api = new ApiHelper();
 
-        if($request->schedule){
+        $api->url(ApiUrlHelper::url('Employee'));
 
-            $schedule = Schedule::whereSlug($request->schedule)->first();
+        $employee = $api->post($request->all());
 
-            $employee->schedules()->attach($schedule);
-        }
+        // $employee = new Employee;
+        // $employee->name = $request->name;
+        // $employee->position = $request->position;
+        // $employee->email = $request->email;
+        // $employee->pin_code = bcrypt($request->pin_code);
+        // $employee->save();
+
+        // if($request->schedule){
+
+        //     $schedule = Schedule::whereSlug($request->schedule)->first();
+
+        //     $employee->schedules()->attach($schedule);
+        // }
 
         // $role = Role::whereSlug('emp')->first();
 

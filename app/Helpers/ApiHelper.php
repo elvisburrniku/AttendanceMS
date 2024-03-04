@@ -32,6 +32,17 @@ class ApiHelper
         throw new Error('Data could not been fetched');
     }
 
+    public function post($data) {
+        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->post("http://$this->ip/$this->url", $data);
+        
+        if($response->successful()) {
+            $this->response = collect($response->json());
+            return collect($response->json());
+        }
+
+        throw new Error('Data could not been fetched');
+    }
+
     public function getData() {
         return collect($this->response->get('data'));
     }
