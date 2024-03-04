@@ -650,7 +650,7 @@ dt {
 }
 
 .topbar .topbar-left {
-  background: #333547;
+  background: #240c48;
   float: left;
   text-align: center;
   height: 70px;
@@ -699,7 +699,7 @@ dt {
 .side-menu {
   width: 240px;
   z-index: 10;
-  background: #333547;
+  background: #240c48;
   bottom: 0;
   margin-top: 0;
   padding-bottom: 30px;
@@ -737,7 +737,7 @@ dt {
 }
 
 #sidebar-menu > ul > li > a {
-  color: #8699ad;
+  color: #6de8a1;
   display: block;
   padding: 12.5px 20px;
   font-size: 15.7px;
@@ -778,8 +778,8 @@ dt {
 }
 
 #sidebar-menu > ul > li > a.mm-active {
-  color: #b4c9de !important;
-  background-color: #383b4e;
+  color: #ffffff !important;
+  background-color: #7544ec;
 }
 
 .menu-title {

@@ -11,13 +11,13 @@
                             <li class="menu-title">Main</li>
                             <li class="">
                                 <a href="{{route('admin')}}" class="waves-effect {{ request()->is("admin") || request()->is("admin/*") ? "mm active" : "" }}">
-                                    <i class="ti-home"></i> <span> Dashboard </span>
+                                    <i class="ti-home"></i> <span> Fillimi </span>
                                 </a>
                             </li>
                             
 
                             <li>
-                            <a href="/employees" class="waves-effect {{ request()->is("employees") || request()->is("/employees/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Employees </span></a>
+                            <a href="/employees" class="waves-effect {{ request()->is("employees") || request()->is("/employees/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Punonjësit </span></a>
                                 <!-- <ul class="submenu">
                                     <li>
                                         <i class="dripicons-view-apps"></i><span>Employees List</span></a>
@@ -30,7 +30,7 @@
 
                             <li class="">
                                 <a href="/schedule" class="waves-effect {{ request()->is("schedule") || request()->is("schedule/*") ? "mm active" : "" }}">
-                                    <i class="ti-time"></i> <span> Schedule </span>
+                                    <i class="ti-time"></i> <span> Orari </span>
                                 </a>
                             </li>
                             <li class="">
@@ -46,7 +46,7 @@
 
                             <li class="">
                                 <a href="/attendance" class="waves-effect {{ request()->is("attendance") || request()->is("attendance/*") ? "mm active" : "" }}">
-                                    <i class="ti-calendar"></i> <span> Attendance Logs </span>
+                                    <i class="ti-calendar"></i> <span> Check In/Out </span>
                                 </a>
                             </li>
                             <!-- <li class="">
@@ -67,7 +67,7 @@
                             <li class="menu-title">Tools</li>
                             <li class="">
                                 <a href="{{ route("finger_device.index") }}" class="waves-effect {{ request()->is("finger_device") || request()->is("finger_device/*") ? "mm active" : "" }}">
-                                    <i class="fas fa-fingerprint"></i> <span> Biometric Device </span>
+                                    <i class="fas fa-fingerprint"></i> <span> Paisjet </span>
                                 </a>
                             </li>
 

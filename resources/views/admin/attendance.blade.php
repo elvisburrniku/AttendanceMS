@@ -7,17 +7,17 @@
 
 @section('breadcrumb')
     <div class="col-sm-6">
-        <h4 class="page-title text-left">Attendance</h4>
+        <h4 class="page-title text-left">CheckIn/Out</h4>
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-            <li class="breadcrumb-item"><a href="javascript:void(0);">Attendance</a></li>
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Fillimi</a></li>
+            <li class="breadcrumb-item"><a href="javascript:void(0);">CheckIn/Out</a></li>
 
 
         </ol>
     </div>
 @endsection
 @section('button')
-    <a href="check" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Add New</a>
+    <a href="check" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Shto të re</a>
 @endsection
 
 @section('content')
@@ -35,12 +35,12 @@
                             <thead class="thead-dark">
 							<!-- Log on to codeastro.com for more projects! -->
                                     <tr>
-                                        <th data-priority="1">Date</th>
-                                        <th data-priority="2">EmpID</th>
-                                        <th data-priority="3">Name</th>
-                                        <th data-priority="4">Attendance</th>
+                                        <th data-priority="1">Data</th>
+                                        <th data-priority="2">Pun.ID</th>
+                                        <th data-priority="3">Emri</th>
+                                        <th data-priority="4">CheckIn/Out</th>
 
-                                        <th data-priority="6">Time</th>
+                                        <th data-priority="6">Koha</th>
                                     </tr>
                                 </thead>
                                 <tbody>
