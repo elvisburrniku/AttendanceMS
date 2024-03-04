@@ -24,9 +24,11 @@ class EmployeeRec extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|min:3|max:64|alpha_dash',
-            'position' => 'required|string|min:3|max:64|alpha_dash',
-            'schedule' => 'required|exists:schedules,slug',
+            'first_name' => 'required|string|min:3|max:64|alpha_dash',
+            'last_name' => 'required|string|min:3|max:64|alpha_dash',
+            'department' => 'required',
+            'position' => 'required',
+            'area' => 'required',
         ];
     }
 }

@@ -344,8 +344,8 @@ class ComposerStaticInitc09dc24b3d08bdc970c9084f884de045
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -539,6 +539,8 @@ class ComposerStaticInitc09dc24b3d08bdc970c9084f884de045
     public static $classMap = array (
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
+        'App\\Helpers\\ApiHelper' => __DIR__ . '/../..' . '/app/Helpers/ApiHelper.php',
+        'App\\Helpers\\ApiUrlHelper' => __DIR__ . '/../..' . '/app/Helpers/ApiUrlHelper.php',
         'App\\Helpers\\FingerHelper' => __DIR__ . '/../..' . '/app/Helpers/FingerHelper.php',
         'App\\Http\\Controllers\\AdminController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminController.php',
         'App\\Http\\Controllers\\AttendanceController' => __DIR__ . '/../..' . '/app/Http/Controllers/AttendanceController.php',

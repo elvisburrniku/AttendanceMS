@@ -8,6 +8,8 @@ use App\Helpers\FingerHelper;
 
 use App\Helpers\ApiHelper;
 
+use App\Helpers\ApiUrlHelper;
+
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\FingerDevice\StoreRequest;
@@ -44,6 +46,12 @@ class BiometricDeviceController extends Controller
     {
         $devices = FingerDevices::all();
 
+        $helper = new ApiHelper();
+        $helper->url(ApiUrlHelper::url('Device'))->get();
+
+        $devices = $helper->getData()->map(function($e) {
+            return (object) $e;
+        });
         return view('admin.fingerDevices.index', compact('devices'));
     }
 
@@ -66,24 +74,7 @@ class BiometricDeviceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $helper = new ApiHelper();
-        $helper->url('iclock/api/transactions/?&page=1');
-        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->get('http://46.99.253.82:8089/iclock/api/transactions/?&page=1');
-        dd($response->json());
-        $client = new \GuzzleHttp\Client([
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Basic ' . base64_encode('edmond:Edmond@1994'),
-            ]
-        ]);
-        // $client->setDefaultOption('headers', ['Content-Type' => 'application/json', 'Authorization' => 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA5NDY1NjI2LCJpYXQiOjE3MDkzNzkyMjYsImp0aSI6ImU0MGU2NGQxOTE5MTRkM2M4YjJkNWRhMWMwM2M1OTFkIiwidXNlcl9pZCI6MX0.rBUJylvyf3clsLQzDaQQT5JR8SDUlLowNJopP2A_C5s']);
-        $ip = $request->input('ip');
-        $response = $client->request("GET", "http://46.99.253.82/personnel/api/employees/1/?next=/", []);
-
-        $att_res = json_decode($response->getBody()->getContents(), true);
-        dd($att_res);
-        $helper = new FingerHelper();
-
-        $device = $helper->init('46.99.253.82');
+        $helper->url(ApiUrlHelper::url('Device'))->get();
         // dd($device);
         if ($device->connect()) {
             // Serial Number Sample CDQ9192960002\x00
@@ -100,8 +91,11 @@ class BiometricDeviceController extends Controller
         return redirect()->route('finger_device.index');
     }
 
-    public function show(FingerDevices $fingerDevice)
+    public function show($fingerDevice)
     {
+        $helper = new ApiHelper();
+        $helper->url(ApiUrlHelper::url('Device'))->get();
+        $fingerDevice = (object) $helper->getData()->where('id', $fingerDevice)->first();
         return view('admin.fingerDevices.show', compact('fingerDevice'));
     }
 

@@ -122,31 +122,25 @@
 
                             <td>
 
-                                {{ $finger_device->name ?? '' }}
+                                {{ $finger_device->alias ?? '' }}
 
                             </td>
 
                             <td>
 
-                                {{ $finger_device->ip ?? '' }}
+                                {{ $finger_device->ip_address ?? '' }}
 
                             </td>
 
                             <td>
 
-                                {{ $finger_device->serialNumber ?? '' }}
+                                {{ $finger_device->sn ?? '' }}
 
                             </td>
 
                             <td>
 
-                                @php
-
-                                    $device = $helper->init($finger_device->ip);
-
-                                @endphp
-
-                                @if($helper->getStatus($device))
+                                @if($finger_device->state == 2)
 
                                     <div class="badge badge-success">
 

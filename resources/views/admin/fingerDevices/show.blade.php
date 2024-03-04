@@ -54,7 +54,7 @@
 
                         <td>
 
-                            {{ $fingerDevice->name }}
+                            {{ $fingerDevice->alias }}
 
                         </td>
 
@@ -70,7 +70,7 @@
 
                         <td>
 
-                            {{ $fingerDevice->ip }}
+                            {{ $fingerDevice->ip_address }}
 
                         </td>
 
@@ -86,7 +86,39 @@
 
                         <td>
 
-                            {{ $fingerDevice->serialNumber }}
+                            {{ $fingerDevice->sn }}
+
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <th>
+
+                            Status
+
+                        </th>
+
+                        <td>
+
+                            @if($fingerDevice->state == 2)
+
+                            <div class="badge badge-success">
+
+                                Active
+
+                            </div>
+
+                            @else
+
+                            <div class="badge badge-danger">
+
+                                Deactivate
+
+                            </div>
+
+                            @endif
 
                         </td>
 
