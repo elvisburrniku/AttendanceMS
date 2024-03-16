@@ -65,8 +65,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="hide_date">Hire Date</label>
-                            <input required type="date" class="form-control" value="{{ now()->format('Y-m-d') }}" placeholder="Enter Employe Hire date" id="hide_date" name="hide_date"/>
+                            <label for="hire_date">Hire Date</label>
+                            <input required type="date" class="form-control" value="{{ now()->format('Y-m-d') }}" placeholder="Enter Employe Hire date" id="hire_date" name="hire_date"/>
                         </div>
 
                         <div class="form-group">
@@ -105,7 +105,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="mobile">Official tel</label>
+                            <label for="mobile">Mobile</label>
                             <input type="text" class="form-control" placeholder="Enter Employe Mobile" id="mobile" name="mobile"/>
                         </div>
                         
@@ -165,9 +165,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="app_role">App Status</label>
+                            <label for="app_role">App Role</label>
                             <select required class="form-control" name="app_role" id="app_role">
-                                <option value="">Select App Status</option>
+                                <option value="">Select App Role</option>
                                 @foreach(['1' => 'Employee', '2' => 'Administrator'] as $id => $app_role)
                                     <option value="{{ $id }}">{{ $app_role }}</option>
                                 @endforeach

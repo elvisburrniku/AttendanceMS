@@ -102,7 +102,7 @@
 
                         <td>
 
-                            @if($fingerDevice->state == 2)
+                            @if($fingerDevice->state == 1)
 
                             <div class="badge badge-success">
 

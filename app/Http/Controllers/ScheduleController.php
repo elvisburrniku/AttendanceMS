@@ -4,12 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use App\Http\Requests\ScheduleEmp;
+use App\Helpers\ApiHelper;
+use App\Helpers\ApiUrlHelper;
 
 class ScheduleController extends Controller
 {
    
     public function index()
     {
+        $api = new ApiHelper();
+
+        $api->url(ApiUrlHelper::url('Shift'));
+
+        $shifts = $api->get();
+        dd($shifts);
      
         return view('admin.schedule')->with('schedules', Schedule::all());
         flash()->success('Success','Schedule has been created successfully !');

@@ -17,7 +17,7 @@
     </div>
 @endsection
 @section('button')
-    <a href="check" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Shto të re</a>
+    <a href="/attendances/export" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Export</a>
 @endsection
 
 @section('content')
@@ -33,14 +33,15 @@
                             <table id="datatable-buttons" class="table table-hover table-striped table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
                                         
                             <thead class="thead-dark">
-							<!-- Log on to codeastro.com for more projects! -->
                                     <tr>
-                                        <th data-priority="1">Data</th>
-                                        <th data-priority="2">Pun.ID</th>
-                                        <th data-priority="3">Emri</th>
-                                        <th data-priority="4">CheckIn/Out</th>
-
-                                        <th data-priority="6">Koha</th>
+                                        <th data-priority="1">Emri</th>
+                                        <th data-priority="2">Data</th>
+                                        <th data-priority="3">Dita</th>
+                                        <th data-priority="4">Hyrje</th>
+                                        <th data-priority="5">Pauza</th>
+                                        <th data-priority="6">Dalje</th>
+                                        <th data-priority="7">Koha</th>
+                                        <th data-priority="8">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -48,13 +49,22 @@
                                     @foreach ($attendances as $attendance)
 
                                         <tr>
-                                            <td>{{ \Carbon\Carbon::parse($attendance->upload_time)->toDateString() }}</td>
-                                            <td>{{ $attendance->emp_code }}</td>
                                             <td>{{ $attendance->first_name }} {{ $attendance->last_name }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($attendance->upload_time)->toDateString() }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($attendance->upload_time)->format('l') }}</td>
                                             <td>
-                                                {{ $attendance->punch_state_display}}
+                                                {!! $attendance->checkin_time !!}
                                             </td>
-                                            <td>{{ $attendance->punch_time }} </td>
+                                            <td>
+                                                {{ $attendance->break_in_time}} - {{ $attendance->break_out_time}}
+                                            </td>
+                                            <td>
+                                                {!! $attendance->checkout_time !!}
+                                            </td>
+                                            <td>{{ $attendance->difference }} </td>
+                                            <td>
+                                                <a href="#delete{{$attendance->id}}" data-toggle="modal" class="btn btn-danger btn-sm delete btn-flat"><i class='fa fa-trash'></i></a>
+                                            </td>
                                         </tr>
 
                                     @endforeach
@@ -68,6 +78,10 @@
             </div><!-- Log on to codeastro.com for more projects! -->
         </div> <!-- end col -->
     </div> <!-- end row -->
+
+@foreach( $attendances as $attendance)
+    @include('includes.edit_delete_attendances')
+@endforeach
 
 @endsection
 

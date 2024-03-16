@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\Leave;
+use App\Helpers\ApiHelper;
+use App\Helpers\ApiUrlHelper;
 
 class CheckController extends Controller
 {
@@ -75,7 +77,13 @@ class CheckController extends Controller
     }
     public function sheetReport()
     {
-
-    return view('admin.sheet-report')->with(['employees' => Employee::all()]);
+        $api = new ApiHelper();
+        $api->url(ApiUrlHelper::url('Transaction.Report'))->get();
+        
+        $transactions = $api->getData()->map(function($e) {
+            return (object) $e;
+        });
+        dd($transactions);
+        return view('admin.sheet-report')->with(['transactions' => $transactions]);
     }
 }

@@ -10,10 +10,22 @@ use App\Models\Leave;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\AttendanceEmp;
 use Illuminate\Http\Request;
-
+use App\Helpers\ApiHelper;
+use App\Helpers\ApiUrlHelper;
 
 class ApiController extends Controller
 {
+
+    public function attendancesApi()
+    {
+        $api = new ApiHelper();
+
+        $api->url(ApiUrlHelper::url('Attendances.Api'));
+
+        $attendances_api = $api->get();
+
+        return response()->json($attendances_api);
+    }
     
     public function check(AttendanceEmp $request)
     {

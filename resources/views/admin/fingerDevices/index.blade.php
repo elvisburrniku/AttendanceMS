@@ -8,7 +8,7 @@
 
             <div class="col-lg-12">
 
-                <a class="btn btn-success" href="{{ route('finger_device.create') }}">
+                <a class="btn btn-success d-none" href="{{ route('finger_device.create') }}">
 
                     {{ trans('global.add') }} {{ trans('cruds.finger_device.title_singular') }}
 
@@ -24,7 +24,7 @@
 
                 </a> --}}
 
-                <a class="btn btn-primary"
+                <a class="btn btn-primary d-none"
 
                    href="{{ route('finger_device.clear.attendance') }}">
 
@@ -91,7 +91,7 @@
 
                         </th>
 
-                        <th>
+                        <th class="d-none">
                             Actions
 
                         </th>
@@ -140,7 +140,7 @@
 
                             <td>
 
-                                @if($finger_device->state == 2)
+                                @if($finger_device->state == 1)
 
                                     <div class="badge badge-success">
 
@@ -158,33 +158,9 @@
 
                                 @endif
 
-                                
-
-                                    <a class="btn btn-xs btn-outline-success"
-
-                                       href="{{ route('finger_device.add.employee', $finger_device->id) }}">
-
-                                        <i class="fas fa-plus"></i>
-
-                                        Add Employee
-
-                                    </a>
-                                    
-                                    <a class="btn btn-xs btn-outline-success"
-
-                                       href="{{ route('finger_device.get.attendance', $finger_device->id) }}">
-
-                                        <i class="fas fa-plus"></i>
-
-                                        Get Attendance
-
-                                    </a>
-
-                                
-
                             </td>
 
-                            <td>
+                            <td class="d-none">
 
                             
                                     <a class="btn btn-xs btn-primary"

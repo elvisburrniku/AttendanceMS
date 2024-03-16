@@ -14,8 +14,14 @@ Auth::routes(['register' => false, 'reset' => false]);
 
 Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
     Route::resource('/employees', '\App\Http\Controllers\EmployeeController');
-    Route::resource('/employees', '\App\Http\Controllers\EmployeeController');
+    Route::resource('/departments', '\App\Http\Controllers\DepartmentController');
+    Route::resource('/positions', '\App\Http\Controllers\PositionController');
+    Route::resource('/areas', '\App\Http\Controllers\AreaController');
     Route::get('/attendance', '\App\Http\Controllers\AttendanceController@index')->name('attendance');
+    Route::delete('/attendance/{id}', '\App\Http\Controllers\AttendanceController@destroy')->name('attendances.destroy');
+    Route::get('/attendances/export', '\App\Http\Controllers\AttendanceController@export')->name('attendance.export');
+
+    Route::get('/attendances/api/documentation', '\App\Http\Controllers\ApiController@attendancesApi')->name('attendance.api');
   
     Route::get('/latetime', '\App\Http\Controllers\AttendanceController@indexLatetime')->name('indexLatetime');
     Route::get('/leave', '\App\Http\Controllers\LeaveController@index')->name('leave');

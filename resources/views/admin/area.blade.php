@@ -5,17 +5,17 @@
 
 @section('breadcrumb')
 <div class="col-sm-6">
-    <h4 class="page-title text-left">Punonjësit</h4>
+    <h4 class="page-title text-left">Zona</h4>
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-        <li class="breadcrumb-item"><a href="javascript:void(0);">Punonjësit</a></li>
-        <li class="breadcrumb-item"><a href="javascript:void(0);">Lista e punonjësve</a></li>
+        <li class="breadcrumb-item"><a href="javascript:void(0);">Fillimi</a></li>
+        <li class="breadcrumb-item"><a href="javascript:void(0);">Zona</a></li>
+        <li class="breadcrumb-item"><a href="javascript:void(0);">Lista e zonave</a></li>
   
     </ol>
 </div>
 @endsection
 @section('button')
-<a href="#addnew" data-toggle="modal" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Shto punëtor të ri</a>
+<a href="#addnew" data-toggle="modal" class="btn btn-success btn-sm btn-flat"><i class="mdi mdi-plus mr-2"></i>Shto Zonë të re</a>
         
 
 @endsection
@@ -35,30 +35,21 @@
                                                     <tr>
                                                         <th data-priority="1">Kodi</th>
                                                         <th data-priority="2">Emri</th>
-                                                        <th data-priority="3">Area</th>
-                                                        <th data-priority="4">Email</th>
-                                                        <th data-priority="5">Departamenti</th>
-                                                        <th data-priority="6">I punësuar nga</th>
+                                                        <th data-priority="3">Superior</th>
                                                         <th data-priority="7">Veprime</th>
                                                      
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @foreach( $employees as $employee)
-
+                                                        @foreach( $areas as $area)
                                                         <tr>
-                                                            <td>{{$employee->emp_code}}</td>
-                                                            <td>{{$employee->first_name}} {{ $employee->last_name }}</td>
-                                                            <td>{{$employee->area[0]['area_name']}}</td>
-                                                            <td>{{$employee->email}}</td>
-                                                            <td>
-                                                                {{$employee->department['dept_name']}}
-                                                            </td>
-                                                            <td>{{$employee->hire_date}}</td>
+                                                            <td>{{$area->area_code}}</td>
+                                                            <td>{{$area->area_name }}</td>
+                                                            <td>{{ optional($area->parent_area)['area_name'] }}</td>
                                                             <td>
                         
-                                                                <a href="#edit{{$employee->emp_code}}" data-toggle="modal" class="btn btn-success btn-sm edit btn-flat"><i class='fa fa-edit'></i></a>
-                                                                <a href="#delete{{$employee->emp_code}}" data-toggle="modal" class="btn btn-danger btn-sm delete btn-flat"><i class='fa fa-trash'></i></a>
+                                                                <a href="#edit{{$area->area_code}}" data-toggle="modal" class="btn btn-success btn-sm edit btn-flat"><i class='fa fa-edit'></i></a>
+                                                                <a href="#delete{{$area->area_code}}" data-toggle="modal" class="btn btn-danger btn-sm delete btn-flat"><i class='fa fa-trash'></i></a>
                                                             </td>
                                                         </tr>
                                                         @endforeach
@@ -68,21 +59,17 @@
                                             </div>
                                         </div>
                                     </div>
-									<!-- Log on to codeastro.com for more projects! -->
                                 </div>
                             </div> <!-- end col -->
                         </div> <!-- end row -->    
                                     
-@foreach( $employees as $employee)
-@include('includes.edit_delete_employee')
+@foreach( $areas as $area)
+    @include('includes.edit_delete_area')
 @endforeach
 
-@include('includes.add_employee')
+@include('includes.add_area')
 
 @endsection
-
-
 @section('script')
-<!-- Responsive-table-->
 
 @endsection

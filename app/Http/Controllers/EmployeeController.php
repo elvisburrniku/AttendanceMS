@@ -28,6 +28,8 @@ class EmployeeController extends Controller
             return (object) $e;
         });
 
+        dd($employees);
+
         $dep_api = new ApiHelper();
 
         $dep_api->url(ApiUrlHelper::url('Department'))->get();
@@ -65,48 +67,21 @@ class EmployeeController extends Controller
 
         $employee = $api->post($request->all());
 
-        // $employee = new Employee;
-        // $employee->name = $request->name;
-        // $employee->position = $request->position;
-        // $employee->email = $request->email;
-        // $employee->pin_code = bcrypt($request->pin_code);
-        // $employee->save();
-
-        // if($request->schedule){
-
-        //     $schedule = Schedule::whereSlug($request->schedule)->first();
-
-        //     $employee->schedules()->attach($schedule);
-        // }
-
-        // $role = Role::whereSlug('emp')->first();
-
-        // $employee->roles()->attach($role);
-
         flash()->success('Success','Employee Record has been created successfully !');
 
         return redirect()->route('employees.index')->with('success');
     }
 
  
-    public function update(EmployeeRec $request, Employee $employee)
+    public function update(EmployeeRec $request, $id)
     {
         $request->validated();
+       
+        $api = new ApiHelper();
 
-        $employee->name = $request->name;
-        $employee->position = $request->position;
-        $employee->email = $request->email;
-        $employee->pin_code = bcrypt($request->pin_code);
-        $employee->save();
+        $api->url(ApiUrlHelper::url('Employee.Update'));
 
-        if ($request->schedule) {
-
-            $employee->schedules()->detach();
-
-            $schedule = Schedule::whereSlug($request->schedule)->first();
-
-            $employee->schedules()->attach($schedule);
-        }
+        $employee = $api->put($id, $request->all());
 
         flash()->success('Success','Employee Record has been Updated successfully !');
 
@@ -114,9 +89,14 @@ class EmployeeController extends Controller
     }
 
 
-    public function destroy(Employee $employee)
+    public function destroy($id)
     {
-        $employee->delete();
+        $api = new ApiHelper();
+
+        $api->url(ApiUrlHelper::url('Employee.Update'));
+
+        $api->delete($id);
+
         flash()->success('Success','Employee Record has been Deleted successfully !');
         return redirect()->route('employees.index')->with('success');
     }

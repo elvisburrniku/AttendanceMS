@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Attendance extends Model
 
 {
-
-    protected $table = 'attendances';
+    protected $table = 'iclock_transaction';
     
     
     public function employee()

@@ -17,28 +17,35 @@
                             
 
                             <li>
-                            <a href="/employees" class="waves-effect {{ request()->is("employees") || request()->is("/employees/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Punonjësit </span></a>
-                                <!-- <ul class="submenu">
-                                    <li>
-                                        <i class="dripicons-view-apps"></i><span>Employees List</span></a>
-                                    </li>
-                                   
-                                </ul> -->
+                                <a href="/employees" class="waves-effect {{ request()->is("employees") || request()->is("/employees/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Punonjësit </span></a>
                             </li>
+
+                            <li>
+                                <a href="/departments" class="waves-effect {{ request()->is("departments") || request()->is("/departments/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Departamentet </span></a>
+                            </li>
+
+                            <li>
+                                <a href="/positions" class="waves-effect {{ request()->is("positions") || request()->is("/positions/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Pozicionet </span></a>
+                            </li>
+                            
+                            <li>
+                                <a href="/areas" class="waves-effect {{ request()->is("areas") || request()->is("/areas/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Zona </span></a>
+                            </li>
+                            
 							<!-- Log on to codeastro.com for more projects! -->
                             <li class="menu-title">Management</li>
 
-                            <li class="">
+                            <li class="d-none">
                                 <a href="/schedule" class="waves-effect {{ request()->is("schedule") || request()->is("schedule/*") ? "mm active" : "" }}">
                                     <i class="ti-time"></i> <span> Orari </span>
                                 </a>
                             </li>
-                            <li class="">
+                            <li class="d-none">
                                 <a href="/check" class="waves-effect {{ request()->is("check") || request()->is("check/*") ? "mm active" : "" }}">
                                     <i class="dripicons-to-do"></i> <span> Attendance Sheet </span>
                                 </a>
                             </li>
-                            <li class="">
+                            <li class="d-none">
                                 <a href="/sheet-report" class="waves-effect {{ request()->is("sheet-report") || request()->is("sheet-report/*") ? "mm active" : "" }}">
                                     <i class="dripicons-to-do"></i> <span> Sheet Report </span>
                                 </a>

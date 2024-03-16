@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Schedule extends Model
 {
+    protected $table = 'att_attschedule';
+    
     public function getRouteKeyName()
     {
         return 'slug';
