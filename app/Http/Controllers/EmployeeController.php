@@ -28,8 +28,6 @@ class EmployeeController extends Controller
             return (object) $e;
         });
 
-        dd($employees);
-
         $dep_api = new ApiHelper();
 
         $dep_api->url(ApiUrlHelper::url('Department'))->get();

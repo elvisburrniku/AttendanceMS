@@ -29,7 +29,6 @@ class AttendanceController extends Controller
         $schedules = Schedule::all();
         $shifts = Shift::all();
         $timetables = TimeInterval::all();
-        dd($timetables);
         $attendances_for_all = Attendance::whereDate('upload_time', '>=', $start_t)->whereDate('upload_time', '<=', $end_t)->get();
         $attendances = $employees->map(function($emp, $code) use ($schedules, $attendances_for_all, $shifts, $timetables) {
             $attendances_emp = collect($attendances_for_all->where('emp_code', $emp->emp_code)->all());
