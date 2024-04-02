@@ -56,6 +56,10 @@
                                                    
                                                     </tbody>
                                                 </table>
+
+                                                <div class="float-right">
+                                                    {{ $departments->links() }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

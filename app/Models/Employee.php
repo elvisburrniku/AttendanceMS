@@ -17,6 +17,16 @@ class Employee extends Model
         return 'name';
     }
 
+    public function areas()
+    {
+        return $this->belongsToMany(Area::class, 'personnel_employee_area');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
     public function check()
     {
         return $this->hasMany(Check::class);

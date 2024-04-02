@@ -19,29 +19,12 @@ class AdminController extends Controller
     public function index()
     {
         $today = Carbon::today()->format('Y-m-d');
-        $api = new ApiHelper();
-
-        $api->url(ApiUrlHelper::url('Employee'));
-
-        $employee = $api->get();
-
-        $at_api = new ApiHelper();
-        $at_api->url(ApiUrlHelper::url('Attendance'))->get();
-
+        $attendances = Attendance::whereDate('punch_time', $today)->get();
         //Dashboard statistics 
-        $totalEmp =  $employee->get('count');
-        $AllAttendance = $at_api->getData()->filter(function ($item) use ($today) {
-            $punchTime = Carbon::parse($item['punch_time'])->toDateString();
-            return $punchTime == $today;
-        })->count();
-        $ontimeEmp = $at_api->getData()->filter(function ($item) use ($today) {
-            $punchTime = Carbon::parse($item['punch_time'])->toDateString();
-            return $punchTime == $today;
-        })->where('punch_state', 1)->count();
-        $latetimeEmp = $at_api->getData()->filter(function ($item) use ($today) {
-            $punchTime = Carbon::parse($item['punch_time'])->toDateString();
-            return $punchTime == $today;
-        })->where('punch_state', 0)->count();
+        $totalEmp =  Employee::count();
+        $AllAttendance = $attendances->unique('punch_state')->count();
+        $ontimeEmp = $attendances->where('punch_state', 1)->unique('punch_state')->count();
+        $latetimeEmp = $attendances->where('punch_state', 0)->unique('punch_state')->count();
         $totalSchedule =  count(Schedule::all());
             
         if($AllAttendance > 0){

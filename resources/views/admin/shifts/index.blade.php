@@ -8,10 +8,10 @@
 
 @section('breadcrumb')
     <div class="col-sm-6">
-        <h4 class="page-title text-left">Schedules</h4>
+        <h4 class="page-title text-left">Shifts</h4>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-            <li class="breadcrumb-item"><a href="javascript:void(0);">Schedule</a></li>
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Shift</a></li>
 			<!-- Log on to codeastro.com for more projects! -->
  
 
@@ -40,33 +40,24 @@
                             <thead class="thead-dark">
                                     <tr>
                                         <th data-priority="1">#</th>
-                                        <th data-priority="2">Shift</th>
-                                        <th data-priority="3">Time In</th>
-                                        <th data-priority="4">Time Out</th>
-                                        <th data-priority="4">Shift</th>
+                                        <th data-priority="2">Name</th>
+                                        <th data-priority="3">Timetable</th>
                                         <th data-priority="5">Actions</th>
                                      
 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($schedules as $schedule)
+                                    @foreach ($shifts as $shift)
                                         <tr>
-                                            <td> {{ $schedule->id }} </td>
-                                            @php
-                                                $employee = $schedule->employee;
-                                            @endphp
-                                            <td> {{$employee->first_name}} {{ $employee->last_name }} </td>
-                                            <td> {{ $schedule->start_date }} </td>
-                                            <td> {{ $schedule->end_date }} </td>
+                                            <td> {{ $shift->id }} </td>
+                                            <td> {{ $shift->alias }}</td>
+                                            <td> {{ $shift->timetables->pluck('timeInterval.alias')->unique()->implode(', ') }} </td>
                                             <td>
-                                                <a href="{{ route('shift.show', $schedule->shift) }}"> 
-                                                    {{ optional($schedule->shift)->alias }} 
-                                                </a>
-                                            </td>
-                                            <td>
-
-                                                <a href="#delete{{ $schedule->id }}" data-toggle="modal"
+                                                <a href="{{ route('shift.show', $shift) }}"
+                                                class="btn btn-primary btn-sm delete btn-flat"><i
+                                                    class='fa fa-eye'></i></a>
+                                                <a href="#delete{{ $shift->id }}" data-toggle="modal"
                                                     class="btn btn-danger btn-sm delete btn-flat"><i
                                                         class='fa fa-trash'></i></a>
 
@@ -84,11 +75,11 @@
             </div>
         </div> <!-- end col -->
     </div> <!-- end row -->
-    @foreach ($schedules as $schedule)
-        @include('includes.edit_delete_schedule')
+    @foreach ($shifts as $shift)
+        @include('includes.edit_delete_shifts')
     @endforeach
 
-    @include('includes.add_schedule')
+    @include('includes.add_shift')
 
 @endsection
 

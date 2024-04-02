@@ -6,21 +6,16 @@ use App\Http\Requests\PositionRec;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
+use App\Models\Position;
 
 class PositionController extends Controller
 {
    
     public function index()
     {
-        $pos_api = new ApiHelper();
+        $positions = Position::simplePaginate(100);
 
-        $pos_api->url(ApiUrlHelper::url('Position'))->get();
-        
-        $positions = $pos_api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        return view('admin.position')->with(['positions' => $positions, 'positions_count' => $pos_api->response->get('count')]);
+        return view('admin.position')->with(['positions' => $positions, 'positions_count' => $positions->count() ]);
     }
 
     public function store(PositionRec $request)

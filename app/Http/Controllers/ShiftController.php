@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Schedule;
+use Illuminate\Http\Request;
+use App\Models\Shift;
 use App\Http\Requests\ScheduleEmp;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
 
-class ScheduleController extends Controller
+class ShiftController extends Controller
 {
-   
     public function index()
     {
-        return view('admin.schedule')->with('schedules', Schedule::with('employee')->paginate(100));
-        flash()->success('Success','Schedule has been created successfully !');
-
+        return view('admin.shifts.index')->with('shifts', Shift::with('timetables')->paginate(100));
     }
 
 

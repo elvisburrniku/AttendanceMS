@@ -40,33 +40,33 @@
                             <thead class="thead-dark">
                                     <tr>
                                         <th data-priority="1">#</th>
-                                        <th data-priority="2">Shift</th>
-                                        <th data-priority="3">Time In</th>
-                                        <th data-priority="4">Time Out</th>
-                                        <th data-priority="4">Shift</th>
+                                        <th data-priority="2">Name</th>
+                                        <th data-priority="2">Type</th>
+                                        <th data-priority="3">Check In</th>
+                                        <th data-priority="4">Check Out</th>
+                                        <th data-priority="4">Worktime</th>
                                         <th data-priority="5">Actions</th>
                                      
 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($schedules as $schedule)
+                                    @foreach ($timetables as $timetable)
                                         <tr>
-                                            <td> {{ $schedule->id }} </td>
+                                            <td> {{ $timetable->id }} </td>
+                                            <td> {{ $timetable->alias }} </td>
+                                            <td> {{ $timetable->type }} </td>
                                             @php
-                                                $employee = $schedule->employee;
+                                                $now = \Carbon\Carbon::parse(now()->format('Y-m-d').' '.$timetable->in_time);
+                                                $in_time = $now->format('H:i');
+                                                $out_time = $now->addMinutes($timetable->duration);
                                             @endphp
-                                            <td> {{$employee->first_name}} {{ $employee->last_name }} </td>
-                                            <td> {{ $schedule->start_date }} </td>
-                                            <td> {{ $schedule->end_date }} </td>
-                                            <td>
-                                                <a href="{{ route('shift.show', $schedule->shift) }}"> 
-                                                    {{ optional($schedule->shift)->alias }} 
-                                                </a>
-                                            </td>
+                                            <td> {{ $in_time }} </td>
+                                            <td> {{ $out_time->format('H:i') }} </td>
+                                            <td> {{ $timetable->duration }} min</td>
                                             <td>
 
-                                                <a href="#delete{{ $schedule->id }}" data-toggle="modal"
+                                                <a href="#delete{{ $timetable->id }}" data-toggle="modal"
                                                     class="btn btn-danger btn-sm delete btn-flat"><i
                                                         class='fa fa-trash'></i></a>
 
@@ -84,11 +84,7 @@
             </div>
         </div> <!-- end col -->
     </div> <!-- end row -->
-    @foreach ($schedules as $schedule)
-        @include('includes.edit_delete_schedule')
-    @endforeach
 
-    @include('includes.add_schedule')
 
 @endsection
 

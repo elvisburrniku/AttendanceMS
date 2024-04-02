@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\Role;
-use App\Models\Schedule;
+use App\Models\Department;
 use App\Http\Requests\DepartmentRec;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Helpers\ApiHelper;
@@ -16,15 +16,9 @@ class DepartmentController extends Controller
    
     public function index()
     {
-        $dep_api = new ApiHelper();
+        $departments = Department::simplePaginate(100);
 
-        $dep_api->url(ApiUrlHelper::url('Department'))->get();
-        
-        $departments = $dep_api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        return view('admin.department')->with(['departments' => $departments, 'departments_count' => $dep_api->response->get('count')]);
+        return view('admin.department')->with(['departments' => $departments, 'departments_count' => $departments->count()]);
     }
 
     public function store(DepartmentRec $request)

@@ -6,21 +6,16 @@ use App\Http\Requests\AreaRec;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
+use App\Models\Area;
 
 class AreaController extends Controller
 {
    
     public function index()
     {
-        $api = new ApiHelper();
+       $areas = Area::simplePaginate(100);
 
-        $api->url(ApiUrlHelper::url('Area'))->get();
-        
-        $areas = $api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        return view('admin.area')->with(['areas' => $areas, 'areas_count' => $api->response->get('count')]);
+       return view('admin.area')->with(['areas' => $areas, 'areas_count' => $areas->count()]);
     }
 
     public function store(AreaRec $request)

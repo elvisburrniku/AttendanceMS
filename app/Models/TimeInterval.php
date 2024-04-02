@@ -10,4 +10,9 @@ class TimeInterval extends Model
     use HasFactory;
 
     protected $table = 'att_timeinterval';
+
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }

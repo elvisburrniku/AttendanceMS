@@ -10,4 +10,9 @@ class Shift extends Model
     use HasFactory;
 
     protected $table = 'att_attshift';
+
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }

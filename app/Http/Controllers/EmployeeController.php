@@ -6,6 +6,9 @@ use App\Models\User;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\Schedule;
+use App\Models\Department;
+use App\Models\Position;
+use App\Models\Area;
 use App\Http\Requests\EmployeeRec;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Helpers\ApiHelper;
@@ -16,43 +19,16 @@ class EmployeeController extends Controller
    
     public function index()
     {
-        $api = new ApiHelper();
+        $employees = Employee::with('areas', 'department')->simplePaginate(100);
+        $employee_count = $employees->count();
 
-        $api->url(ApiUrlHelper::url('Employee'));
+        $departments = Department::all();
 
-        $employee = $api->get();
-        
-        $employee_count = $employee['count'];
+        $positions = Position::all();
 
-        $employees = $api->getData()->map(function($e) {
-            return (object) $e;
-        });
+        $areas = Area::all();
 
-        $dep_api = new ApiHelper();
-
-        $dep_api->url(ApiUrlHelper::url('Department'))->get();
-        
-        $departments = $dep_api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        $pos_api = new ApiHelper();
-
-        $pos_api->url(ApiUrlHelper::url('Position'))->get();
-        
-        $positions = $pos_api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        $area_api = new ApiHelper();
-
-        $area_api->url(ApiUrlHelper::url('Area'))->get();
-        
-        $areas = $area_api->getData()->map(function($e) {
-            return (object) $e;
-        });
-
-        return view('admin.employee')->with(['employees'=> $employees, 'employee_count' => $employee_count, 'departments' => $departments, 'positions' => $positions, 'areas' => $areas, 'schedules'=>Schedule::all()]);
+        return view('admin.employee')->with(['employees'=> $employees, 'employee_count' => $employee_count, 'departments' => $departments, 'positions' => $positions, 'areas' => $areas]);
     }
 
     public function store(EmployeeRec $request)

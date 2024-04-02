@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Schedule;
-use App\Http\Requests\ScheduleEmp;
-use App\Helpers\ApiHelper;
-use App\Helpers\ApiUrlHelper;
+use Illuminate\Http\Request;
+use App\Models\Timetable;
+use App\Models\Timeinterval;
 
-class ScheduleController extends Controller
+class TimetableController extends Controller
 {
-   
     public function index()
     {
-        return view('admin.schedule')->with('schedules', Schedule::with('employee')->paginate(100));
-        flash()->success('Success','Schedule has been created successfully !');
-
+        dd(Timeinterval::with('timetables')->paginate(100));
+        // TODO Breaks
+        return view('admin.timetable')->with('timetables', Timeinterval::with('timetables')->paginate(100));
     }
 
 

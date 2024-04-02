@@ -35,9 +35,14 @@
 							<!-- Log on to codeastro.com for more projects! -->
                             <li class="menu-title">Management</li>
 
-                            <li class="d-none">
+                            <li>
                                 <a href="/schedule" class="waves-effect {{ request()->is("schedule") || request()->is("schedule/*") ? "mm active" : "" }}">
                                     <i class="ti-time"></i> <span> Orari </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/shift" class="waves-effect {{ request()->is("shift") || request()->is("shift/*") ? "mm active" : "" }}">
+                                    <i class="ti-time"></i> <span> Shift </span>
                                 </a>
                             </li>
                             <li class="d-none">
