@@ -18,6 +18,7 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::resource('/positions', '\App\Http\Controllers\PositionController');
     Route::resource('/areas', '\App\Http\Controllers\AreaController');
     Route::get('/attendance', '\App\Http\Controllers\AttendanceController@index')->name('attendance');
+    Route::put('/attendance/{id}', '\App\Http\Controllers\AttendanceController@update')->name('attendance.update');
     Route::delete('/attendance/{id}', '\App\Http\Controllers\AttendanceController@destroy')->name('attendances.destroy');
     Route::get('/attendances/export', '\App\Http\Controllers\AttendanceController@export')->name('attendance.export');
 

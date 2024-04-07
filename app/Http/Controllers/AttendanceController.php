@@ -23,20 +23,24 @@ class AttendanceController extends Controller
     public function index()
     {  
 
-        $start_t = now()->format('Y-m-d'). ' 00:00';
-        $end_t = now()->format('Y-m-d'). ' 23:59';
+        $start_t = (request()->date ?? now()->format('Y-m-d')). ' 00:00';
+        $end_t = (request()->date ?? now()->format('Y-m-d')). ' 23:59';
+
+        $next = \Carbon\Carbon::parse($start_t)->addDay();
+        $prev = \Carbon\Carbon::parse($start_t)->subDay();
         $employees = Employee::all();
         $schedules = Schedule::all();
         $shifts = Shift::all();
         $timetables = TimeInterval::all();
-        $attendances_for_all = Attendance::whereDate('upload_time', '>=', $start_t)->whereDate('upload_time', '<=', $end_t)->get();
+        $attendances_for_all = Attendance::whereDate('punch_time', $start_t)->whereDate('punch_time', '<=', $end_t)->get();
         $attendances = $employees->map(function($emp, $code) use ($schedules, $attendances_for_all, $shifts, $timetables) {
             $attendances_emp = collect($attendances_for_all->where('emp_code', $emp->emp_code)->all());
             $default_emp = (object) [
-                'id' => 0,
+                'id' => $emp->id,
+                'user_id' => $emp->id,
                 'first_name' => $emp->first_name,
                 'last_name' => $emp->last_name,
-                'upload_time' => now()->format('Y-m-d'),
+                'upload_time' => request()->date ?? now()->format('Y-m-d'),
                 'checkin_time' => '',
                 'break_in_time' => '',
                 'break_out_time' => '',
@@ -45,10 +49,10 @@ class AttendanceController extends Controller
                 'group_ids' => '',
             ];
             $new_employee_for_day = $attendances_emp->first() ?? $default_emp;
-            
+            $new_employee_for_day->user_id = $emp->id;
             $new_employee_for_day->first_name = $emp->first_name;
             $new_employee_for_day->last_name = $emp->last_name;
-            $new_employee_for_day->upload_time = $emp->upload_time;
+            $new_employee_for_day->upload_time = $default_emp->upload_time;
 
             // Timetable
             $shift = null;
@@ -62,6 +66,7 @@ class AttendanceController extends Controller
             $group_ids = $attendances_emp->pluck('id');
             $checkin = $attendances_emp->where('punch_state', 0)->sortBy('punch_time')->first();
             $new_employee_for_day->checkin_time = $this->convertToTime(optional($checkin)->punch_time);
+            $new_employee_for_day->checkin_time_date = $new_employee_for_day->checkin_time;
 
             if(optional($timetable)->in_time && $checkin){
                 $timetableInDateTime = DateTime::createFromFormat('H:i:s', optional($timetable)->in_time);
@@ -131,7 +136,7 @@ class AttendanceController extends Controller
             return $new_employee_for_day;
         });
 
-        return view('admin.attendance')->with(['attendances' => $attendances]);
+        return view('admin.attendance')->with(['attendances' => $attendances, 'next' => $next, 'prev' => $prev]);
     }
 
     protected function convertToTime($date_time)
@@ -175,6 +180,168 @@ class AttendanceController extends Controller
         $latetime->duration = $difference;
         $latetime->latetime_date = date('Y-m-d', strtotime($att_dateTime));
         $latetime->save();
+    }
+
+    public function update(Request $request, $employee_id)
+    {
+        $employee = Employee::find($employee_id);
+        $start_t = (request()->date ?? now()->format('Y-m-d')). ' 00:00';
+        $end_t = (request()->date ?? now()->format('Y-m-d')). ' 23:59';
+        $attendances = Attendance::whereDate('upload_time', '>=', $start_t)->whereDate('upload_time', '<=', $end_t)->where('emp_code', $employee->emp_code)->get();
+        $checkin = $attendances->where('punch_state', '0')->sortBy('punch_time')->first();
+        $checkout = $attendances->where('punch_state', '1')->sortBy('punch_time')->first();
+        $break_in = $attendances->where('punch_state', '3')->sortBy('punch_time')->first();
+        $break_out = $attendances->where('punch_state', '2')->sortBy('punch_time')->first();
+        $random_attendance = Attendance::first();
+
+        if($checkin && $request->checkin_time) {
+            $checkin->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkin_time);
+            $checkin->save();
+        } else if(($checkin = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "0")->where('emp_code', $employee->emp_code)->first()) && $request->checkin_time) {
+            $checkin->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkin_time);
+            $checkin->save();
+        } else if ($request->checkin_time) {
+            $checkin = Attendance::insert([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => \Carbon\Carbon::parse($request->date. ' '.$request->checkin_time),
+                "punch_state" => "0",
+                "verify_type" => $random_attendance->verify_type,
+                "work_code" => $random_attendance->work_code,
+                "terminal_sn" => $random_attendance->terminal_sn,
+                "terminal_alias" => $random_attendance->terminal_alias,
+                "area_alias" => $random_attendance->area_alias,
+                "longitude" => $random_attendance->longitude,
+                "latitude" => $random_attendance->latitude,
+                "gps_location" => $random_attendance->gps_location,
+                "mobile" => $random_attendance->mobile,
+                "source" => $random_attendance->source,
+                "purpose" => $random_attendance->purpose,
+                "crc" => $random_attendance->crc,
+                "is_attendance" => $random_attendance->is_attendance,
+                "reserved" => $random_attendance->reserved,
+                "upload_time" => $random_attendance->upload_time,
+                "sync_status" => $random_attendance->sync_status,
+                "sync_time" => $random_attendance->sync_time,
+                "is_mask" => $random_attendance->is_mask,
+                "temperature" => $random_attendance->temperature,
+                "emp_id" => $employee->id,
+                "terminal_id" => $random_attendance->terminal_id,
+                "company_code" => $random_attendance->company_code,
+            ]);
+
+            dd($checkin);
+        }
+
+        if($checkout && $request->checkout_time) {
+            $checkout->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkout_time);
+            $checkout->save();
+        } else if(($checkout = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "1")->where('emp_code', $employee->emp_code)->first()) && $request->checkout_time) {
+            $checkout->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkout_time);
+            $checkout->save();
+        } else if ($request->checkout_time) {
+            $checkout = Attendance::insert([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => \Carbon\Carbon::parse($request->date. ' '.$request->checkout_time),
+                "punch_state" => "1",
+                "verify_type" => $random_attendance->verify_type,
+                "work_code" => $random_attendance->work_code,
+                "terminal_sn" => $random_attendance->terminal_sn,
+                "terminal_alias" => $random_attendance->terminal_alias,
+                "area_alias" => $random_attendance->area_alias,
+                "longitude" => $random_attendance->longitude,
+                "latitude" => $random_attendance->latitude,
+                "gps_location" => $random_attendance->gps_location,
+                "mobile" => $random_attendance->mobile,
+                "source" => $random_attendance->source,
+                "purpose" => $random_attendance->purpose,
+                "crc" => $random_attendance->crc,
+                "is_attendance" => $random_attendance->is_attendance,
+                "reserved" => $random_attendance->reserved,
+                "upload_time" => $random_attendance->upload_time,
+                "sync_status" => $random_attendance->sync_status,
+                "sync_time" => $random_attendance->sync_time,
+                "is_mask" => $random_attendance->is_mask,
+                "temperature" => $random_attendance->temperature,
+                "emp_id" => $employee->id,
+                "terminal_id" => $random_attendance->terminal_id,
+                "company_code" => $random_attendance->company_code,
+            ]);
+        }
+
+        if($break_in && $request->break_in_time) {
+            $break_in->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_in_time);
+            $break_in->save();
+        } else if(($break_in = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "3")->where('emp_code', $employee->emp_code)->first()) && $request->break_in_time) {
+            $break_in->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_in_time);
+            $break_in->save();
+        } else if ($request->break_in_time) {
+            $break_in = Attendance::insert([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => \Carbon\Carbon::parse($request->date. ' '.$request->break_in_time),
+                "punch_state" => "3",
+                "verify_type" => $random_attendance->verify_type,
+                "work_code" => $random_attendance->work_code,
+                "terminal_sn" => $random_attendance->terminal_sn,
+                "terminal_alias" => $random_attendance->terminal_alias,
+                "area_alias" => $random_attendance->area_alias,
+                "longitude" => $random_attendance->longitude,
+                "latitude" => $random_attendance->latitude,
+                "gps_location" => $random_attendance->gps_location,
+                "mobile" => $random_attendance->mobile,
+                "source" => $random_attendance->source,
+                "purpose" => $random_attendance->purpose,
+                "crc" => $random_attendance->crc,
+                "is_attendance" => $random_attendance->is_attendance,
+                "reserved" => $random_attendance->reserved,
+                "upload_time" => $random_attendance->upload_time,
+                "sync_status" => $random_attendance->sync_status,
+                "sync_time" => $random_attendance->sync_time,
+                "is_mask" => $random_attendance->is_mask,
+                "temperature" => $random_attendance->temperature,
+                "emp_id" => $employee->id,
+                "terminal_id" => $random_attendance->terminal_id,
+                "company_code" => $random_attendance->company_code,
+            ]);
+        }
+
+
+        if($break_out && $request->break_out_time) {
+            $break_out->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_out_time);
+            $break_out->save();
+        } else if(($break_out = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "2")->where('emp_code', $employee->emp_code)->first()) && $request->break_out_time) {
+            $break_out->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_out_time);
+            $break_out->save();
+        } else if ($request->break_out_time) {
+            $break_out = Attendance::insert([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => \Carbon\Carbon::parse($request->date. ' '.$request->break_out_time),
+                "punch_state" => "2",
+                "verify_type" => $random_attendance->verify_type,
+                "work_code" => $random_attendance->work_code,
+                "terminal_sn" => $random_attendance->terminal_sn,
+                "terminal_alias" => $random_attendance->terminal_alias,
+                "area_alias" => $random_attendance->area_alias,
+                "longitude" => $random_attendance->longitude,
+                "latitude" => $random_attendance->latitude,
+                "gps_location" => $random_attendance->gps_location,
+                "mobile" => $random_attendance->mobile,
+                "source" => $random_attendance->source,
+                "purpose" => $random_attendance->purpose,
+                "crc" => $random_attendance->crc,
+                "is_attendance" => $random_attendance->is_attendance,
+                "reserved" => $random_attendance->reserved,
+                "upload_time" => $random_attendance->upload_time,
+                "sync_status" => $random_attendance->sync_status,
+                "sync_time" => $random_attendance->sync_time,
+                "is_mask" => $random_attendance->is_mask,
+                "temperature" => $random_attendance->temperature,
+                "emp_id" => $employee->id,
+                "terminal_id" => $random_attendance->terminal_id,
+                "company_code" => $random_attendance->company_code,
+            ]);
+        }
+
+        return redirect()->back();
     }
   
     public function destroy(Request $request, $main_id)

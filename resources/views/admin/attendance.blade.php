@@ -27,7 +27,11 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-
+                    <div class="d-flex justify-end float-right">
+                        <label class="d-flex align-items-center">
+                            <span class="mr-1 font-weight-normal">Data:</span><input type="date" id="date" value="{{ request()->date ?? now()->format('Y-m-d') }}" class="form-control form-control-sm" placeholder="Selekto datën" aria-controls="datatable-buttons">
+                        </label>
+                    </div>
                     <div class="table-rep-plugin">
                         <div class="table-responsive mb-0" data-pattern="priority-columns">
                             <table id="datatable-buttons" class="table table-hover table-striped table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
@@ -63,6 +67,7 @@
                                             </td>
                                             <td>{{ $attendance->difference }} </td>
                                             <td>
+                                                <a href="#edit{{$attendance->user_id}}" data-toggle="modal" class="btn btn-success btn-sm edit btn-flat"><i class='fa fa-edit'></i></a>
                                                 <a href="#delete{{$attendance->id}}" data-toggle="modal" class="btn btn-danger btn-sm delete btn-flat"><i class='fa fa-trash'></i></a>
                                             </td>
                                         </tr>
@@ -93,11 +98,34 @@
  
 @endsection
 
-@section('script')
+@section('script-bottom')
     <script>
         $(function() {
             $('.table-responsive').responsiveTable({
                 addDisplayAllBtn: 'btn btn-secondary'
+            });
+
+            function getTodayDate() {
+                var today = new Date();
+                var dd = String(today.getDate()).padStart(2, '0');
+                var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+                var yyyy = today.getFullYear();
+                return yyyy + '-' + mm + '-' + dd;
+            }
+
+            $('#date').attr('max', getTodayDate());
+
+            $('#date').on('change', function(e) {
+                var selectedDate = $(this).val();
+    
+                // Get the current URL without query parameters
+                var baseUrl = window.location.origin + window.location.pathname;
+
+                // Construct the new URL with the updated query parameter
+                var newUrl = baseUrl + '?date=' + encodeURIComponent(selectedDate);
+
+                // Redirect to the new URL
+                window.location.href = newUrl;
             });
         });
     </script>

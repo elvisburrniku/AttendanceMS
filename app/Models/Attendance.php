@@ -8,7 +8,11 @@ class Attendance extends Model
 
 {
     protected $table = 'iclock_transaction';
-    
+
+    protected $guarded = [];
+
+    const CREATED_AT = 'upload_time';
+    const UPDATED_AT = null;
     
     public function employee()
     {
