@@ -228,8 +228,6 @@ class AttendanceController extends Controller
                 "terminal_id" => $random_attendance->terminal_id,
                 "company_code" => $random_attendance->company_code,
             ]);
-
-            dd($checkin);
         }
 
         if($checkout && $request->checkout_time) {
