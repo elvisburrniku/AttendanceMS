@@ -32,9 +32,9 @@ class Employee extends Model
         return $this->hasMany(Check::class);
     }
 
-    public function attendance()
+    public function attendances()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->hasMany(Attendance::class, 'emp_id');
     }
     public function latetime()
     {
@@ -50,7 +50,7 @@ class Employee extends Model
     }
     public function schedules()
     {
-        return $this->belongsToMany('App\Models\Schedule', 'schedule_employees', 'emp_id', 'schedule_id');
+        return $this->hasMany('App\Models\Schedule', 'employee_id');
     }
 
 

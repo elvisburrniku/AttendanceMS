@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
 use Carbon\Carbon;
+use DateTime;
 
 class AdminController extends Controller
 {
@@ -22,18 +23,52 @@ class AdminController extends Controller
         $attendances = Attendance::whereDate('punch_time', $today)->get();
         //Dashboard statistics 
         $totalEmp =  Employee::count();
-        $AllAttendance = $attendances->unique('punch_state')->count();
-        $ontimeEmp = $attendances->where('punch_state', 1)->unique('punch_state')->count();
-        $latetimeEmp = $attendances->where('punch_state', 0)->unique('punch_state')->count();
+        $AllAttendance = $attendances->count();
+        $employees = Employee::with('schedules.shift.timetables.timeInterval')->with(['attendances' => function($query) use ($today) {
+            $query->whereDate('punch_time', $today);
+        }])->get();
+        $ontimeEmp = $employees->where('attendances.punch_state', 0)->filter(function($employee) {
+            $schedule = $employee->schedules->first();
+            $attendance = $employee->attendances->where('punch_state', 0)->sortBy('punch_time')->first();
+            if(!$attendance) {
+                return false;
+            }
+            $dayIndex = now()->dayOfWeek;
+            $timetable = $schedule->shift->timetables->where('day_index', $dayIndex)->first();
+            $timetableInDateTime = Carbon::parse(now()->format('Y-m-d'). ' ' .optional($timetable)->in_time);
+            $newEmployeeCheckinDateTime = Carbon::parse($attendance->punch_time);
+            if($timetableInDateTime < $newEmployeeCheckinDateTime) {
+                return false;
+            } else{
+                return true;
+            }
+        })->count();
+        $latetimeEmp = $employees->where('attendances.punch_state', 0)->filter(function($employee) {
+            $schedule = $employee->schedules->first();
+            $attendance = $employee->attendances->where('punch_state', 0)->sortBy('punch_time')->first();
+            if(!$attendance) {
+                return false;
+            }
+            $dayIndex = now()->dayOfWeek;
+            $timetable = $schedule->shift->timetables->where('day_index', $dayIndex)->first();
+            $timetableInDateTime = Carbon::parse(now()->format('Y-m-d'). ' ' .optional($timetable)->in_time);
+            $newEmployeeCheckinDateTime = Carbon::parse($attendance->punch_time);
+            if($timetableInDateTime < $newEmployeeCheckinDateTime) {
+                return true;
+            } else{
+                return false;
+            }
+        })->count();
+        $absentToday = $employees->where('attendances.*.punch_state', null)->count();
         $totalSchedule =  count(Schedule::all());
             
-        if($AllAttendance > 0){
-                $percentageOntime = str_split(($ontimeEmp/ $AllAttendance)*100, 4)[0];
+        if($totalEmp > 0){
+                $percentageOntime = str_split(($ontimeEmp/ $totalEmp)*100, 4)[0];
             }else {
                 $percentageOntime = 0 ;
             }
         
-        $data = [$totalEmp, $ontimeEmp, $latetimeEmp, $percentageOntime, $totalSchedule];
+        $data = [$totalEmp, $ontimeEmp, $latetimeEmp, $percentageOntime, $totalSchedule, $absentToday];
         
         return view('admin.index')->with(['data' => $data]);
     }
