@@ -194,7 +194,10 @@ class AttendanceController extends Controller
         $break_out = $attendances->where('punch_state', '2')->sortBy('punch_time')->first();
         $random_attendance = Attendance::first();
 
-        if($checkin && $request->checkin_time) {
+        if(!$request->filled('checkin_time')) {
+            $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "0")->where('emp_code', $employee->emp_code)->first();
+            $attendance->delete();
+        }else if($checkin && $request->checkin_time) {
             $checkin->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkin_time);
             $checkin->save();
         } else if(($checkin = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "0")->where('emp_code', $employee->emp_code)->first()) && $request->checkin_time) {
@@ -230,7 +233,10 @@ class AttendanceController extends Controller
             ]);
         }
 
-        if($checkout && $request->checkout_time) {
+        if(!$request->filled('checkout_time')) {
+            $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "1")->where('emp_code', $employee->emp_code)->first();
+            $attendance->delete();
+        } else if($checkout && $request->checkout_time) {
             $checkout->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkout_time);
             $checkout->save();
         } else if(($checkout = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "1")->where('emp_code', $employee->emp_code)->first()) && $request->checkout_time) {
@@ -266,7 +272,10 @@ class AttendanceController extends Controller
             ]);
         }
 
-        if($break_in && $request->break_in_time) {
+        if(!$request->filled('break_in_time')) {
+            $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "3")->where('emp_code', $employee->emp_code)->first();
+            $attendance->delete();
+        }else if($break_in && $request->break_in_time) {
             $break_in->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_in_time);
             $break_in->save();
         } else if(($break_in = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "3")->where('emp_code', $employee->emp_code)->first()) && $request->break_in_time) {
@@ -303,7 +312,10 @@ class AttendanceController extends Controller
         }
 
 
-        if($break_out && $request->break_out_time) {
+        if(!$request->filled('break_out_time')) {
+            $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "2")->where('emp_code', $employee->emp_code)->first();
+            $attendance->delete();
+        }else if($break_out && $request->break_out_time) {
             $break_out->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_out_time);
             $break_out->save();
         } else if(($break_out = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "2")->where('emp_code', $employee->emp_code)->first()) && $request->break_out_time) {
