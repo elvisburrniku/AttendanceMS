@@ -17,8 +17,8 @@
                 <thead class="thead-dark">
                         <tr>
 
-                            <th>Employee</th>
-                            <th>Position</th>
+                            <th>Puntori</th>
+                            <th>Departmenti</th>
                             <!-- <th>ID</th> -->
 							<!-- Log on to codeastro.com for more projects! -->
                             @php
@@ -30,12 +30,14 @@
                                 }
                                 
                             @endphp
-                            @foreach ($dates as $date)
+                            @foreach ($dates as $key => $date)
                                 <th>
-                                    {{ $date }}
+                                    {{ $key + 1 }}
                                 </th>
 
                             @endforeach
+
+                            <th style="background: #35dc35; border-color: #35dc35;"> Totali </th>
 
                         </tr>
                     </thead>
@@ -45,20 +47,22 @@
 
                         <form action="{{ route('check_store') }}" method="post">
                            
-                            <button type="submit" class="btn btn-success" style="display: flex; margin:10px">Submit Attendance</button>
+                            <button type="submit" disabled class="btn btn-success" style="display: flex; margin:10px">Submit Attendance  {{ now()->startOfMonth()->toDateString() }} - {{ now()->endOfMonth()->toDateString() }}</button>
                             @csrf
                             @foreach ($employees as $employee)
 
                                 <input type="hidden" name="emp_id" value="{{ $employee->id }}">
 
                                 <tr>
-                                    <td>{{ $employee->name }}</td>
-                                    <td>{{ $employee->position }}</td>
+                                    <td>{{ $employee->first_name }} {{ $employee->last_name }}</td>
+                                    <td>{{ $employee->department->dept_name }}</td>
                                     <!-- <td>{{ $employee->id }}</td> -->
 									<!-- Log on to codeastro.com for more projects! -->
 
 
-
+                                    @php
+                                        $total = 0;
+                                    @endphp
 
 
 
@@ -66,38 +70,88 @@
 
 
                                         @php
-                                            
                                             $date_picker = \Carbon\Carbon::createFromDate($today->year, $today->month, $i)->format('Y-m-d');
-                                            
-                                            $check_attd = \App\Models\Attendance::query()
-                                                ->where('emp_id', $employee->id)
-                                                ->where('attendance_date', $date_picker)
+                                            $check_attd = $employee->attendances
+                                                ->filter(function ($attendance) use ($date_picker) {
+                                                    return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
+                                                })
                                                 ->first();
+
+                                                $difference = 0;
+                                                $hours = 0;
+                                                $checkin = $employee->attendances->filter(function ($attendance) use ($date_picker) {
+                                                    return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
+                                                })->where('punch_state', 0)->sortBy('punch_time')->first();
+                                                $break_in = $employee->attendances->filter(function ($attendance) use ($date_picker) {
+                                                    return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
+                                                })->where('punch_state', 3)->sortBy('punch_time')->first();
+                                                $break_out = $employee->attendances->filter(function ($attendance) use ($date_picker) {
+                                                    return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
+                                                })->where('punch_state', 2)->sortBy('punch_time')->first();
+                                                $checkout = $employee->attendances->filter(function ($attendance) use ($date_picker) {
+                                                    return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
+                                                })->where('punch_state', 1)->sortBy('punch_time')->first();
+
+
+                                                if($checkin) {
+                                                    if($checkout) {
+                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkout->punch_time));
+                                                    } else {
+                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse(now()));
+                                                    }
+                                                }
+
+                                                if($checkin && $break_in) {
+                                                    if($break_out) {
+                                                        $difference_pause = \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
+                                                    } else {
+                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
+                                                    }
+                                                }
+
+                                                if(is_int($difference) && $difference > 0) {
+                                                    $total += $difference;
+                                                    $interval = \Carbon\CarbonInterval::seconds($difference);
+                                                    $formattedInterval = $interval->cascade()->format('%H:%I:%S');
+                                                    // Convert the time string to a Carbon object
+                                                    $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', $formattedInterval === 0 ? '00:00:00' : $formattedInterval);
+
+                                                    // Convert the Carbon object to hours
+                                                    $hours = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+
+                                                    $difference = $formattedInterval;
+                                                }
                                             
-                                            $check_leave = \App\Models\Leave::query()
-                                                ->where('emp_id', $employee->id)
-                                                ->where('leave_date', $date_picker)
-                                                ->first();
+                                            $check_leave = null;
                                             
                                         @endphp
                                         <td>
-
-                                            <div class="form-check form-check-inline">
+                                            <span @if($hours == 0) style="color: red;" @endif>{{ $hours }}<span> <br>
+                                            <div class="form-check d-none form-check-inline">
+                                                
                                                 <input class="form-check-input" id="check_box"
                                                     name="attd[{{ $date_picker }}][{{ $employee->id }}]" type="checkbox"
                                                     @if (isset($check_attd))  checked @endif id="inlineCheckbox1" value="1">
 
                                             </div>
-                                            <div class="form-check form-check-inline">
-                                                <input class="form-check-input" id="check_box"
-                                                    name="leave[{{ $date_picker }}][{{ $employee->id }}]]" type="checkbox"
-                                                    @if (isset($check_leave))  checked @endif id="inlineCheckbox2" value="1">
-
-                                            </div>
 
                                         </td>
-
+                                     
                                     @endfor
+
+                                    @php
+                                        $interval = \Carbon\CarbonInterval::seconds($total);
+                                        $totalFormatted = $interval->cascade()->format('%H:%I:%S');
+                                        $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', $totalFormatted === 0 ? '00:00:00' : $totalFormatted);
+
+                                        // Convert the Carbon object to hours
+                                        $hours_total = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+                                    @endphp
+
+                                    <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">
+                                        {{ $hours_total }}
+                                    </td>
+
                                 </tr>
                             @endforeach
 

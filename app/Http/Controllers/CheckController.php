@@ -13,7 +13,9 @@ class CheckController extends Controller
 {
     public function index()
     {
-        return view('admin.check')->with(['employees' => Employee::all()]);
+        return view('admin.check')->with(['employees' => Employee::with([ 'attendances'=> function($query) {
+            $query->whereMonth('punch_time', now());
+        }])->get()]);
     }
 
     public function CheckStore(Request $request)

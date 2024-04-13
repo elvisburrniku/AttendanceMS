@@ -45,9 +45,9 @@
                                     <i class="ti-time"></i> <span> Shift </span>
                                 </a>
                             </li>
-                            <li class="d-none">
+                            <li>
                                 <a href="/check" class="waves-effect {{ request()->is("check") || request()->is("check/*") ? "mm active" : "" }}">
-                                    <i class="dripicons-to-do"></i> <span> Attendance Sheet </span>
+                                    <i class="dripicons-to-do"></i> <span> Raporti Checkin/Out </span>
                                 </a>
                             </li>
                             <li class="d-none">
