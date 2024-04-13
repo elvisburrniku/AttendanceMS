@@ -196,7 +196,9 @@ class AttendanceController extends Controller
 
         if(!$request->filled('checkin_time')) {
             $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "0")->where('emp_code', $employee->emp_code)->first();
-            $attendance->delete();
+            if($attendance) {
+                $attendance->delete();
+            }
         }else if($checkin && $request->checkin_time) {
             $checkin->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkin_time);
             $checkin->save();
@@ -235,7 +237,9 @@ class AttendanceController extends Controller
 
         if(!$request->filled('checkout_time')) {
             $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "1")->where('emp_code', $employee->emp_code)->first();
-            $attendance->delete();
+            if($attendance) {
+                $attendance->delete();
+            }
         } else if($checkout && $request->checkout_time) {
             $checkout->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->checkout_time);
             $checkout->save();
@@ -274,7 +278,9 @@ class AttendanceController extends Controller
 
         if(!$request->filled('break_in_time')) {
             $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "3")->where('emp_code', $employee->emp_code)->first();
-            $attendance->delete();
+            if($attendance) {
+                $attendance->delete();
+            }
         }else if($break_in && $request->break_in_time) {
             $break_in->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_in_time);
             $break_in->save();
@@ -314,7 +320,9 @@ class AttendanceController extends Controller
 
         if(!$request->filled('break_out_time')) {
             $attendance = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "2")->where('emp_code', $employee->emp_code)->first();
-            $attendance->delete();
+            if($attendance) {
+                $attendance->delete();
+            }
         }else if($break_out && $request->break_out_time) {
             $break_out->punch_time = \Carbon\Carbon::parse($request->date. ' '. $request->break_out_time);
             $break_out->save();
