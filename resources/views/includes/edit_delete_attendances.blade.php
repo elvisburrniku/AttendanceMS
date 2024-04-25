@@ -31,6 +31,11 @@
                         <label for="emp_code">Dalje</label>
                         <input type="time" class="form-control" value="{{ $attendance->checkout_time }}" placeholder="Shkruaj kodin e zonës" id="checkout_time" name="checkout_time"/>
                     </div>
+
+                    <div class="form-group">
+                        <label for="comment">Koment</label>
+                        <input type="text" class="form-control" value="{{ optional($attendance->comments)->text }}" placeholder="Shkruaj komentin" id="comment" name="comment"/>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i

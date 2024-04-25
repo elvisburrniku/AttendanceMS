@@ -37,7 +37,7 @@
 
                             @endforeach
 
-                            <th style="background: #35dc35; border-color: #35dc35;"> Totali </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Total </th>
 
                         </tr>
                     </thead>
@@ -95,22 +95,21 @@
 
                                                 if($checkin) {
                                                     if($checkout) {
-                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkout->punch_time));
+                                                        $difference += \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkout->punch_time));
                                                     } else {
-                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse(now()));
+                                                        $difference += \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkin->punch_time));
                                                     }
                                                 }
 
-                                                if($checkin && $break_in) {
+                                                if($break_in) {
                                                     if($break_out) {
-                                                        $difference_pause = \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
+                                                        $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
                                                     } else {
-                                                        $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
+                                                        $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
                                                     }
                                                 }
 
                                                 if(is_int($difference) && $difference > 0) {
-                                                    $total += $difference;
                                                     $interval = \Carbon\CarbonInterval::seconds($difference);
                                                     $formattedInterval = $interval->cascade()->format('%H:%I:%S');
                                                     // Convert the time string to a Carbon object
@@ -118,6 +117,8 @@
 
                                                     // Convert the Carbon object to hours
                                                     $hours = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+                                                    
+                                                    $total += $hours;
 
                                                     $difference = $formattedInterval;
                                                 }
@@ -140,12 +141,7 @@
                                     @endfor
 
                                     @php
-                                        $interval = \Carbon\CarbonInterval::seconds($total);
-                                        $totalFormatted = $interval->cascade()->format('%H:%I:%S');
-                                        $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', $totalFormatted === 0 ? '00:00:00' : $totalFormatted);
-
-                                        // Convert the Carbon object to hours
-                                        $hours_total = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+                                        $hours_total = $total;
                                     @endphp
 
                                     <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">

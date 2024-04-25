@@ -36,6 +36,12 @@ class Employee extends Model
     {
         return $this->hasMany(Attendance::class, 'emp_id');
     }
+
+    public function comments()
+    {
+        return $this->hasMany(AttendanceComment::class, 'employee_id');
+    }
+
     public function latetime()
     {
         return $this->hasMany(Latetime::class);

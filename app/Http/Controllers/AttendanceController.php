@@ -9,6 +9,7 @@ use App\Models\Shift;
 use App\Models\TimeInterval;
 use App\Models\Latetime;
 use App\Models\Attendance;
+use App\Models\AttendanceComment;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\AttendanceEmp;
 use App\Helpers\ApiHelper;
@@ -47,12 +48,14 @@ class AttendanceController extends Controller
                 'checkout_time' => '',
                 'difference' => '',
                 'group_ids' => '',
+                'comments' => collect(),
             ];
             $new_employee_for_day = $attendances_emp->first() ?? $default_emp;
             $new_employee_for_day->user_id = $emp->id;
             $new_employee_for_day->first_name = $emp->first_name;
             $new_employee_for_day->last_name = $emp->last_name;
             $new_employee_for_day->upload_time = $default_emp->upload_time;
+            $new_employee_for_day->comments = $emp->comments()->whereDate('date', request()->date ?? now()->format('Y-m-d'))->latest()->first();
 
             // Timetable
             $shift = null;
@@ -108,28 +111,26 @@ class AttendanceController extends Controller
 
             if($checkin) {
                 if($checkout) {
-                    $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkout->punch_time));
+                    $difference += \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkout->punch_time));
                 } else {
-                    $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse(now()));
+                    $difference += \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($checkin->punch_time));
                 }
             }
 
-            if($checkin && $break_in) {
+            if($break_in) {
                 if($break_out) {
-                    $difference_pause = \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
+                    $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
                 } else {
-                    $difference = \Carbon\Carbon::parse($checkin->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
+                    $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
                 }
             }
 
-            if($difference > 0) {
-                $interval = CarbonInterval::seconds($difference);
-                $formattedInterval = $interval->cascade()->format('%H:%I:%S');
+            $difference = abs($difference);
 
-                $difference = $formattedInterval;
-            }
+            $interval = CarbonInterval::seconds($difference);
+            $formattedInterval = $interval->cascade()->format('%H:%I:%S');
 
-            $new_employee_for_day->difference = $difference;
+            $new_employee_for_day->difference = $formattedInterval;
 
             $new_employee_for_day->group_ids = $group_ids;
 
@@ -357,6 +358,13 @@ class AttendanceController extends Controller
                 "terminal_id" => $random_attendance->terminal_id,
                 "company_code" => $random_attendance->company_code,
             ]);
+        }
+
+        $comment = AttendanceComment::where('employee_id', $employee->id)->whereDate('date', $request->date)->first();
+        if($comment) {
+            $comment->update(['text' => $request->comment]);
+        } else {
+            $comment = AttendanceComment::create(['attendance_id' => Attendance::first()->id, 'employee_id' => $employee->id, 'text' => $request->comment, 'date' => $request->date]);
         }
 
         return redirect()->back();
