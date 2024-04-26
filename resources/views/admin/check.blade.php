@@ -101,14 +101,6 @@
                                                     }
                                                 }
 
-                                                if($break_in) {
-                                                    if($break_out) {
-                                                        $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_out->punch_time));
-                                                    } else {
-                                                        $difference -= \Carbon\Carbon::parse($break_in->punch_time)->diffInSeconds(\Carbon\Carbon::parse($break_in->punch_time));
-                                                    }
-                                                }
-
                                                 if(is_int($difference) && $difference > 0) {
                                                     $interval = \Carbon\CarbonInterval::seconds($difference);
                                                     $formattedInterval = $interval->cascade()->format('%H:%I:%S');
