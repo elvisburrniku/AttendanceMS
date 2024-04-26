@@ -45,6 +45,7 @@
                                         <th data-priority="5">Pauza</th>
                                         <th data-priority="6">Dalje</th>
                                         <th data-priority="7">Koha</th>
+                                        <th data-priority="7">Koment</th>
                                         <th data-priority="8">Action</th>
                                     </tr>
                                 </thead>
@@ -66,6 +67,7 @@
                                                 {!! $attendance->checkout_time !!}
                                             </td>
                                             <td>{{ $attendance->difference }} </td>
+                                            <td>{{ optional($attendance->comments)->text }} </td>
                                             <td>
                                                 <a href="#edit{{$attendance->user_id}}" data-toggle="modal" class="btn btn-success btn-sm edit btn-flat"><i class='fa fa-edit'></i></a>
                                                 <a href="#delete{{$attendance->id}}" data-toggle="modal" class="btn btn-danger btn-sm delete btn-flat"><i class='fa fa-trash'></i></a>
