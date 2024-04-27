@@ -15,6 +15,8 @@ class CheckController extends Controller
     {
         return view('admin.check')->with(['employees' => Employee::with([ 'attendances'=> function($query) {
             $query->whereMonth('punch_time', now());
+        }, 'overtimes'=> function($query) {
+            $query->whereMonth('date', request()->date ?? now());
         }])->get()]);
     }
 

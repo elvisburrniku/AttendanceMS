@@ -35,6 +35,8 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::resource('/timetable', '\App\Http\Controllers\TimetableController');
 
     Route::get('/check', '\App\Http\Controllers\CheckController@index')->name('check');
+    Route::get('/overtime', '\App\Http\Controllers\EmployeeOvertimeController@index')->name('overtime');
+    Route::post('/overtime', '\App\Http\Controllers\EmployeeOvertimeController@store')->name('overtime_store');
     Route::get('/sheet-report', '\App\Http\Controllers\CheckController@sheetReport')->name('sheet-report');
     Route::post('check-store','\App\Http\Controllers\CheckController@CheckStore')->name('check_store');
     

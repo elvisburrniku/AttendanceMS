@@ -36,9 +36,9 @@
                                 </th>
 
                             @endforeach
-
+                            <th style="background: #35dc35; border-color: #35dc35;"> Or pune </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Overtime </th>
                             <th style="background: #35dc35; border-color: #35dc35;"> Total </th>
-
                         </tr>
                     </thead>
 
@@ -62,6 +62,7 @@
 
                                     @php
                                         $total = 0;
+                                        $total_worked = 0;
                                     @endphp
 
 
@@ -113,6 +114,11 @@
                                                     $total += $hours;
 
                                                     $difference = $formattedInterval;
+                                                    if($hours > 8) {
+                                                        $total_worked += 8;
+                                                    } else {
+                                                        $total_worked += $hours;
+                                                    }
                                                 }
                                             
                                             $check_leave = null;
@@ -133,13 +139,25 @@
                                     @endfor
 
                                     @php
+                                        $hours_total_overtime = $employee->overtimes->sum('total_hr');
                                         $hours_total = $total;
+                                        $total_worked = round($total_worked, 2);
                                     @endphp
+
+                                    <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">
+                                        {{ $total_worked }}
+                                    </td>
+                                    
+                                    <td style="background: #c7fcc7; border-color: #c7fcc7;">
+                                        {{ $hours_total_overtime }} 
+                                        <span style="color: red;" title="Te pa aprovuara">
+                                            ({{ round($hours_total - $total_worked - $hours_total_overtime, 2) }})
+                                        </span>
+                                    </td>
 
                                     <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">
                                         {{ $hours_total }}
                                     </td>
-
                                 </tr>
                             @endforeach
 

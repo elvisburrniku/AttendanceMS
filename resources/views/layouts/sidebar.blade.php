@@ -50,6 +50,12 @@
                                     <i class="dripicons-to-do"></i> <span> Raporti Checkin/Out </span>
                                 </a>
                             </li>
+
+                            <li>
+                                <a href="/overtime" class="waves-effect {{ request()->is("overtime") || request()->is("overtime/*") ? "mm active" : "" }}">
+                                    <i class="dripicons-to-do"></i> <span> Raporti Overtime </span>
+                                </a>
+                            </li>
                             <li class="d-none">
                                 <a href="/sheet-report" class="waves-effect {{ request()->is("sheet-report") || request()->is("sheet-report/*") ? "mm active" : "" }}">
                                     <i class="dripicons-to-do"></i> <span> Sheet Report </span>
