@@ -193,13 +193,13 @@ class AttendanceController extends Controller
                 $attendance->delete();
             }
         }else if($checkin && $request->checkin_time) {
-            $attendances = Attendance::where('punch_state', 0)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 0)->where('id', '!=', $checkin->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
             $checkin->update(['punch_time' => \Carbon\Carbon::parse($request->date. ' '. $request->checkin_time)]);
         } else if(($checkin = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "0")->where('emp_code', $employee->emp_code)->first()) && $request->checkin_time) {
-            $attendances = Attendance::where('punch_state', 0)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 0)->where('id', '!=', $checkin->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
@@ -287,13 +287,13 @@ class AttendanceController extends Controller
                 $attendance->delete();
             }
         }else if($break_in && $request->break_in_time) {
-            $attendances = Attendance::where('punch_state', 3)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 3)->where('id', '!=', $break_in->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
             $break_in->update(['punch_time' => \Carbon\Carbon::parse($request->date. ' '. $request->break_in_time)]);
         } else if(($break_in = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "3")->where('emp_code', $employee->emp_code)->first()) && $request->break_in_time) {
-            $attendances = Attendance::where('punch_state', 3)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 3)->where('id', '!=', $break_in->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
@@ -335,13 +335,13 @@ class AttendanceController extends Controller
                 $attendance->delete();
             }
         }else if($break_out && $request->break_out_time) {
-            $attendances = Attendance::where('punch_state', 2)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 2)->where('id', '!=', $break_out->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
             $break_out->update(['punch_time' => \Carbon\Carbon::parse($request->date. ' '. $request->break_out_time)]);
         } else if(($break_out = Attendance::whereDate('punch_time', $request->date)->where('punch_state', "2")->where('emp_code', $employee->emp_code)->first()) && $request->break_out_time) {
-            $attendances = Attendance::where('punch_state', 2)->where('id', '!=', $checkout->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
+            $attendances = Attendance::where('punch_state', 2)->where('id', '!=', $break_out->id)->whereDate('punch_time', $request->date)->where('emp_code', $employee->emp_code)->get();
             foreach($attendances as $attendance) {
                 $attendance->update(['punch_time' => $this->generateRandomDate()]);
             }
