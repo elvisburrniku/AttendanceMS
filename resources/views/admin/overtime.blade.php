@@ -22,7 +22,6 @@
                             <!-- <th>ID</th> -->
 							<!-- Log on to codeastro.com for more projects! -->
                             @php
-                                $today = today();
                                 $dates = [];
                                 
                                 for ($i = 1; $i < $today->daysInMonth + 1; ++$i) {
@@ -47,7 +46,12 @@
 
                         <form action="{{ route('overtime_store') }}" method="post">
                            
-                            <button type="submit" class="btn btn-success" style="display: flex; margin:10px">Submit Overtime {{ now()->startOfMonth()->toDateString() }} - {{ now()->endOfMonth()->toDateString() }}</button>
+                            <button type="submit" class="btn btn-success" style="display: flex; margin:10px">Submit Overtime {{ $today->startOfMonth()->toDateString() }} - {{ $today->endOfMonth()->toDateString() }}</button>
+                            <div class="d-flex justify-end float-right">
+                                <label class="d-flex align-items-center">
+                                    <span class="mr-1 font-weight-normal">Data:</span><input type="month" id="month" value="{{ request()->month ?? now()->format('Y-m-d') }}" class="form-control form-control-sm" placeholder="Selekto muajin" aria-controls="datatable-buttons">
+                                </label>
+                            </div>
                             @csrf
                             @foreach ($employees as $employee)
 
@@ -64,6 +68,8 @@
 
                                         @php
                                             $date_picker = \Carbon\Carbon::createFromDate($today->year, $today->month, $i)->format('Y-m-d');
+									
+
                                             $check_attd = $employee->getTotalOvertimeByDate($date_picker);
                                         @endphp
                                         <td>
@@ -101,6 +107,25 @@
             </div>
         </div>
     </div>
+@endsection
+@section('script-bottom')
+    <script>
+        $(function() {
+            $('#month').on('change', function(e) {
+
+                var selectedDate = $(this).val();
+    
+                // Get the current URL without query parameters
+                var baseUrl = window.location.origin + window.location.pathname;
+
+                // Construct the new URL with the updated query parameter
+                var newUrl = baseUrl + '?month=' + encodeURIComponent(selectedDate);
+
+                // Redirect to the new URL
+                window.location.href = newUrl;
+            });
+        });
+    </script>
 @endsection
 
 

@@ -71,7 +71,6 @@ class Employee extends Model
                 return date('Y-m-d', strtotime($overtime->date)) === $date;
             })
             ->first();
-        
         if(!$check_attd) {
             $check_attd = new \stdClass();
             $attendances = $this->attendances->filter(function ($attendance) use ($date) {

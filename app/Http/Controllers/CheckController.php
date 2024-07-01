@@ -13,10 +13,11 @@ class CheckController extends Controller
 {
     public function index()
     {
-        return view('admin.check')->with(['employees' => Employee::with([ 'attendances'=> function($query) {
-            $query->whereMonth('punch_time', now());
-        }, 'overtimes'=> function($query) {
-            $query->whereMonth('date', request()->date ?? now());
+        $today = \Carbon\Carbon::parse(request()->month ?? now()->format('Y-m').'-01');
+        return view('admin.check')->with(['today' => $today, 'employees' => Employee::with([ 'attendances'=> function($query) use ($today) {
+            $query->whereMonth('punch_time', $today);
+        }, 'overtimes'=> function($query) use ($today) {
+            $query->whereMonth('date', $today);
         }])->get()]);
     }
 
