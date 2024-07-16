@@ -34,14 +34,17 @@ class AdminController extends Controller
                 return false;
             }
             $dayIndex = now()->dayOfWeek;
-            $timetable = $schedule->shift->timetables->where('day_index', $dayIndex)->first();
-            $timetableInDateTime = Carbon::parse(now()->format('Y-m-d'). ' ' .optional($timetable)->in_time);
-            $newEmployeeCheckinDateTime = Carbon::parse($attendance->punch_time);
-            if($timetableInDateTime < $newEmployeeCheckinDateTime) {
-                return false;
-            } else{
-                return true;
+            if($schedule) {
+                $timetable = optional($schedule)->shift->timetables->where('day_index', $dayIndex)->first();
+                $timetableInDateTime = Carbon::parse(now()->format('Y-m-d'). ' ' .optional($timetable)->in_time);
+                $newEmployeeCheckinDateTime = Carbon::parse($attendance->punch_time);
+                if($timetableInDateTime < $newEmployeeCheckinDateTime) {
+                    return false;
+                } else{
+                    return true;
+                }
             }
+            return false;
         })->count();
         $latetimeEmp = $employees->where('attendances.punch_state', 0)->filter(function($employee) {
             $schedule = $employee->schedules->first();
