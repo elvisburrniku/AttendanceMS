@@ -9,6 +9,26 @@
 
 @section('content')
 
+    @php
+        function convertDecimalToTime($decimalHours) {
+            $hours = floor($decimalHours);
+            $minutes = ($decimalHours - $hours) * 60;
+            $minutesPart = floor($minutes);
+            $seconds = ($minutes - $minutesPart) * 60;
+            return sprintf("%02d:%02d:%02d", $hours, $minutesPart, round($seconds));
+        }
+
+        function calculateWorkedHours($decimalHours) {
+            $hours = floor($decimalHours);
+            $minutes = ($decimalHours - $hours) * 60;
+            $roundedHours = $hours;
+            if ($minutes >= 45) {
+                $roundedHours++;
+            }
+            return $roundedHours;
+        }
+    @endphp
+
     <div class="card">
 	<!-- Log on to codeastro.com for more projects! -->
         <div class="card-body">
@@ -71,12 +91,14 @@
 									
 
                                             $check_attd = $employee->getTotalOvertimeByDate($date_picker);
+
+                                            $hours = calculateWorkedHours(optional($check_attd)->total_hr ?? 0);
                                         @endphp
                                         <td>
                                             <div class="d-flex">
-                                                <div class="mr-1" @if(optional($check_attd)->total_hr && optional($check_attd)->total_hr == 0) style="color: red;" @endif>{{ optional($check_attd)->total_hr ?? 0 }}</div>
+                                                <div class="mr-1" @if($hours == 0) style="color: red;" @endif>{{ $hours }}</div>
                                                 <div class="form-check form-check-inline">
-                                                    <input type="hidden" name="attd[{{ $date_picker }}][{{ $employee->id }}][total_hr]" value="{{ optional($check_attd)->total_hr }}">
+                                                    <input type="hidden" name="attd[{{ $date_picker }}][{{ $employee->id }}][total_hr]" value="{{ $hours }}">
                                                     <input class="form-check-input" id="check_box-{{ $date_picker }}-{{ $employee->id }}"
                                                         name="attd[{{ $date_picker }}][{{ $employee->id }}][approved]" type="checkbox"
                                                         @if(optional($check_attd)->approved)  checked @endif value="1">

@@ -8,6 +8,8 @@ use App\Models\Attendance;
 use App\Models\Leave;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
+use App\Exports\ExportCheckins;
+use Excel;
 
 class CheckController extends Controller
 {
@@ -90,5 +92,11 @@ class CheckController extends Controller
         });
         dd($transactions);
         return view('admin.sheet-report')->with(['transactions' => $transactions]);
+    }
+
+    public function export() 
+    {
+        $today = \Carbon\Carbon::parse(request()->month ?? now()->format('Y-m').'-01');
+        return Excel::download(new \App\Exports\ExportCheckins($today), "timetable-". $today->format('d-m-Y') .".xlsx");
     }
 }

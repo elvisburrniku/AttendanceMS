@@ -9,6 +9,26 @@
 
 @section('content')
 
+    @php
+        function convertDecimalToTime($decimalHours) {
+            $hours = floor($decimalHours);
+            $minutes = ($decimalHours - $hours) * 60;
+            $minutesPart = floor($minutes);
+            $seconds = ($minutes - $minutesPart) * 60;
+            return sprintf("%02d:%02d:%02d", $hours, $minutesPart, round($seconds));
+        }
+
+        function calculateWorkedHours($decimalHours) {
+            $hours = floor($decimalHours);
+            $minutes = ($decimalHours - $hours) * 60;
+            $roundedHours = $hours;
+            if ($minutes >= 45) {
+                $roundedHours++;
+            }
+            return $roundedHours;
+        }
+    @endphp
+
     <div class="card">
 	<!-- Log on to codeastro.com for more projects! -->
         <div class="card-body">
@@ -36,7 +56,9 @@
 
                             @endforeach
                             <th style="background: #35dc35; border-color: #35dc35;"> Or pune </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Or vikendi </th>
                             <th style="background: #35dc35; border-color: #35dc35;"> Overtime </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Overtime vikendi </th>
                             <th style="background: #35dc35; border-color: #35dc35;"> Total </th>
                         </tr>
                     </thead>
@@ -46,7 +68,7 @@
 
                         <form action="{{ route('check_store') }}" method="post">
                            
-                            <button type="submit" disabled class="btn btn-success" style="display: flex; margin:10px">Submit Attendance  {{ $today->startOfMonth()->toDateString() }} - {{ $today->endOfMonth()->toDateString() }}</button>
+                            <a href="{{ route('check.export', ['month' => (request()->month ?? now()->format('Y-m'))]) }}" class="btn btn-success" style="display: flex; margin:10px">Export Attendance  {{ $today->startOfMonth()->toDateString() }} - {{ $today->endOfMonth()->toDateString() }}</a>
                             <div class="d-flex justify-end float-right">
                                 <label class="d-flex align-items-center">
                                     <span class="mr-1 font-weight-normal">Data:</span><input type="month" id="month" value="{{ request()->month ?? now()->format('Y-m') }}" class="form-control form-control-sm" placeholder="Selekto muajin" aria-controls="datatable-buttons">
@@ -61,12 +83,12 @@
                                     <td>{{ $employee->first_name }} {{ $employee->last_name }}</td>
                                     <td>{{ $employee->department->dept_name }}</td>
                                     <!-- <td>{{ $employee->id }}</td> -->
-									<!-- Log on to codeastro.com for more projects! -->
-
-
                                     @php
                                         $total = 0;
                                         $total_worked = 0;
+                                        $total_weekend_hr = 0;
+                                        $total_overtime_hr = 0;
+                                        $total_overtime_weekend_hr = 0;
                                     @endphp
 
 
@@ -84,6 +106,8 @@
 
                                                 $difference = 0;
                                                 $hours = 0;
+                                                $carbonTime = null;
+                                                $hours_rounded = 0;
                                                 $checkin = $employee->attendances->filter(function ($attendance) use ($date_picker) {
                                                     return date('Y-m-d', strtotime($attendance->punch_time)) === $date_picker;
                                                 })->where('punch_state', 0)->sortBy('punch_time')->first();
@@ -107,59 +131,85 @@
                                                 }
 
                                                 if(is_int($difference) && $difference > 0) {
+                                                    $date = \Carbon\Carbon::createFromDate($today->year, $today->month, $i);
                                                     $interval = \Carbon\CarbonInterval::seconds($difference);
                                                     $formattedInterval = $interval->cascade()->format('%H:%I:%S');
                                                     // Convert the time string to a Carbon object
                                                     $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', $formattedInterval === 0 ? '00:00:00' : $formattedInterval);
-
+                                                    
                                                     // Convert the Carbon object to hours
                                                     $hours = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
-                                                    
-                                                    $total += $hours;
+                                                    $hours_rounded = calculateWorkedHours($hours);
+                                                    $total += $hours_rounded;
 
                                                     $difference = $formattedInterval;
-                                                    if($hours > 8) {
-                                                        $total_worked += 8;
+                                                    if($date->isWeekend()) {
+                                                        if($hours > 8) {
+                                                            $total_weekend_hr += 8;
+
+                                                            $total_overtime_weekend_hr += ($hours_rounded - 8);
+                                                        } else {
+                                                            $total_weekend_hr = $hours_rounded;
+                                                        }
                                                     } else {
-                                                        $total_worked += $hours;
+                                                        if($hours > 8) {
+                                                            $total_worked += 8;
+
+                                                            $total_overtime_hr += ($hours_rounded - 8);
+                                                        } else {
+                                                            $total_worked += $hours_rounded;
+                                                        }
                                                     }
+                                                    
                                                 }
                                             
                                             $check_leave = null;
                                             
                                         @endphp
                                         <td>
-                                            <span @if($hours == 0) style="color: red;" @endif>{{ $hours }}<span> <br>
-                                            <div class="form-check d-none form-check-inline">
-                                                
-                                                <input class="form-check-input" id="check_box"
-                                                    name="attd[{{ $date_picker }}][{{ $employee->id }}]" type="checkbox"
-                                                    @if (isset($check_attd))  checked @endif id="inlineCheckbox1" value="1">
-
-                                            </div>
-
+                                            <span title="{{ optional($carbonTime)->format('H:i:s') ?? '00:00:00' }}" @if($hours == 0) style="color: red;cursor:pointer;" @else style="cursor:pointer;" @endif>{{ $hours_rounded }}<span> <br>
                                         </td>
                                      
                                     @endfor
 
                                     @php
-                                        $hours_total_overtime = $employee->overtimes->sum('total_hr');
+                                        $hours_total_overtime = $employee->weekdayOvertimes->sum('total_hr');
+                                        $hours_total_overtime_weekend = $employee->weekendOvertimes->sum('total_hr');
                                         $hours_total = $total;
                                         $total_worked = round($total_worked, 2);
+                                        $total_weekend_hr = round($total_weekend_hr, 2);
+                                        $total_overtime_hr = round($total_overtime_hr, 2);
+                                        $total_overtime_weekend_hr = round($total_overtime_weekend_hr, 2);
+                                        $total_worked_in_time = convertDecimalToTime($total_worked);
+                                        $total_weekend_hr_in_time = convertDecimalToTime($total_weekend_hr);
+                                        $hours_total_overtime_in_time = convertDecimalToTime($total_overtime_hr);
+                                        $hours_total_overtime_weekend_in_time = convertDecimalToTime($total_overtime_weekend_hr);
+                                        $hours_total_in_time = convertDecimalToTime($hours_total);
                                     @endphp
 
-                                    <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">
+                                    <td title="{{ $total_worked_in_time }}" style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;cursor:pointer;">
                                         {{ $total_worked }}
+                                    </td>
+
+                                    <td title="{{ $total_weekend_hr_in_time }}" style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;cursor:pointer;">
+                                        {{ $total_weekend_hr }}
                                     </td>
                                     
                                     <td style="background: #c7fcc7; border-color: #c7fcc7;">
-                                        {{ $hours_total_overtime }} 
-                                        <span style="color: red;" title="Te pa aprovuara">
-                                            ({{ round($hours_total - $total_worked - $hours_total_overtime, 2) }})
+                                        <span style="custor: pointer;" title="{{ $hours_total_overtime_in_time }}">{{ $total_overtime_hr }}<span>
+                                        <span style="color: red; display:none;" title="Te pa aprovuara {{ convertDecimalToTime(round($total_overtime_hr - $hours_total_overtime, 2)) }}">
+                                            ({{ round($total_overtime_hr - $hours_total_overtime, 2) }})
                                         </span>
                                     </td>
 
-                                    <td  style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7;">
+                                    <td style="background: #c7fcc7; border-color: #c7fcc7;">
+                                        <span style="custor: pointer;" title="{{ $hours_total_overtime_weekend_in_time }}">{{ $total_overtime_weekend_hr }}<span>
+                                        <span style="color: red; display:none;" title="Te pa aprovuara {{ convertDecimalToTime(round($total_overtime_weekend_hr - $hours_total_overtime_weekend, 2)) }}">
+                                            ({{ round($total_overtime_weekend_hr - $hours_total_overtime_weekend, 2) }})
+                                        </span>
+                                    </td>
+
+                                    <td title="{{ $hours_total_in_time }}" style="@if($hours_total == 0) color: red; @endif background: #c7fcc7; border-color: #c7fcc7; cursor: pointer;">
                                         {{ $hours_total }}
                                     </td>
                                 </tr>
