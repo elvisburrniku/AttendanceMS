@@ -8,7 +8,7 @@
 
             <div class="col-lg-12">
 
-                <a class="btn btn-success d-none" href="{{ route('finger_device.create') }}">
+                <a class="btn btn-success" href="{{ route('finger_device.create') }}">
 
                     {{ trans('global.add') }} {{ trans('cruds.finger_device.title_singular') }}
 

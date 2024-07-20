@@ -46,12 +46,12 @@ class BiometricDeviceController extends Controller
     {
         $devices = FingerDevices::all();
 
-        $helper = new ApiHelper();
-        $helper->url(ApiUrlHelper::url('Device'))->get();
+        // $helper = new ApiHelper();
+        // $helper->url(ApiUrlHelper::url('Device'))->get();
 
-        $devices = $helper->getData()->map(function($e) {
-            return (object) $e;
-        });
+        // $devices = $helper->getData()->map(function($e) {
+        //     return (object) $e;
+        // });
         return view('admin.fingerDevices.index', compact('devices'));
     }
 
@@ -73,9 +73,12 @@ class BiometricDeviceController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $helper = new ApiHelper();
-        $helper->url(ApiUrlHelper::url('Device'))->get();
-        // dd($device);
+        // $helper = new ApiHelper();
+        // $helper->url(ApiUrlHelper::url('Device'))->get();
+        $zk = new ZKTeco('192.168.30.252', '4370');
+        $zk->connect();
+
+        dd($zk);
         if ($device->connect()) {
             // Serial Number Sample CDQ9192960002\x00
 

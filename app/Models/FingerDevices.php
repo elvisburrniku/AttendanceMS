@@ -10,17 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Model;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
-
-
 
 class FingerDevices extends Model
 
 {
 
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
-
+    protected $table = "iclock_terminal";
 
     protected $fillable = [
 
