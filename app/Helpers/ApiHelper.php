@@ -13,6 +13,7 @@ class ApiHelper
     public function __contruct()
     {
         $this->response = collect();
+        $this->ip = env('SERVER_IP') ?? "46.99.253.82:8089";
     }
 
     public function url($url) {

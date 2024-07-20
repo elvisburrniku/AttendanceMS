@@ -11,6 +11,10 @@ class Employee extends Model
     use HasFactory, Notifiable;
 
     protected $table = 'personnel_employee';
+
+    protected $guarded = [];
+
+    public $timestamps = false;
     
     public function getRouteKeyName()
     {
@@ -62,6 +66,16 @@ class Employee extends Model
     public function overtimes()
     {
         return $this->hasMany(EmployeeOvertime::class, 'employee_id');
+    }
+
+    public function attAttemployee()
+    {
+        return $this->hasOne(AttAttemployee::class, 'emp_id');
+    }
+
+    public function employeeProfile()
+    {
+        return $this->hasOne(PersonelEmployeeProfile::class, 'emp_id');
     }
 
     public function weekendOvertimes()

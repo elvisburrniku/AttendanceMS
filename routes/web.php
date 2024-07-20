@@ -26,6 +26,9 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
   
     Route::get('/latetime', '\App\Http\Controllers\AttendanceController@indexLatetime')->name('indexLatetime');
     Route::get('/leave', '\App\Http\Controllers\LeaveController@index')->name('leave');
+    Route::post('/leave', '\App\Http\Controllers\LeaveController@store')->name('leaves.store');
+    Route::put('/leave/{leave}', '\App\Http\Controllers\LeaveController@update')->name('leaves.update');
+    Route::delete('/leave/{leave}', '\App\Http\Controllers\LeaveController@destroy')->name('leaves.destroy');
     Route::get('/overtime', '\App\Http\Controllers\LeaveController@indexOvertime')->name('indexOvertime');
 
     Route::get('/admin', '\App\Http\Controllers\AdminController@index')->name('admin');

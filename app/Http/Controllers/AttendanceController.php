@@ -10,6 +10,7 @@ use App\Models\TimeInterval;
 use App\Models\Latetime;
 use App\Models\Attendance;
 use App\Models\AttendanceComment;
+use App\Models\Leave;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\AttendanceEmp;
 use App\Helpers\ApiHelper;
@@ -17,6 +18,7 @@ use App\Helpers\ApiUrlHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Carbon\CarbonInterval;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {   
@@ -83,7 +85,12 @@ class AttendanceController extends Controller
                     $new_employee_for_day->is_checkin_late = false;
                 }
             } else if(!$checkin) {
-                $new_employee_for_day->checkin_time = '<p class="text-danger">MUNGON</p>';
+                $today_date = request()->date ?? now()->format('Y-m-d');
+                if($leave = Leave::with('leaveType')->where('start_date', '<=', $today_date)->where('end_date', '>=', $today_date)->where('emp_id', $emp->id)->first()){
+                    $new_employee_for_day->checkin_time = '<p class="text-success">'.$leave->type.'</p>';
+                } else if(!Carbon::parse($today_date)->isWeekend()){
+                    $new_employee_for_day->checkin_time = '<p class="text-danger">MUNGON</p>';
+                }
             }
             $break_in = $attendances_emp->where('punch_state', 3)->sortBy('punch_time')->first();
             $new_employee_for_day->break_in_time = $this->convertToTime(optional($break_in)->punch_time);
