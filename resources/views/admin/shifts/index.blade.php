@@ -12,7 +12,6 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
             <li class="breadcrumb-item"><a href="javascript:void(0);">Shift</a></li>
-			<!-- Log on to codeastro.com for more projects! -->
  
 
         </ol>
@@ -31,7 +30,6 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-				<!-- Log on to codeastro.com for more projects! -->
 
                     <div class="table-rep-plugin">
                         <div class="table-responsive mb-0" data-pattern="priority-columns">
@@ -67,7 +65,6 @@
 
 
                                 </tbody>
-								<!-- Log on to codeastro.com for more projects! -->
                             </table>
                         </div>
                     </div>

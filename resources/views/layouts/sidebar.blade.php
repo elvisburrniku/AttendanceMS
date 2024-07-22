@@ -3,7 +3,6 @@
                 <div class="slimscroll-menu" id="remove-scroll">
 
                     <!--- Sidemenu -->
-					<!-- Log on to codeastro.com for more projects! -->
                     <div id="sidebar-menu">
                         
                         <!-- Left Menu Start -->
@@ -32,7 +31,6 @@
                                 <a href="/areas" class="waves-effect {{ request()->is("areas") || request()->is("/areas/*") ? "mm active" : "" }}"><i class="ti-user"></i><span> Zona </span></a>
                             </li>
                             
-							<!-- Log on to codeastro.com for more projects! -->
                             <li class="menu-title">Management</li>
 
                             <li>
@@ -90,7 +88,6 @@
                             </li>
 
                         </ul>
-						<!-- Log on to codeastro.com for more projects! -->
                     </div>
                     <!-- Sidebar -->
                     <div class="clearfix"></div>

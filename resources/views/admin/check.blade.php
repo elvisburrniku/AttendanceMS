@@ -30,7 +30,6 @@
     @endphp
 
     <div class="card">
-	<!-- Log on to codeastro.com for more projects! -->
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-responsive table-hover table-bordered table-sm">
@@ -40,7 +39,6 @@
                             <th>Punëtori</th>
                             <th>Departmenti</th>
                             <!-- <th>ID</th> -->
-							<!-- Log on to codeastro.com for more projects! -->
                             @php
                                 $dates = [];
                                 
@@ -219,7 +217,6 @@
 
 
                     </tbody>
-					<!-- Log on to codeastro.com for more projects! -->
 
 
                 </table>

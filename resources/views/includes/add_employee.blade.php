@@ -2,10 +2,9 @@
 <div class="modal fade" id="addnew">
     <div class="modal-dialog">
         <div class="modal-content">
-			<!-- Log on to codeastro.com for more projects! -->
         
             <div class="modal-header">
-            <h5 class="modal-title"><b>Add New Employee</b></h5>
+            <h5 class="modal-title"><b>Shto punëtor të ri</b></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span></button>
 
