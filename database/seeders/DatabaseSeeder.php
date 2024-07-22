@@ -19,16 +19,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // $user= User::create([
-        //     'name' => 'Admin',
-        //     'email' => 'e.bibaj@kosmontefoods.com',
-        //     'password' => Hash::make('kosmonte53++..'),
-        // ]);
-        // $role = Role::create([
-        //     'slug' => 'admin',
-        //     'name' => 'Adminstrator',
-        // ]);
-        // $user->roles()->sync($role->id);
+        $user= User::create([
+            'name' => 'Admin',
+            'email' => 'e.bibaj@kosmontefoods.com',
+            'password' => Hash::make('kosmonte53++..'),
+        ]);
+        $role = Role::create([
+            'slug' => 'admin',
+            'name' => 'Adminstrator',
+        ]);
+        $user->roles()->sync($role->id);
 
         $leaveTypes = [
             'LWOP',
