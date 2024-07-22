@@ -36,10 +36,10 @@
                                                         <th data-priority="1">Tipi</th>
                                                         <th data-priority="2">Komenti</th>
                                                         <th data-priority="3">Lloji i pushimit</th>
-                                                        <th data-priority="4">Puntori</th>
+                                                        <th data-priority="4">Punëtori</th>
                                                         <th data-priority="5">Data e fillimit</th>
                                                         <th data-priority="6">Data e mbarimit</th>
-                                                        <th data-priority="6">Totali i ditve</th>
+                                                        <th data-priority="6">Totali i ditëve</th>
                                                         <th data-priority="7">Veprimi</th>
                                                     </tr>
                                                     </thead>

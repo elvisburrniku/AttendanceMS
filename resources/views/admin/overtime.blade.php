@@ -37,7 +37,7 @@
                 <thead class="thead-dark">
                         <tr>
 
-                            <th>Puntori</th>
+                            <th>Punëtori</th>
                             <th>Departmenti</th>
                             <!-- <th>ID</th> -->
 							<!-- Log on to codeastro.com for more projects! -->

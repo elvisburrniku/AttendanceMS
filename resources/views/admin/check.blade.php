@@ -37,7 +37,7 @@
                 <thead class="thead-dark">
                         <tr>
 
-                            <th>Puntori</th>
+                            <th>Punëtori</th>
                             <th>Departmenti</th>
                             <!-- <th>ID</th> -->
 							<!-- Log on to codeastro.com for more projects! -->
@@ -55,10 +55,10 @@
                                 </th>
 
                             @endforeach
-                            <th style="background: #35dc35; border-color: #35dc35;"> Or pune </th>
-                            <th style="background: #35dc35; border-color: #35dc35;"> Or vikendi </th>
-                            <th style="background: #35dc35; border-color: #35dc35;"> Overtime </th>
-                            <th style="background: #35dc35; border-color: #35dc35;"> Overtime vikendi </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Të rregullta </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Orë Vikendi </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Jashtë orari </th>
+                            <th style="background: #35dc35; border-color: #35dc35;"> Jashtë orari vikendi </th>
                             <th style="background: #35dc35; border-color: #35dc35;"> Total </th>
                         </tr>
                     </thead>

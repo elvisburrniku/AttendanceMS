@@ -74,7 +74,7 @@
                             </li> -->
                             <li class="">
                                 <a href="/leave" class="waves-effect {{ request()->is("leave") || request()->is("leave/*") ? "mm active" : "" }}">
-                                    <i class="dripicons-backspace"></i> <span> Leave </span>
+                                    <i class="dripicons-backspace"></i> <span> Pushimet </span>
                                 </a>
                             </li>
                             <!-- <li class="">
