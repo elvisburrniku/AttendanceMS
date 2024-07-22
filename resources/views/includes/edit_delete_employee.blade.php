@@ -13,34 +13,34 @@
                     @csrf
                     <input type="hidden" name="_method" value="PUT">
                     <div class="form-group">
-                        <label for="emp_code">Code</label>
-                        <input type="text" class="form-control" placeholder="Enter a Employee code" id="emp_code" value="{{ $employee->emp_code }}" name="emp_code"
+                        <label for="emp_code">Shifra</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj shifrën e punëtorit" id="emp_code" value="{{ $employee->emp_code }}" name="emp_code"
                             required />
                     </div>
                     <div class="form-group">
-                        <label for="first_name">First name</label>
-                        <input type="text" class="form-control" placeholder="Enter a Employee name" id="first_name" value="{{ $employee->first_name }}" name="first_name"
+                        <label for="first_name">Emri</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj emrin e punëtorit" id="first_name" value="{{ $employee->first_name }}" name="first_name"
                             required />
                     </div>
                     <div class="form-group">
-                        <label for="last_name">Last name</label>
-                        <input type="text" class="form-control" placeholder="Enter a Employee last name" id="last_name" value="{{ $employee->last_name }}" name="last_name"
+                        <label for="last_name">Mbiemri</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj mbiemrin e punëtorit" id="last_name" value="{{ $employee->last_name }}" name="last_name"
                             required />
                     </div>
                     <div class="form-group">
                         <label for="nickname">Nickname</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe nickname" id="nickname" value="{{ $employee->nickname }}" name="nickname"/>
+                        <input type="text" class="form-control" placeholder="Shkruaj nickname e punëtorit" id="nickname" value="{{ $employee->nickname }}" name="nickname"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="card_no">Card no</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe Card number" id="card_no" value="{{ $employee->card_no }}" name="card_no"/>
+                        <label for="card_no">Numri i kartelës</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj numrin e karteles së punëtorit" id="card_no" value="{{ $employee->card_no }}" name="card_no"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="department">Department</label>
+                        <label for="department">Departamenti</label>
                         <select required class="form-control" name="department" id="department">
-                            <option value="">Select Department</option>
+                            <option value="">Selekto Departmentin</option>
                             @foreach($departments as $department)
                                 @if(is_countable($employee->department) && count($employee->department) > 0)
                                     <option {{ $employee->department['id'] == $department->id ? 'selected' : '' }} value="{{ $department->id }}">{{ $department->dept_name }}</option>
@@ -52,9 +52,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="position">Position</label>
+                        <label for="position">Pozita</label>
                         <select required class="form-control" name="position" id="position">
-                            <option value="">Select Position</option>
+                            <option value="">Selekto Pozitën</option>
                             @foreach($positions as $position)
                                 @if(is_countable($employee->position) && count($employee->position) > 0)
                                     <option {{ $employee->position['id'] == $position->id ? 'selected' : '' }} value="{{ $position->id }}">{{ $position->position_name }}</option>
@@ -66,89 +66,89 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="hide_date">Hire Date</label>
+                        <label for="hide_date">Data e fillimit</label>
                         <input required type="date" class="form-control" value="{{ now()->format('Y-m-d') }}" placeholder="Enter Employe Hire date" id="hire_date" value="{{ $employee->hire_date }}" name="hire_date"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="gender">Gender</label>
+                        <label for="gender">Gjinia</label>
                         <select required class="form-control" name="gender" id="gender">
                             <option value="">Select Gender</option>
-                            @foreach(['M' => 'Male', 'F' => 'Female', 'O' => 'Other'] as $id => $gender)
+                            @foreach(['M' => 'Mashkull', 'F' => 'Femër', 'O' => 'Tjetër'] as $id => $gender)
                                 <option {{ $employee->gender == $id ? 'selected' : '' }} value="{{ $id }}">{{ $gender }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="birthday">Birthday</label>
+                        <label for="birthday">Data e Lindjes</label>
                         <input required type="date" class="form-control" value="{{ now()->format('Y-m-d') }}" placeholder="Enter Employe Birthday" id="birthday" value="{{ $employee->birthday }}" name="birthday"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="emp_type">Employee Type</label>
+                        <label for="emp_type">Lloji i Punësimit</label>
                         <select required class="form-control" name="emp_type" id="emp_type">
-                            <option value="">Select Employee Type</option>
-                            @foreach(['1' => 'Official', '2' => 'Temporary', '3' => 'Probation'] as $id => $emp_type)
+                            <option value="">Selektoni</option>
+                            @foreach(['1' => 'Zyrtarë', '2' => 'I përkohshum', '3' => 'Provues'] as $id => $emp_type)
                                 <option {{ $employee->emp_type == $id ? 'selected' : '' }} value="{{ $id }}">{{ $emp_type }}</option>
                             @endforeach
                         </select>
                     </div>
-
+                    <!--
                     <div class="form-group">
-                        <label for="contact_tel">Contact tel</label>
+                        <label for="contact_tel">Numri Kontaktues</label>
                         <input type="text" class="form-control" placeholder="Enter Employe Contact tel" id="contact_tel" value="{{ $employee->contact_tel }}" name="contact_tel"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="office_tel">Official tel</label>
+                        <label for="office_tel">Numri Kontaktues 2</label>
                         <input type="text" class="form-control" placeholder="Enter Employe Official tel" id="office_tel" value="{{ $employee->office_tel }}" name="office_tel"/>
                     </div>
-
+                    -->
                     <div class="form-group">
-                        <label for="mobile">Mobile</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe Mobile" id="mobile" value="{{ $employee->mobile }}" name="mobile"/>
+                        <label for="mobile">Telefoni</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj telefonin e punëtorit" id="mobile" value="{{ $employee->mobile }}" name="mobile"/>
                     </div>
                     
                     <div class="form-group">
-                        <label for="national">National</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe National" id="national" value="{{ $employee->national }}" name="national"/>
+                        <label for="national">Nacionaliteti</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj nacionalitetin e punëtorit" id="national" value="{{ $employee->national }}" name="national"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe City" id="city" value="{{ $employee->city }}" name="city"/>
+                        <label for="city">Qyteti</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj qytetin e punëtorit" id="city" value="{{ $employee->city }}" name="city"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="address">Address</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe Address" id="address" value="{{ $employee->address }}" name="address"/>
+                        <label for="address">Adresa</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj adresën e punëtorit" id="address" value="{{ $employee->address }}" name="address"/>
                     </div>
 
                     <div class="form-group">
-                        <label for="postcode">Postcode</label>
-                        <input type="text" class="form-control" placeholder="Enter Employe Postcode" id="postcode" value="{{ $employee->postcode }}" name="postcode"/>
+                        <label for="postcode">Kodi Postar</label>
+                        <input type="text" class="form-control" placeholder="Shkruaj kodin postar të punëtorit" id="postcode" value="{{ $employee->postcode }}" name="postcode"/>
                     </div>
 
                     <div class="form-group">
                         <label for="email" class="col-sm-3 control-label">Email</label>
-                        <input type="email" class="form-control" placeholder="Enter Employe Email" id="email" value="{{ $employee->email }}" name="email">
+                        <input type="email" class="form-control" placeholder="Shkruaj email adresen e punëtorit" id="email" value="{{ $employee->email }}" name="email">
                     </div>
 
                     <div class="form-group">
-                    <label for="dev_privilege">Device Privilege</label>
+                    <label for="dev_privilege">Privilegjet</label>
                         <select required class="form-control" name="dev_privilege" id="dev_privilege">
-                            <option value="">Select Device Privilege</option>
-                            @foreach(['0' => 'Employee', '1' => 'Register', '6' => 'System Administrator', '10' => 'User Defined', '14' => 'Super Administrator'] as $id => $dev_privilege)
+                            <option value="">Selekto</option>
+                            @foreach(['0' => 'Punëtor', '1' => 'Register', '6' => 'System Administrator', '10' => 'User Defined', '14' => 'Super Administrator'] as $id => $dev_privilege)
                                 <option {{ $employee->dev_privilege == $id ? 'selected' : '' }} value="{{ $id }}">{{ $dev_privilege }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="area">Area</label>
+                        <label for="area">Zona</label>
                         <select required multiple class="form-control" name="area[]" id="area">
-                            <option value="">Select Area</option>
+                            <option value="">Selekto</option>
                             @foreach($areas as $area)
                                 @if(is_countable($employee->area) && count($employee->area) > 0)
                                     <option {{ collect($employee->area)->where('id', $area->id)->first() ? 'selected' : '' }} value="{{ $area->id }}">{{ $area->area_name }}</option>
@@ -160,20 +160,20 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="app_status">App Status</label>
+                        <label for="app_status">Satusi i Aplikacionit</label>
                         <select required class="form-control" name="app_status" id="app_status">
-                            <option value="">Select App Status</option>
-                            @foreach(['1' => 'Enabled', '0' => 'Disabled'] as $id => $app_status)
+                            <option value="">Selekto</option>
+                            @foreach(['1' => 'Lejuar', '0' => 'Nuk Lejohet'] as $id => $app_status)
                                 <option {{ $employee->app_status == $id ? 'selected' : '' }} value="{{ $id }}">{{ $app_status }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="app_role">App Role</label>
+                        <label for="app_role">Roli në Aplikacion</label>
                         <select required class="form-control" name="app_role" id="app_role">
-                            <option value="">Select App Role</option>
-                            @foreach(['1' => 'Employee', '2' => 'Administrator'] as $id => $app_role)
+                            <option value="">Selekto</option>
+                            @foreach(['1' => 'Punëtor', '2' => 'Administrator'] as $id => $app_role)
                                 <option {{ $employee->app_role == $id ? 'selected' : '' }} value="{{ $id }}">{{ $app_role }}</option>
                             @endforeach
                         </select>
@@ -197,7 +197,7 @@
         <div class="modal-content">
             <div class="modal-header " style="align-items: center">
                
-              <h4 class="modal-title "><span class="employee_id">Delete Employee</span></h4>
+              <h4 class="modal-title "><span class="employee_id">Fshij punëtor</span></h4>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
@@ -205,7 +205,7 @@
                     @csrf
                     {{ method_field('DELETE') }}
                     <div class="text-center">
-                        <h6>Are you sure you want to delete:</h6>
+                        <h6>A jeni të sigurt se dëshironi ta fshini?:</h6>
                         <h2 class="bold del_employee_name">{{$employee->first_name}}</h2>
                     </div>
             </div>

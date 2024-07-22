@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="emp_id">Puntori</label>
+                        <label for="emp_id">Punëtori</label>
                         <select class="form-control" name="emp_id">
                             <option value="">Selekto</option>
                             @foreach($employees as $employee)

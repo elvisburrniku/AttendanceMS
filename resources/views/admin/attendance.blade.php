@@ -82,7 +82,7 @@
                         </div>
                     </div>
                 </div>
-            </div><!-- Log on to codeastro.com for more projects! -->
+            </div>
         </div> <!-- end col -->
     </div> <!-- end row -->
 
@@ -95,7 +95,6 @@
 
 @section('script')
     <!-- Responsive-table-->
-	<!-- Log on to codeastro.com for more projects! -->
     <script src="{{ URL::asset('plugins/RWD-Table-Patterns/dist/js/rwd-table.min.js') }}"></script>
  
 @endsection

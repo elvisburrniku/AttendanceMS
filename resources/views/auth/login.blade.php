@@ -1,7 +1,6 @@
 @extends('layouts.master-blank')
 
 @section('content')
-	<!-- Log on to codeastro.com for more projects! -->
     <div class="wrapper-page">
         <div class="card overflow-hidden account-card mx-3">
             <div class="bg-secondary p-4 text-white text-center position-relative">
@@ -65,7 +64,6 @@
 
 
     </div>
-	<!-- Log on to codeastro.com for more projects! -->
     <!-- end wrapper-page -->
 @endsection
 
