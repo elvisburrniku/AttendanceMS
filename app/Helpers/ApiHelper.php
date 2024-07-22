@@ -6,14 +6,23 @@ use Illuminate\Support\Facades\Http;
 class ApiHelper
 {
     protected $url = "";
-    protected $ip = "46.99.253.82:8089";
+    protected $ip = "";
+    protected $username = "";
+    protected $password = "";
     protected $client = null;
     public $response = [];
 
-    public function __contruct()
+    public function __construct()
     {
         $this->response = collect();
-        $this->ip = env('SERVER_IP') ?? "46.99.253.82:8089";
+        $this->ip =config("app.server_ip");
+        $this->username = config("app.server_username");
+        $this->password = config("app.server_password");
+
+        // Debugging
+        if (is_null($this->ip) || is_null($this->username) || is_null($this->password)) {
+            throw new \Exception('Environment variables not set correctly');
+        }
     }
 
     public function url($url) {
@@ -23,7 +32,7 @@ class ApiHelper
     }
 
     public function get() {
-        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->get("http://$this->ip/$this->url");
+        $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->get("http://$this->ip/$this->url");
         
         if($response->successful()) {
             $this->response = collect($response->json());
@@ -39,7 +48,7 @@ class ApiHelper
     }
 
     public function post($data) {
-        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->post("http://$this->ip/$this->url", $data);
+        $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->post("http://$this->ip/$this->url", $data);
 
         if($response->successful()) {
             $this->response = collect($response->json());
@@ -56,7 +65,7 @@ class ApiHelper
     }
 
     public function put($id, $data) {
-        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->put("http://$this->ip/$this->url/$id/?page=1", $data);
+        $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->put("http://$this->ip/$this->url/$id/?page=1", $data);
 
         if($response->successful()) {
             $this->response = collect($response->json());
@@ -72,7 +81,7 @@ class ApiHelper
     }
 
     public function delete($id) {
-        $response = Http::withBasicAuth('edmond', 'Edmond@1994')->accept('application/json')->delete("http://$this->ip/$this->url/$id/?page=1");
+        $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->delete("http://$this->ip/$this->url/$id/?page=1");
 
         if($response->successful()) {
             $this->response = collect($response->json());
