@@ -15,7 +15,7 @@ class ApiHelper
     public function __construct()
     {
         $this->response = collect();
-        $this->ip =config("app.server_ip");
+        $this->ip = config("app.server_ip");
         $this->username = config("app.server_username");
         $this->password = config("app.server_password");
 
@@ -59,6 +59,8 @@ class ApiHelper
             $statusCode = $response->status(); // Get the status code
             // You can also get the error message from the response body if it's JSON
             $errorMessage = $response->json();
+
+            $errorMessage = json_encode($errorMessage);
 
             throw new \Error($errorMessage);
 
