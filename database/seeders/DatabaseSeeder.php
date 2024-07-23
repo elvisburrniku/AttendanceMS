@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             'Paid Leave'
         ];
 
-
         foreach ($leaveTypes as $leaveType) {
             LeaveType::create([
                 'name' => $leaveType

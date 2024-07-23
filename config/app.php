@@ -15,6 +15,11 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+
+    'server_ip' => env('SERVER_IP', ''),
+    'server_username' => env('SERVER_USERNAME', ''),
+    'server_password' => env('SERVER_PASSWORD', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
