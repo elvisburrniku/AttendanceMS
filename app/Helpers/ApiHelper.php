@@ -48,7 +48,7 @@ class ApiHelper
     }
 
     public function post($data) {
-        // dd($this->username, $this->password, "http://$this->ip/$this->url", $data);
+        dd($this->username, $this->password, "http://$this->ip/$this->url", $data);
         $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->post("http://$this->ip/$this->url", $data);
 
         if($response->successful()) {
