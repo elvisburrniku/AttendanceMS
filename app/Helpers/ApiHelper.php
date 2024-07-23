@@ -48,6 +48,7 @@ class ApiHelper
     }
 
     public function post($data) {
+        // dd($this->username, $this->password, "http://$this->ip/$this->url", $data);
         $response = Http::withBasicAuth($this->username, $this->password)->accept('application/json')->post("http://$this->ip/$this->url", $data);
 
         if($response->successful()) {
@@ -58,6 +59,8 @@ class ApiHelper
             $statusCode = $response->status(); // Get the status code
             // You can also get the error message from the response body if it's JSON
             $errorMessage = $response->json();
+
+            throw new \Error($errorMessage);
 
             return $errorMessage;
         }
