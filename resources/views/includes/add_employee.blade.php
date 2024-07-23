@@ -91,7 +91,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <!--
+                        
                         <div class="form-group">
                             <label for="contact_tel">Contact tel</label>
                             <input type="text" class="form-control" placeholder="Enter Employe Contact tel" id="contact_tel" name="contact_tel"/>
@@ -101,7 +101,7 @@
                             <label for="office_tel">Official tel</label>
                             <input type="text" class="form-control" placeholder="Enter Employe Official tel" id="office_tel" name="office_tel"/>
                         </div>
-                        -->
+                        
                         <div class="form-group">
                             <label for="mobile">Telefoni</label>
                             <input type="text" class="form-control" placeholder="Shkruaj numrin e telefonit" id="mobile" name="mobile"/>
