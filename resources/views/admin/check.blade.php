@@ -147,7 +147,7 @@
 
                                                             $total_overtime_weekend_hr += ($hours_rounded - 8);
                                                         } else {
-                                                            $total_weekend_hr = $hours_rounded;
+                                                            $total_weekend_hr += $hours_rounded;
                                                         }
                                                     } else {
                                                         if($hours > 8) {
