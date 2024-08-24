@@ -31,6 +31,11 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::delete('/leave/{leave}', '\App\Http\Controllers\LeaveController@destroy')->name('leaves.destroy');
     Route::get('/overtime', '\App\Http\Controllers\LeaveController@indexOvertime')->name('indexOvertime');
 
+    Route::get('/holiday', '\App\Http\Controllers\HolidayController@index')->name('holiday');
+    Route::post('/holiday', '\App\Http\Controllers\HolidayController@store')->name('holiday.store');
+    Route::put('/holiday/{holiday}', '\App\Http\Controllers\HolidayController@update')->name('holiday.update');
+    Route::delete('/holiday/{holiday}', '\App\Http\Controllers\HolidayController@destroy')->name('holiday.destroy');
+
     Route::get('/admin', '\App\Http\Controllers\AdminController@index')->name('admin');
 
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');

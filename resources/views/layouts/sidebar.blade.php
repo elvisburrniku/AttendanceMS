@@ -75,6 +75,11 @@
                                     <i class="dripicons-backspace"></i> <span> Pushimet </span>
                                 </a>
                             </li>
+                            <li class="">
+                                <a href="/holiday" class="waves-effect {{ request()->is("holiday") || request()->is("holiday/*") ? "mm active" : "" }}">
+                                    <i class="ti-calendar"></i> <span> Festat </span>
+                                </a>
+                            </li>
                             <!-- <li class="">
                                 <a href="/overtime" class="waves-effect {{ request()->is("overtime") || request()->is("overtime/*") ? "mm active" : "" }}">
                                     <i class="dripicons-alarm"></i> <span> Over Time </span>

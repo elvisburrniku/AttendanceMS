@@ -93,12 +93,16 @@ class Leave extends Model
 
     public function countLeaveDays()
     {
+        $holidays = Holiday::whereYear('date', $this->start_date)->get();
         $start_date = Carbon::parse($this->start_date);
-        $end_date = Carbon::parse($this->end_date);
+        $end_date = Carbon::parse($this->end_date)->addDay();
         $resolution = CarbonInterval::day();
+        return $start_date->diffFiltered($resolution, function ($date) use ($holidays) {
+            $dateFormatted = $date->format('Y-m-d');
 
-        return $start_date->diffFiltered($resolution, function ($date) {
-            return $date->isWeekday();
+            return $date->isWeekday() && !$holidays->first(function ($holiday) use ($dateFormatted) {
+                return Carbon::parse($holiday->observedOn)->format('Y-m-d') === $dateFormatted;
+            });
         }, $end_date);
     }
 }
