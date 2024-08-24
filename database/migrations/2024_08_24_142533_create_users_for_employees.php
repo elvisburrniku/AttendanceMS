@@ -26,7 +26,7 @@ class CreateUsersForEmployees extends Migration
                 'name' => $employee['first_name']. ' ' . $employee['last_name'],
                 'password' => Hash::make(strtolower($employee['first_name'])),
             ]);
-            $employee->update(['email', strtolower($employee['first_name'])]);
+            $employee->update(['email' => strtolower($employee['first_name'])]);
             $user->roles()->sync($role->id);
         }
     }
