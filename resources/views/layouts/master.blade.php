@@ -7,6 +7,7 @@
         <title>Sistemi i Menaxhimit të Pjesëmarrjes</title>
         <meta content="Admin Dashboard" name="description" />
         <meta content="Themesbrand" name="author" />
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         @include('layouts.head')
     </head>
 <body>

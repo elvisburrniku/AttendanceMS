@@ -4,7 +4,7 @@
 
                     <!--- Sidemenu -->
                     <div id="sidebar-menu">
-                        
+                        @if(auth()->user()->hasRole('admin'))
                         <!-- Left Menu Start -->
                         <ul class="metismenu" id="side-menu">
                             <li class="menu-title">Main</li>
@@ -93,6 +93,16 @@
                             </li>
 
                         </ul>
+                        @else
+                        <ul class="metismenu" id="side-menu">
+                            <li class="menu-title">Main</li>
+                            <li class="">
+                                <a href="{{route('employee')}}" class="waves-effect {{ request()->is("employee") || request()->is("employee/*") ? "mm active" : "" }}">
+                                    <i class="ti-home"></i> <span> Fillimi </span>
+                                </a>
+                            </li>
+                        </ul>
+                        @endif
                     </div>
                     <!-- Sidebar -->
                     <div class="clearfix"></div>

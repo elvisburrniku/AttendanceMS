@@ -400,6 +400,150 @@ class AttendanceController extends Controller
 
         return redirect()->back();
     }
+
+    public function startClocking(Request $request)
+    {
+        $employee = auth()->user()->employee;
+        $random_attendance = Attendance::first();
+        $type = $request->input('checkType', 'checkin');
+
+        if($type == 'checkin') {
+            $checkin = $employee->attendances()->where('punch_state', 0)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+            if($checkin) {
+                $checkout = Attendance::insert([
+                    "emp_code" => $employee->emp_code,
+                    "punch_time" => \Carbon\Carbon::parse(now()),
+                    "punch_state" => "1",
+                    "verify_type" => $random_attendance->verify_type,
+                    "work_code" => $random_attendance->work_code,
+                    "terminal_sn" => $random_attendance->terminal_sn,
+                    "terminal_alias" => $random_attendance->terminal_alias,
+                    "area_alias" => $random_attendance->area_alias,
+                    "longitude" => $request->longitude,
+                    "latitude" => $request->latitude,
+                    "gps_location" => true,
+                    "mobile" => $random_attendance->mobile,
+                    "source" => $random_attendance->source,
+                    "purpose" => $random_attendance->purpose,
+                    "crc" => $random_attendance->crc,
+                    "is_attendance" => $random_attendance->is_attendance,
+                    "reserved" => $random_attendance->reserved,
+                    "upload_time" => $random_attendance->upload_time,
+                    "sync_status" => $random_attendance->sync_status,
+                    "sync_time" => $random_attendance->sync_time,
+                    "is_mask" => $random_attendance->is_mask,
+                    "temperature" => $random_attendance->temperature,
+                    "emp_id" => $employee->id,
+                    "terminal_id" => $random_attendance->terminal_id,
+                    "company_code" => $random_attendance->company_code,
+                ]);
+                $checkout = $employee->attendances()->where('punch_state', 1)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+                return $checkout;
+            } else {
+                $checkin = Attendance::insert([
+                    "emp_code" => $employee->emp_code,
+                    "punch_time" => \Carbon\Carbon::parse(now()),
+                    "punch_state" => "0",
+                    "verify_type" => $random_attendance->verify_type,
+                    "work_code" => $random_attendance->work_code,
+                    "terminal_sn" => $random_attendance->terminal_sn,
+                    "terminal_alias" => $random_attendance->terminal_alias,
+                    "area_alias" => $random_attendance->area_alias,
+                    "longitude" => $request->longitude,
+                    "latitude" => $request->latitude,
+                    "gps_location" => true,
+                    "mobile" => $random_attendance->mobile,
+                    "source" => $random_attendance->source,
+                    "purpose" => $random_attendance->purpose,
+                    "crc" => $random_attendance->crc,
+                    "is_attendance" => $random_attendance->is_attendance,
+                    "reserved" => $random_attendance->reserved,
+                    "upload_time" => $random_attendance->upload_time,
+                    "sync_status" => $random_attendance->sync_status,
+                    "sync_time" => $random_attendance->sync_time,
+                    "is_mask" => $random_attendance->is_mask,
+                    "temperature" => $random_attendance->temperature,
+                    "emp_id" => $employee->id,
+                    "terminal_id" => $random_attendance->terminal_id,
+                    "company_code" => $random_attendance->company_code,
+                ]);
+
+                $checkin = $employee->attendances()->where('punch_state', 0)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+                return $checkin;
+            }
+        }elseif($type == "pause") {
+            $break_in = $employee->attendances()->where('punch_state', 3)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+            if($break_in) {
+                $break_out = Attendance::insert([
+                    "emp_code" => $employee->emp_code,
+                    "punch_time" => \Carbon\Carbon::parse(now()),
+                    "punch_state" => "2",
+                    "verify_type" => $random_attendance->verify_type,
+                    "work_code" => $random_attendance->work_code,
+                    "terminal_sn" => $random_attendance->terminal_sn,
+                    "terminal_alias" => $random_attendance->terminal_alias,
+                    "area_alias" => $random_attendance->area_alias,
+                    "longitude" => $request->longitude,
+                    "latitude" => $request->latitude,
+                    "gps_location" => true,
+                    "mobile" => $random_attendance->mobile,
+                    "source" => $random_attendance->source,
+                    "purpose" => $random_attendance->purpose,
+                    "crc" => $random_attendance->crc,
+                    "is_attendance" => $random_attendance->is_attendance,
+                    "reserved" => $random_attendance->reserved,
+                    "upload_time" => $random_attendance->upload_time,
+                    "sync_status" => $random_attendance->sync_status,
+                    "sync_time" => $random_attendance->sync_time,
+                    "is_mask" => $random_attendance->is_mask,
+                    "temperature" => $random_attendance->temperature,
+                    "emp_id" => $employee->id,
+                    "terminal_id" => $random_attendance->terminal_id,
+                    "company_code" => $random_attendance->company_code,
+                ]);
+
+                $breakout = $employee->attendances()->where('punch_state', 2)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+                return $breakout;
+            } else {
+                $break_in = Attendance::insert([
+                    "emp_code" => $employee->emp_code,
+                    "punch_time" => \Carbon\Carbon::parse(now()),
+                    "punch_state" => "3",
+                    "verify_type" => $random_attendance->verify_type,
+                    "work_code" => $random_attendance->work_code,
+                    "terminal_sn" => $random_attendance->terminal_sn,
+                    "terminal_alias" => $random_attendance->terminal_alias,
+                    "area_alias" => $random_attendance->area_alias,
+                    "longitude" => $request->longitude,
+                    "latitude" => $request->latitude,
+                    "gps_location" => true,
+                    "mobile" => $random_attendance->mobile,
+                    "source" => $random_attendance->source,
+                    "purpose" => $random_attendance->purpose,
+                    "crc" => $random_attendance->crc,
+                    "is_attendance" => $random_attendance->is_attendance,
+                    "reserved" => $random_attendance->reserved,
+                    "upload_time" => $random_attendance->upload_time,
+                    "sync_status" => $random_attendance->sync_status,
+                    "sync_time" => $random_attendance->sync_time,
+                    "is_mask" => $random_attendance->is_mask,
+                    "temperature" => $random_attendance->temperature,
+                    "emp_id" => $employee->id,
+                    "terminal_id" => $random_attendance->terminal_id,
+                    "company_code" => $random_attendance->company_code,
+                ]);
+
+                $breakin = $employee->attendances()->where('punch_state', 3)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+
+                return $breakin;
+            }
+        }
+    }
   
     public function destroy(Request $request, $main_id)
     {

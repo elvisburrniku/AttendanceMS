@@ -4,8 +4,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FingerDevicesControlller;
+use App\Providers\RouteServiceProvider;
 
 Route::get('/', function () {
+    if(auth()->check() && auth()->user()->hasRole('employee')){
+        return redirect(RouteServiceProvider::HOME_EMPLOYEE);
+    }
     return view('welcome');
 })->name('welcome');
 Route::get('attended/{user_id}', '\App\Http\Controllers\AttendanceController@attended' )->name('attended');
@@ -76,6 +80,13 @@ Route::group(['middleware' => ['auth']], function () {
 
     
 
+});
+
+Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['employee']], function () {
+
+    Route::get('/employee', '\App\Http\Controllers\HomeController@index')->name('employee');
+
+    Route::post('/attendance-tap', '\App\Http\Controllers\AttendanceController@startClocking')->name('attendance.tap');
 });
 
 // Route::get('/attendance/assign', function () {

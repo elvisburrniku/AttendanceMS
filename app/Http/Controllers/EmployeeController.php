@@ -123,6 +123,18 @@ class EmployeeController extends Controller
 
         flash()->success('Success','Employee Record has been created successfully !');
 
+        $user = User::updateOrCreate(['email' => $request['nickname']],[
+            'name' => $request['first_name']. ' ' . $request['last_name'],
+            'password' => \Hash::make($request['nickname']),
+        ]);
+
+        $role = Role::firstOrCreate([
+            'slug' => 'employee',
+            'name' => 'Employee',
+        ]);
+
+        $user->roles()->sync($role->id);
+
         return redirect()->route('employees.index')->with('success');
     }
 
@@ -191,6 +203,7 @@ class EmployeeController extends Controller
         // ]);
 
         // $employee->areas()->sync($validatedData['area']);
+        // $employee = Employee::find($id);
        
         $api = new ApiHelper();
 
@@ -206,6 +219,8 @@ class EmployeeController extends Controller
 
     public function destroy($id)
     {
+        $employee = Employee::find($id);
+
         $api = new ApiHelper();
 
         $api->url(ApiUrlHelper::url('Employee.Update'));
@@ -213,6 +228,9 @@ class EmployeeController extends Controller
         $api->delete($id);
 
         flash()->success('Success','Employee Record has been Deleted successfully !');
+
+        User::where(['email' => $employee['nickname']])->delete();
+
         return redirect()->route('employees.index')->with('success');
     }
 }

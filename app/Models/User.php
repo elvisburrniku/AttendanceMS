@@ -10,6 +10,11 @@ class User extends Authenticatable
     use Notifiable;
 
 
+    public function employee()
+    {
+        return $this->belongsTo('App\Models\Employee', 'email', 'nickname');
+    }
+
     public function getRouteKeyName()
     {
         return 'name';
