@@ -42,8 +42,8 @@
                         <select required class="form-control" name="department" id="department">
                             <option value="">Selekto Departmentin</option>
                             @foreach($departments as $department)
-                                @if(is_countable($employee->department) && count($employee->department) > 0)
-                                    <option {{ $employee->department['id'] == $department->id ? 'selected' : '' }} value="{{ $department->id }}">{{ $department->dept_name }}</option>
+                                @if($employee->department)
+                                    <option {{ $employee->department->id == $department->id ? 'selected' : '' }} value="{{ $department->id }}">{{ $department->dept_name }}</option>
                                 @else
                                     <option value="{{ $department->id }}">{{ $department->dept_name }}</option>
                                 @endif
@@ -56,8 +56,8 @@
                         <select required class="form-control" name="position" id="position">
                             <option value="">Selekto Pozitën</option>
                             @foreach($positions as $position)
-                                @if(is_countable($employee->position) && count($employee->position) > 0)
-                                    <option {{ $employee->position['id'] == $position->id ? 'selected' : '' }} value="{{ $position->id }}">{{ $position->position_name }}</option>
+                                @if($employee->position)
+                                    <option {{ $employee->position->id == $position->id ? 'selected' : '' }} value="{{ $position->id }}">{{ $position->position_name }}</option>
                                 @else
                                     <option value="{{ $position->id }}">{{ $position->position_name }}</option>
                                 @endif
@@ -150,8 +150,8 @@
                         <select required multiple class="form-control" name="area[]" id="area">
                             <option value="">Selekto</option>
                             @foreach($areas as $area)
-                                @if(is_countable($employee->area) && count($employee->area) > 0)
-                                    <option {{ collect($employee->area)->where('id', $area->id)->first() ? 'selected' : '' }} value="{{ $area->id }}">{{ $area->area_name }}</option>
+                                @if(is_countable($employee->areas) && count($employee->areas) > 0)
+                                    <option {{ collect($employee->areas)->where('id', $area->id)->first() ? 'selected' : '' }} value="{{ $area->id }}">{{ $area->area_name }}</option>
                                 @else
                                     <option value="{{ $area->id }}">{{ $area->area_name }}</option>
                                 @endif
