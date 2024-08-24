@@ -24,8 +24,9 @@ class CreateUsersForEmployees extends Migration
         foreach($employees as $employee) {
             $user = User::updateOrCreate(['email' => strtolower($employee['first_name'])],[
                 'name' => $employee['first_name']. ' ' . $employee['last_name'],
-                'password' => Hash::make($employee['first_name']),
+                'password' => Hash::make(strtolower($employee['first_name'])),
             ]);
+            $employee->update(['email', strtolower($employee['first_name'])]);
             $user->roles()->sync($role->id);
         }
     }
