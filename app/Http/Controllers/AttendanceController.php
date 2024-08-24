@@ -6,6 +6,7 @@ use DateTime;
 use App\Models\Employee;
 use App\Models\Schedule;
 use App\Models\Shift;
+use App\Models\Holiday;
 use App\Models\TimeInterval;
 use App\Models\Latetime;
 use App\Models\Attendance;
@@ -35,8 +36,9 @@ class AttendanceController extends Controller
         $schedules = Schedule::all();
         $shifts = Shift::all();
         $timetables = TimeInterval::all();
+        $holidays = Holiday::whereYear('date', \Carbon\Carbon::parse($start_t))->get();
         $attendances_for_all = Attendance::whereDate('punch_time', $start_t)->whereDate('punch_time', '<=', $end_t)->get();
-        $attendances = $employees->map(function($emp, $code) use ($schedules, $attendances_for_all, $shifts, $timetables) {
+        $attendances = $employees->map(function($emp, $code) use ($schedules, $attendances_for_all, $shifts, $timetables, $holidays) {
             $attendances_emp = collect($attendances_for_all->where('emp_code', $emp->emp_code)->all());
             $default_emp = (object) [
                 'id' => $emp->id,
@@ -86,8 +88,14 @@ class AttendanceController extends Controller
                 }
             } else if(!$checkin) {
                 $today_date = request()->date ?? now()->format('Y-m-d');
+                $dateFormatted = Carbon::parse($today_date)->format('Y-m-d');
+
                 if($leave = Leave::with('leaveType')->where('start_date', '<=', $today_date)->where('end_date', '>=', $today_date)->where('emp_id', $emp->id)->first()){
                     $new_employee_for_day->checkin_time = '<p class="text-success">'.$leave->type.'</p>';
+                } else if(!Carbon::parse($today_date)->isWeekend() && $holiday = $holidays->first(function ($holiday) use ($dateFormatted) {
+                    return Carbon::parse($holiday->observedOn)->format('Y-m-d') === $dateFormatted;
+                })){
+                    $new_employee_for_day->checkin_time =  '<p class="text-success" title="'. $holiday->comment .'">'.$holiday->type.'</p>';
                 } else if(!Carbon::parse($today_date)->isWeekend()){
                     $new_employee_for_day->checkin_time = '<p class="text-danger">MUNGON</p>';
                 }
