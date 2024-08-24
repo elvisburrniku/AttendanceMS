@@ -52,7 +52,7 @@ class Employee extends Model
     }
     public function leave()
     {
-        return $this->hasMany(Leave::class);
+        return $this->hasMany(Leave::class, 'emp_id');
     }
     public function overtime()
     {

@@ -162,6 +162,22 @@
                                                 }
                                             
                                             $check_leave = null;
+                                            if(!$check_attd && $holiday = $holidays->first(function ($holiday) use ($date_picker) {
+                                                return \Carbon\Carbon::parse($holiday->observedOn)->format('Y-m-d') === $date_picker;
+                                            })) {
+                                                $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', '08:00:00');
+                                                $hours = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+                                                $hours_rounded = calculateWorkedHours($hours);
+                                                $total += $hours_rounded;
+                                                $total_worked += $hours_rounded;
+                                            } else if (!$check_attd && ($leave = $employee->leave->where('start_date', '<=', $date_picker)->where('end_date', '>=', $date_picker)->first())) {
+                                                $carbonTime = \Carbon\Carbon::createFromFormat('H:i:s', '08:00:00');
+                                                $hours = round($carbonTime->hour + ($carbonTime->minute / 60) + ($carbonTime->second / 3600), 1);
+                                                $hours_rounded = calculateWorkedHours($hours);
+                                                $total += $hours_rounded;
+                                                $total_worked += $hours_rounded;
+                                            }
+
                                             
                                         @endphp
                                         <td>

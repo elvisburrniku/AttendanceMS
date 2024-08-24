@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\Leave;
+use App\Models\Holiday;
 use App\Helpers\ApiHelper;
 use App\Helpers\ApiUrlHelper;
 use App\Exports\ExportCheckins;
@@ -16,11 +17,14 @@ class CheckController extends Controller
     public function index()
     {
         $today = \Carbon\Carbon::parse(request()->month ?? now()->format('Y-m').'-01');
+        $holidays = Holiday::whereYear('date', $today)->get();
         return view('admin.check')->with(['today' => $today, 'employees' => Employee::with([ 'attendances'=> function($query) use ($today) {
             $query->whereMonth('punch_time', $today);
         }, 'overtimes'=> function($query) use ($today) {
             $query->whereMonth('date', $today);
-        }])->get()]);
+        }, 'leave'=> function($query) use ($today) {
+            $query->whereMonth('start_date', $today)->orWhereMonth('end_date', $today);
+        }])->get(), 'holidays' => $holidays]);
     }
 
     public function CheckStore(Request $request)
