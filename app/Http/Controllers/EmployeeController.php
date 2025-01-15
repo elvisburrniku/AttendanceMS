@@ -221,6 +221,21 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($id);
 
+        $employee->areas()->delete();
+        $employee->department()->delete();
+        $employee->position()->delete();
+        $employee->check()->delete();
+        $employee->attendances()->delete();
+        $employee->comments()->delete();
+        $employee->latetime()->delete();
+        $employee->leave()->delete();
+        $employee->overtime()->delete();
+        $employee->schedules()->delete();
+        $employee->overtimes()->delete();
+        $employee->attAttemployee()->delete();
+        $employee->employeeProfile()->delete();
+
+
         // $api = new ApiHelper();
 
         // $api->url(ApiUrlHelper::url('Employee.Update'));
