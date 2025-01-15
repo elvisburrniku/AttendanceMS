@@ -21,12 +21,6 @@ class Employee extends Model
         return 'name';
     }
 
-    // Relationship: An employee has many clock transactions
-    public function iclockTransactions()
-    {
-        return $this->hasMany(IclockTransaction::class, 'emp_id');
-    }
-
     public function areas()
     {
         return $this->belongsToMany(Area::class, 'personnel_employee_area');

@@ -221,8 +221,6 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($id);
 
-        $employee->attPayloadEffectPunches()->delete();
-
         $employee->attendances()->delete();
         $employee->areas()->delete();
         $employee->department()->delete();
