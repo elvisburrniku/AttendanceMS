@@ -12,7 +12,7 @@ class User extends Authenticatable
 
     public function employee()
     {
-        return $this->belongsTo('App\Models\Employee', 'email', 'email');
+        return $this->belongsTo('App\Models\Employee', 'email', 'nickname');
     }
 
     public function getRouteKeyName()
