@@ -221,6 +221,13 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($id);
 
+        // Use relationships to delete related records
+        foreach ($employee->iclockTransactions as $transaction) {
+            $transaction->attPayloadEffectPunches()->delete();
+        }
+
+        $employee->iclockTransactions()->delete();
+
         $employee->attendances()->delete();
         $employee->areas()->delete();
         $employee->department()->delete();
