@@ -221,11 +221,11 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($id);
 
+        $employee->attendances()->delete();
         $employee->areas()->delete();
         $employee->department()->delete();
         $employee->position()->delete();
         $employee->check()->delete();
-        $employee->attendances()->delete();
         $employee->comments()->delete();
         $employee->latetime()->delete();
         $employee->leave()->delete();
