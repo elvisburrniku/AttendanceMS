@@ -20,7 +20,7 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = Employee::with('areas', 'department', 'position')->simplePaginate(100);
-        $employee_count = ((int) Employee::latest('create_time')->first()->emp_code ?? 0);
+        $employee_count = ((int) optional(Employee::latest('create_time')->first())->emp_code ?? 0);
 
         $departments = Department::all();
 
