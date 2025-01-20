@@ -48,7 +48,7 @@
                                 
                             @endphp
                             @foreach ($dates as $key => $date)
-                                <th>
+                                <th @if(\Carbon\Carbon::parse($date)->isWeekend()) style="background-color: #c7fcc7;" @endif>
                                     {{ $key + 1 }}
                                 </th>
 
