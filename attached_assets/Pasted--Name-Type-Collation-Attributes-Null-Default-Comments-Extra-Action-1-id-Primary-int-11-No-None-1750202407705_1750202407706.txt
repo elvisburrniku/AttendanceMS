@@ -1,0 +1,42 @@
+	#	Name	Type	Collation	Attributes	Null	Default	Comments	Extra	Action
+	1	id Primary	int(11)			No	None		AUTO_INCREMENT	Change Change	Drop Drop	
+	2	alias Index	varchar(50)	utf8_general_ci		No	None			Change Change	Drop Drop	
+	3	use_mode	smallint(6)			No	None			Change Change	Drop Drop	
+	4	in_time	time(6)			No	None			Change Change	Drop Drop	
+	5	in_ahead_margin	int(11)			No	None			Change Change	Drop Drop	
+	6	in_above_margin	int(11)			No	None			Change Change	Drop Drop	
+	7	out_ahead_margin	int(11)			No	None			Change Change	Drop Drop	
+	8	out_above_margin	int(11)			No	None			Change Change	Drop Drop	
+	9	duration	int(11)			No	None			Change Change	Drop Drop	
+	10	in_required	smallint(6)			No	None			Change Change	Drop Drop	
+	11	out_required	smallint(6)			No	None			Change Change	Drop Drop	
+	12	allow_late	int(11)			No	None			Change Change	Drop Drop	
+	13	allow_leave_early	int(11)			No	None			Change Change	Drop Drop	
+	14	work_day	double			No	None			Change Change	Drop Drop	
+	15	early_in	smallint(6)			No	None			Change Change	Drop Drop	
+	16	min_early_in	int(11)			No	None			Change Change	Drop Drop	
+	17	late_out	smallint(6)			No	None			Change Change	Drop Drop	
+	18	min_late_out	int(11)			No	None			Change Change	Drop Drop	
+	19	overtime_lv	smallint(6)			No	None			Change Change	Drop Drop	
+	20	overtime_lv1	smallint(6)			No	None			Change Change	Drop Drop	
+	21	overtime_lv2	smallint(6)			No	None			Change Change	Drop Drop	
+	22	overtime_lv3	smallint(6)			No	None			Change Change	Drop Drop	
+	23	multiple_punch	smallint(6)			No	None			Change Change	Drop Drop	
+	24	available_interval_type	smallint(6)			No	None			Change Change	Drop Drop	
+	25	available_interval	int(11)			No	None			Change Change	Drop Drop	
+	26	work_time_duration	int(11)			No	None			Change Change	Drop Drop	
+	27	func_key	smallint(6)			No	None			Change Change	Drop Drop	
+	28	work_type	smallint(6)			No	None			Change Change	Drop Drop	
+	29	day_change	time(6)			No	None			Change Change	Drop Drop	
+	30	enable_early_in	tinyint(1)			No	None			Change Change	Drop Drop	
+	31	enable_late_out	tinyint(1)			No	None			Change Change	Drop Drop	
+	32	enable_overtime	tinyint(1)			No	None			Change Change	Drop Drop	
+	33	ot_rule	char(32)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	34	color_setting	varchar(30)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	35	enable_max_ot_limit	tinyint(1)			No	None			Change Change	Drop Drop	
+	36	max_ot_limit	int(11)			No	None			Change Change	Drop Drop	
+	37	count_early_in_interval	tinyint(1)			No	None			Change Change	Drop Drop	
+	38	count_late_out_interval	tinyint(1)			No	None			Change Change	Drop Drop	
+	39	ot_pay_code_id Index	int(11)			Yes	NULL			Change Change	Drop Drop	
+	40	overtime_policy	smallint(6)			No	None			Change Change	Drop Drop	
+	41	company_id Index	int(11)			No	None		
