@@ -8,6 +8,6 @@ class Check extends Model
 {
     public function employees()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(Employee::class, 'emp_id');
     }
 }
