@@ -11,6 +11,7 @@ class CreateAttAttscheduleTable extends Migration
     {
         Schema::create('att_attschedule', function (Blueprint $table) {
             $table->id();
+            $table->string('slug')->unique();
             $table->date('start_date');
             $table->date('end_date');
             $table->integer('employee_id')->index();
