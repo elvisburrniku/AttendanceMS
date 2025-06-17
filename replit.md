@@ -121,6 +121,15 @@ This is a Laravel-based HR attendance management system designed to track employ
 
 ## Changelog
 - June 17, 2025. Initial setup
+- June 17, 2025. Completed migration from Replit Agent to standard Replit environment:
+  - Updated PHP dependencies to support PHP 8.3.14
+  - Fixed PSR-4 autoloading issues in controllers and seeders
+  - Configured PostgreSQL database with environment variables
+  - Successfully ran all database migrations
+  - Compiled npm assets with Vue.js support
+  - Fixed HTTPS/HTTP mixed content issues with URL forcing
+  - Corrected favicon path reference
+  - Application now running on port 5000 with all assets compiled
 
 ## User Preferences
 
