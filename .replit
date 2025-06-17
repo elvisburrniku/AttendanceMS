@@ -34,21 +34,6 @@ author = "agent"
 agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "composer install"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "php artisan key:generate"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "php artisan migrate --force" # --force is used in non-interactive environments
-
-[[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "php artisan serve --host 0.0.0.0 --port 5000"
 waitForPort = 5000
