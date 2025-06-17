@@ -86,16 +86,16 @@ class Employee extends Model
     public function weekendOvertimes()
     {
         return $this->hasMany(EmployeeOvertime::class, 'employee_id')->where(function ($query) {
-            $query->whereRaw('WEEKDAY(date) = 5') // Saturday
-                  ->orWhereRaw('WEEKDAY(date) = 6'); // Sunday
+            $query->whereRaw('EXTRACT(DOW FROM date) = 6') // Saturday
+                  ->orWhereRaw('EXTRACT(DOW FROM date) = 0'); // Sunday
         });
     }
 
     public function weekdayOvertimes()
     {
         return $this->hasMany(EmployeeOvertime::class, 'employee_id')->where(function ($query) {
-            $query->whereRaw('WEEKDAY(date) >= 0') // Monday
-                  ->whereRaw('WEEKDAY(date) <= 4'); // Friday
+            $query->whereRaw('EXTRACT(DOW FROM date) >= 1') // Monday
+                  ->whereRaw('EXTRACT(DOW FROM date) <= 5'); // Friday
         });
     }
 
