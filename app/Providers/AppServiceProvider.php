@@ -24,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Force HTTPS for all URLs when in production
-        if (env('APP_ENV') !== 'local') {
+        // Force HTTPS URLs when running on Replit or when FORCE_HTTPS is enabled
+        if (config('app.force_https') || request()->header('x-forwarded-proto') === 'https' || str_contains(request()->getHost(), 'replit.dev')) {
             URL::forceScheme('https');
         }
     }
