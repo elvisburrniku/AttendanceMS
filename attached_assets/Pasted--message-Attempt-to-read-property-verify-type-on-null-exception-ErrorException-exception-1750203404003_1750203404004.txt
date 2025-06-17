@@ -1,0 +1,166 @@
+{message: "Attempt to read property "verify_type" on null", exception: "ErrorException",…}
+exception
+: 
+"ErrorException"
+file
+: 
+"/home/runner/workspace/app/Http/Controllers/AttendanceController.php"
+line
+: 
+449
+message
+: 
+"Attempt to read property \"verify_type\" on null"
+trace
+: 
+[{file: "/home/runner/workspace/app/Http/Controllers/AttendanceController.php", line: 449,…},…]
+0
+: 
+{file: "/home/runner/workspace/app/Http/Controllers/AttendanceController.php", line: 449,…}
+1
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Controller.php",…}
+2
+: 
+{,…}
+3
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Route.php", line: 261,…}
+4
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Route.php", line: 205,…}
+5
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Router.php", line: 721,…}
+6
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+7
+: 
+{file: "/home/runner/workspace/app/Http/Middleware/RoleMiddleware.php", line: 28,…}
+8
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+9
+: 
+{,…}
+10
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+11
+: 
+{,…}
+12
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+13
+: 
+{,…}
+14
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+15
+: 
+{,…}
+16
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+17
+: 
+{,…}
+18
+: 
+{,…}
+19
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+20
+: 
+{,…}
+21
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+22
+: 
+{,…}
+23
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+24
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+25
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Router.php", line: 719,…}
+26
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Router.php", line: 698,…}
+27
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Router.php", line: 662,…}
+28
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Routing/Router.php", line: 651,…}
+29
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",…}
+30
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+31
+: 
+{,…}
+32
+: 
+{,…}
+33
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+34
+: 
+{,…}
+35
+: 
+{,…}
+36
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+37
+: 
+{,…}
+38
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+39
+: 
+{,…}
+40
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+41
+: 
+{file: "/home/runner/workspace/vendor/fruitcake/laravel-cors/src/HandleCors.php", line: 38,…}
+42
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+43
+: 
+{,…}
+44
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+45
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php",…}
+46
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",…}
+47
+: 
+{file: "/home/runner/workspace/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php",…}
+48
+: 
+{file: "/home/runner/workspace/public/index.php", line: 54, function: "handle",…}
+49
+: 
+{file: "/home/runner/workspace/server.php", line: 21, function: "require_once"}
