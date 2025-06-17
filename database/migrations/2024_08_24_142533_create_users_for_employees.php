@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\Role;
@@ -16,6 +17,11 @@ class CreateUsersForEmployees extends Migration
      */
     public function up()
     {
+        // Check if employees table exists before trying to query it
+        if (!Schema::hasTable('personnel_employee')) {
+            return;
+        }
+        
         $role = Role::updateOrCreate([
             'slug' => 'employee',
             'name' => 'Employee',
