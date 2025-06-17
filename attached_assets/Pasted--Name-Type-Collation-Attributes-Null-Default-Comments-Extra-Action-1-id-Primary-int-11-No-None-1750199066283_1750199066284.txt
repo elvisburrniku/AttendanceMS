@@ -1,0 +1,52 @@
+	#	Name	Type	Collation	Attributes	Null	Default	Comments	Extra	Action
+	1	id Primary	int(11)			No	None		AUTO_INCREMENT	Change Change	Drop Drop	
+	2	create_time	datetime(6)			Yes	NULL			Change Change	Drop Drop	
+	3	create_user	varchar(150)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	4	change_time	datetime(6)			Yes	NULL			Change Change	Drop Drop	
+	5	change_user	varchar(150)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	6	status	smallint(6)			No	None			Change Change	Drop Drop	
+	7	emp_code Index	varchar(20)	utf8_general_ci		No	None			Change Change	Drop Drop	
+	8	first_name	varchar(100)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	9	last_name	varchar(100)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	10	nickname	varchar(100)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	11	passport	varchar(30)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	12	driver_license_automobile	varchar(30)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	13	driver_license_motorcycle	varchar(30)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	14	photo	varchar(200)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	15	self_password	varchar(128)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	16	device_password	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	17	dev_privilege	int(11)			Yes	NULL			Change Change	Drop Drop	
+	18	card_no	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	19	acc_group	varchar(5)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	20	acc_timezone	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	21	gender	varchar(1)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	22	birthday	date			Yes	NULL			Change Change	Drop Drop	
+	23	address	varchar(200)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	24	postcode	varchar(10)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	25	office_tel	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	26	contact_tel	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	27	mobile	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	28	national	varchar(50)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	29	religion	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	30	title	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	31	enroll_sn	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	32	ssn	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	33	update_time	datetime(6)			Yes	NULL			Change Change	Drop Drop	
+	34	hire_date	date			Yes	NULL			Change Change	Drop Drop	
+	35	verify_mode	int(11)			Yes	NULL			Change Change	Drop Drop	
+	36	city	varchar(20)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	37	emp_type	smallint(6)			Yes	NULL			Change Change	Drop Drop	
+	38	enable_payroll	tinyint(1)			No	None			Change Change	Drop Drop	
+	39	app_status	smallint(6)			Yes	NULL			Change Change	Drop Drop	
+	40	app_role	smallint(6)			Yes	NULL			Change Change	Drop Drop	
+	41	email	varchar(50)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	42	last_login	datetime(6)			Yes	NULL			Change Change	Drop Drop	
+	43	is_active	tinyint(1)			No	None			Change Change	Drop Drop	
+	44	session_key	varchar(32)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	45	login_ip	varchar(32)	utf8_general_ci		Yes	NULL			Change Change	Drop Drop	
+	46	department_id Index	int(11)			Yes	NULL			Change Change	Drop Drop	
+	47	position_id Index	int(11)			Yes	NULL			Change Change	Drop Drop	
+	48	leave_group	int(11)			Yes	NULL			Change Change	Drop Drop	
+	49	emp_code_digit	bigint(20)			Yes	NULL			Change Change	Drop Drop	
+	50	superior_id Index	int(11)			Yes	NULL			Change Change	Drop Drop	
+	51	company_id Index	int(11)			No	None		
