@@ -221,30 +221,69 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($id);
 
-        $employee->attendances()->delete();
-        $employee->areas()->delete();
-        $employee->department()->delete();
-        $employee->position()->delete();
-        $employee->check()->delete();
-        $employee->comments()->delete();
-        $employee->latetime()->delete();
-        $employee->leave()->delete();
-        $employee->overtime()->delete();
-        $employee->schedules()->delete();
-        $employee->overtimes()->delete();
-        $employee->attAttemployee()->delete();
-        $employee->employeeProfile()->delete();
+        if (!$employee) {
+            flash()->error('Error', 'Employee not found!');
+            return redirect()->route('employees.index');
+        }
 
+        // Delete HasMany relationships if they exist
+        if ($employee->attendances()->exists()) {
+            $employee->attendances()->delete();
+        }
+        
+        if ($employee->check()->exists()) {
+            $employee->check()->delete();
+        }
+        
+        if ($employee->comments()->exists()) {
+            $employee->comments()->delete();
+        }
+        
+        if ($employee->latetime()->exists()) {
+            $employee->latetime()->delete();
+        }
+        
+        if ($employee->leave()->exists()) {
+            $employee->leave()->delete();
+        }
+        
+        if ($employee->overtime()->exists()) {
+            $employee->overtime()->delete();
+        }
+        
+        if ($employee->schedules()->exists()) {
+            $employee->schedules()->delete();
+        }
+        
+        if ($employee->overtimes()->exists()) {
+            $employee->overtimes()->delete();
+        }
 
-        // $api = new ApiHelper();
+        // Delete HasOne relationships if they exist
+        if ($employee->attAttemployee) {
+            $employee->attAttemployee()->delete();
+        }
+        
+        if ($employee->employeeProfile) {
+            $employee->employeeProfile()->delete();
+        }
 
-        // $api->url(ApiUrlHelper::url('Employee.Update'));
+        // Detach BelongsToMany relationships
+        if ($employee->areas()->exists()) {
+            $employee->areas()->detach();
+        }
+
+        // Store nickname before deleting employee
+        $nickname = $employee->nickname;
 
         $employee->delete();
 
         flash()->success('Success','Employee Record has been Deleted successfully !');
 
-        User::where(['email' => $employee['nickname']])->delete();
+        // Delete associated user if exists
+        if ($nickname) {
+            User::where(['email' => $nickname])->delete();
+        }
 
         return redirect()->route('employees.index')->with('success');
     }
