@@ -11,7 +11,7 @@ class CreateAttAttshiftTable extends Migration
     {
         Schema::create('att_attshift', function (Blueprint $table) {
             $table->id();
-            $table->string('alias', 50)->collation('utf8_general_ci');
+            $table->string('alias', 50);
             $table->smallInteger('cycle_unit');
             $table->integer('shift_cycle');
             $table->boolean('work_weekend');
@@ -21,7 +21,7 @@ class CreateAttAttshiftTable extends Migration
             $table->smallInteger('auto_shift');
             $table->boolean('enable_ot_rule');
             $table->smallInteger('frequency');
-            $table->char('ot_rule', 32)->collation('utf8_general_ci')->nullable();
+            $table->char('ot_rule', 32)->nullable();
             $table->integer('company_id')->index();
         });
     }
