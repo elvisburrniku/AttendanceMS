@@ -118,7 +118,7 @@
                                                        
                                         </div>
                                         <h2 class="font-500 float-right">{{$data[3]}}%<i class="text-danger ml-2"></i></h2>
-                                        <span class="peity-donut float-left" data-peity='{ "fill": ["#02a499", "#f2f2f2"], "innerRadius": 28, "radius": 32 }' data-width="72" data-height="72">{{$data[3] / $data[0]}}</span>
+                                        <span class="peity-donut float-left" data-peity='{ "fill": ["#02a499", "#f2f2f2"], "innerRadius": 28, "radius": 32 }' data-width="72" data-height="72">{{ $data[0] > 0 ? $data[3] / 100 : 0 }}</span>
                                         <!-- <div class="pt-2">
                                             <div class="float-right">
                                                 <a href="#" class="text-white-50"><i class="mdi mdi-arrow-right h5"></i></a>

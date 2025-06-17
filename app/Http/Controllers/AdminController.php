@@ -16,7 +16,7 @@ use DateTime;
 class AdminController extends Controller
 {
 
- 
+
     public function index()
     {
         $today = Carbon::today()->format('Y-m-d');
@@ -67,15 +67,17 @@ class AdminController extends Controller
         })->count();
         $absentToday = $employees->where('attendances.*.punch_state', null)->count();
         $totalSchedule =  count(Schedule::all());
-            
+
         if($totalEmp > 0){
                 $percentageOntime = str_split(($ontimeEmp/ $totalEmp)*100, 4)[0];
             }else {
                 $percentageOntime = 0 ;
             }
-        
+
         $data = [$totalEmp, $ontimeEmp, $latetimeEmp, $percentageOntime, $totalSchedule, $absentToday];
-        
+
+        $data[3] = $data[0] > 0 ? round(($data[1] / $data[0]) * 100, 1) : 0;
+
         return view('admin.index')->with(['data' => $data]);
     }
 
