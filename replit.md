@@ -1,0 +1,127 @@
+# Attendance Management System
+
+## Overview
+
+This is a Laravel-based HR attendance management system designed to track employee check-ins, check-outs, and work schedules. The application provides comprehensive functionality for managing employees, departments, positions, and attendance tracking through a web interface.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: Laravel Blade templating engine
+- **CSS Framework**: Bootstrap 4.x
+- **JavaScript**: jQuery with various plugins (DataTables, SweetAlert, etc.)
+- **UI Components**: Custom dashboard with responsive design
+- **Asset Management**: Laravel Mix for compilation
+
+### Backend Architecture
+- **Framework**: Laravel 8.x (PHP 7.3+ / 8.0+)
+- **Architecture Pattern**: MVC (Model-View-Controller)
+- **Authentication**: Laravel's built-in authentication system with role-based access
+- **API**: RESTful endpoints for attendance data
+- **File Structure**: Standard Laravel directory structure
+
+### Database Architecture
+- **Primary Database**: MySQL 8.0
+- **ORM**: Eloquent ORM
+- **Migrations**: Laravel migration system
+- **Key Entities**: 
+  - Users/Employees
+  - Departments (hierarchical structure)
+  - Positions (hierarchical structure)
+  - Areas (hierarchical structure)
+  - Attendance records
+  - Schedules and Shifts
+  - Holidays and Leaves
+
+## Key Components
+
+### Authentication & Authorization
+- **Login System**: Email-based authentication
+- **Role Management**: Admin and Employee roles
+- **Middleware**: Role-based route protection
+- **Session Management**: File-based session storage
+
+### Employee Management
+- Employee CRUD operations with hierarchical department/position assignment
+- Card number integration for attendance devices
+- Nickname support for display on attendance devices
+
+### Attendance Tracking
+- **Punch States**: Check-in (0), Check-out (1), Break-out (2), Break-in (3)
+- **Time Tracking**: Automatic calculation of work hours
+- **Location Tracking**: GPS-based location recording
+- **Manual Adjustments**: Admin capability to edit attendance records
+
+### Scheduling System
+- **Schedules**: Define work time slots
+- **Shifts**: Employee shift assignments
+- **Timetables**: Schedule management interface
+
+### Reporting & Export
+- **Attendance Reports**: Daily, monthly attendance views
+- **Excel Export**: Attendance data export functionality
+- **Late Time Tracking**: Dedicated late arrival monitoring
+
+## Data Flow
+
+1. **Employee Check-in Process**:
+   - Employee accesses system via web interface
+   - Location captured via browser geolocation
+   - Attendance record created with timestamp and location
+   - Real-time dashboard updates
+
+2. **Admin Management**:
+   - Admin manages employee records, departments, positions
+   - Attendance monitoring and manual adjustments
+   - Schedule and shift assignment
+   - Report generation and export
+
+3. **Hierarchy Management**:
+   - Departments, positions, and areas support parent-child relationships
+   - Cascading organizational structure
+
+## External Dependencies
+
+### Core Dependencies
+- **Laravel Framework**: ^8.65
+- **Laravel Sanctum**: ^2.11 (API authentication)
+- **Laravel UI**: ^3.3 (UI scaffolding)
+- **Guzzle HTTP**: ^7.0.1 (HTTP client)
+- **Maatwebsite Excel**: ^3.1 (Excel import/export)
+- **RATS ZKTeco**: ^002.0 (Biometric device integration)
+
+### Development Dependencies
+- **Laravel Sail**: ^1.0.1 (Docker development environment)
+- **PHPUnit**: ^9.5.10 (Testing framework)
+- **Laravel Mix**: ^6.0.6 (Asset compilation)
+
+### Third-party Integrations
+- **ZKTeco Devices**: Biometric attendance device integration
+- **Email Services**: SMTP configuration for notifications
+- **Excel Export**: Spreadsheet generation for reports
+
+## Deployment Strategy
+
+### Development Environment
+- **Replit Configuration**: Configured for PHP 8.2, Node.js 20
+- **Local Server**: Artisan serve on port 5000
+- **Auto-deployment**: Configured for autoscale deployment target
+
+### Production Considerations
+- **Web Server**: Nginx with PHP-FPM (Docker configuration available)
+- **Database**: MySQL 8.0 with proper indexing
+- **Caching**: File-based caching (Redis available for scaling)
+- **Queue Management**: Sync driver (can be upgraded to Redis/database)
+- **File Storage**: Local filesystem (AWS S3 integration available)
+
+### Docker Support
+- **Multi-service Setup**: App, Nginx, MySQL containers
+- **Development Ready**: Docker Compose configuration included
+- **Volume Mounting**: Code and configuration persistence
+
+## Changelog
+- June 17, 2025. Initial setup
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.

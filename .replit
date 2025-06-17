@@ -1,4 +1,4 @@
-modules = ["php-8.3", "nginx", "bash", "web"]
+modules = ["nodejs-20", "web", "php-8.2"]
 run = "php artisan serve --host 0.0.0.0 --port 5000"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "vendor", "dist"]
 
