@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AreaRec;
 use RealRashid\SweetAlert\Facades\Alert;
-use App\Helpers\ApiHelper;
-use App\Helpers\ApiUrlHelper;
 use App\Models\Area;
 
 class AreaController extends Controller
@@ -22,15 +20,17 @@ class AreaController extends Controller
     {
         $request->validated();
 
-        $api = new ApiHelper();
-
-        $api->url(ApiUrlHelper::url('Area'));
-
-        $employee = $api->post($request->all());
+        $area = new Area();
+        $area->area_code = $request->area_code;
+        $area->area_name = $request->area_name;
+        $area->parent_area_id = $request->parent_area;
+        $area->company_id = 1; // Default company ID
+        $area->is_default = false;
+        $area->save();
 
         flash()->success('Success','Area Record has been created successfully !');
 
-        return redirect()->route('areas.index')->with('success');
+        return redirect()->route('areas.index');
     }
 
  
@@ -38,27 +38,24 @@ class AreaController extends Controller
     {
         $request->validated();
 
-        $api = new ApiHelper();
-
-        $api->url(ApiUrlHelper::url('Area.Update'));
-
-        $employee = $api->put($id, $request->all());
+        $area = Area::findOrFail($id);
+        $area->area_code = $request->area_code;
+        $area->area_name = $request->area_name;
+        $area->parent_area_id = $request->parent_area;
+        $area->save();
 
         flash()->success('Success','Area Record has been Updated successfully !');
 
-        return redirect()->route('areas.index')->with('success');
+        return redirect()->route('areas.index');
     }
 
 
     public function destroy($id)
     {
-        $api = new ApiHelper();
-
-        $api->url(ApiUrlHelper::url('Area.Update'));
-
-        $api->delete($id);
+        $area = Area::findOrFail($id);
+        $area->delete();
 
         flash()->success('Success','Area Record has been Deleted successfully !');
-        return redirect()->route('areas.index')->with('success');
+        return redirect()->route('areas.index');
     }
 }
