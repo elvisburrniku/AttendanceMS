@@ -35,11 +35,6 @@ class CreateNewLeavesTable extends Migration
      */
     public function down()
     {
-
-        Schema::table('leaves', function (Blueprint $table) {
-            $table->dropForeign(['emp_id']);
-        });
-   
         Schema::dropIfExists('leaves');
     }
 }
