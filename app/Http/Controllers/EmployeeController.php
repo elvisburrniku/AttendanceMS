@@ -231,25 +231,25 @@ class EmployeeController extends Controller
             $employee->attendances()->delete();
         }
         
-        if ($employee->check()->exists()) {
-            $employee->check()->delete();
-        }
+        // if ($employee->check()->exists()) {
+        //     $employee->check()->delete();
+        // }
         
         if ($employee->comments()->exists()) {
             $employee->comments()->delete();
         }
         
-        if ($employee->latetime()->exists()) {
-            $employee->latetime()->delete();
-        }
+        // if ($employee->latetime()->exists()) {
+        //     $employee->latetime()->delete();
+        // }
         
         if ($employee->leave()->exists()) {
             $employee->leave()->delete();
         }
         
-        if ($employee->overtime()->exists()) {
-            $employee->overtime()->delete();
-        }
+        // if ($employee->overtime()->exists()) {
+        //     $employee->overtime()->delete();
+        // }
         
         if ($employee->schedules()->exists()) {
             $employee->schedules()->delete();
@@ -260,13 +260,13 @@ class EmployeeController extends Controller
         }
 
         // Delete HasOne relationships if they exist
-        if ($employee->attAttemployee) {
-            $employee->attAttemployee()->delete();
-        }
+        // if ($employee->attAttemployee) {
+        //     $employee->attAttemployee()->delete();
+        // }
         
-        if ($employee->employeeProfile) {
-            $employee->employeeProfile()->delete();
-        }
+        // if ($employee->employeeProfile) {
+        //     $employee->employeeProfile()->delete();
+        // }
 
         // Detach BelongsToMany relationships
         if ($employee->areas()->exists()) {
