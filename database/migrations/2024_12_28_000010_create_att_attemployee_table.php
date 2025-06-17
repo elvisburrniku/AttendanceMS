@@ -26,7 +26,7 @@ class CreateAttAttemployeeTable extends Migration
             $table->boolean('enable_compensatory')->default(false);
             $table->unsignedBigInteger('emp_id');
             
-            $table->foreign('emp_id')->references('id')->on('employees')->onDelete('cascade');
+            $table->foreign('emp_id')->references('id')->on('personnel_employee')->onDelete('cascade');
         });
     }
 
