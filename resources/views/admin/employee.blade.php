@@ -47,7 +47,7 @@
                                                 <tr>
                                                     <td>{{$employee->emp_code}}</td>
                                                     <td>{{$employee->first_name}} {{ $employee->last_name }}</td>
-                                                    <td>{{ optional($employee->areas)->first()->area_name }}</td>
+                                                    <td>{{ optional($employee->areas->first())->area_name ?? 'N/A' }}</td>
                                                     <td>{{$employee->email}}</td>
                                                     <td>
                                                         {{$employee->department->dept_name }}
