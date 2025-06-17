@@ -14,7 +14,9 @@ class MakeChangesToAttendanceCommentsTable extends Migration
     public function up()
     {
         Schema::table('attendance_comments', function (Blueprint $table) {
-            $table->date('date')->nullable()->after('text');
+            if (!Schema::hasColumn('attendance_comments', 'date')) {
+                $table->date('date')->nullable()->after('text');
+            }
         });
     }
 
