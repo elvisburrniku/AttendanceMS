@@ -50,7 +50,7 @@
                                                     <td>{{ optional($employee->areas->first())->area_name ?? 'N/A' }}</td>
                                                     <td>{{$employee->email}}</td>
                                                     <td>
-                                                        {{$employee->department->dept_name }}
+                                                        {{ optional($employee->department)->dept_name ?? 'N/A' }}
                                                     </td>
                                                     <td>{{$employee->hire_date}}</td>
                                                     <td>
