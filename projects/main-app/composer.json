@@ -1,0 +1,10 @@
+{
+    "name": "demo\/main-app",
+    "description": "Primary multi-tenant application",
+    "type": "project",
+    "require": {
+        "php": "^8.0",
+        "laravel\/framework": "^9.0",
+        "stancl\/tenancy": "^3.0"
+    }
+}

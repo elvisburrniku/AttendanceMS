@@ -1,0 +1,10 @@
+{
+    "name": "demo\/hr-portal",
+    "description": "HR management portal",
+    "type": "project",
+    "require": {
+        "php": "^8.0",
+        "laravel\/framework": "^9.0",
+        "stancl\/tenancy": "^3.0"
+    }
+}

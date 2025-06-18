@@ -1,6 +1,4 @@
 <?php
-#!/usr/bin/env php
-<?php
 
 /**
  * Attendance Management System Integration Script
