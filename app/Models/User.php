@@ -12,7 +12,7 @@ class User extends Authenticatable
 
     public function employee()
     {
-        return $this->belongsTo('App\Models\Employee', 'email', 'nickname');
+        return $this->hasOne('App\Models\Employee', 'email', 'email');
     }
 
     public function getRouteKeyName()
@@ -27,7 +27,7 @@ class User extends Authenticatable
 
     public function hasAnyRole($roles)
     {
-        if (Is_array($roles)) {
+        if (is_array($roles)) {
             foreach ($roles as $role) {
                 if ($this->hasRole($role)) {
                     return true;
@@ -42,9 +42,10 @@ class User extends Authenticatable
         return false;
     }
 
-    public static function hasRole($role)
+    public function hasRole($role)
     {
-        if (auth()->user()->roles()->first()->slug === $role) {
+        $userRole = $this->roles()->first();
+        if ($userRole && $userRole->slug === $role) {
             return true;
         }
         return false;
