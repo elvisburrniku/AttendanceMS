@@ -103,4 +103,56 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['employee']], functi
 // Route::post('/leave/assign', '\App\Http\Controllers\LeaveController@assign')->name('leave.assign');
 
 
+// Demo route for showcasing redesigned employee dashboard
+Route::get('/demo/employee-dashboard', function () {
+    // Create mock data for demo
+    $mockUser = (object)[
+        'id' => 1,
+        'name' => 'John Doe',
+        'email' => 'john.doe@company.com',
+        'created_at' => now()->subMonths(3)
+    ];
+    
+    $mockEmployee = (object)[
+        'id' => 1,
+        'emp_code' => '001',
+        'first_name' => 'John',
+        'last_name' => 'Doe',
+    ];
+    
+    $mockCheckin = (object)[
+        'punch_time' => now()->setTime(9, 15, 0),
+        'punch_state' => '0',
+    ];
+    
+    $mockBreakin = (object)[
+        'punch_time' => now()->setTime(12, 30, 0),
+        'punch_state' => '3',
+    ];
+    
+    $mockBreakout = (object)[
+        'punch_time' => now()->setTime(13, 0, 0),
+        'punch_state' => '2',
+    ];
+    
+    $mockWeeklyAttendances = collect([
+        (object)['punch_time' => now()->subDays(1)->setTime(9, 0, 0), 'punch_state' => '0'],
+        (object)['punch_time' => now()->subDays(1)->setTime(17, 30, 0), 'punch_state' => '1'],
+        (object)['punch_time' => now()->subDays(2)->setTime(9, 10, 0), 'punch_state' => '0'],
+        (object)['punch_time' => now()->subDays(2)->setTime(17, 45, 0), 'punch_state' => '1']
+    ]);
+    
+    return view('employee.demo-dashboard', [
+        'user' => $mockUser,
+        'employee' => $mockEmployee,
+        'checkin' => $mockCheckin,
+        'checkout' => null,
+        'breakin' => $mockBreakin,
+        'breakout' => $mockBreakout,
+        'weeklyAttendances' => $mockWeeklyAttendances,
+        'workTime' => 480,
+        'breakTime' => 30
+    ]);
+})->name('demo.employee.dashboard');
+
 // Route::get('{any}', 'App\http\controllers\VeltrixController@index');
