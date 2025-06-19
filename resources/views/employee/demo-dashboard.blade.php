@@ -14,21 +14,92 @@
     
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
         }
         
         .demo-banner {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background-color: #007bff;
             color: white;
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 8px;
             margin-bottom: 1rem;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .simple-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-working {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-break {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .time-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #212529;
+            margin: 1rem 0;
+        }
+        
+        .btn-simple {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-simple:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .text-muted {
+            color: #6c757d;
         }
     </style>
 </head>
@@ -40,209 +111,109 @@
             <small>Interactive preview of the modern attendance management interface</small>
         </div>
 
-        <!-- Dashboard Header -->
-        <div class="col-sm-12">
-            <div class="dashboard-header">
-                <div class="employee-info">
-                    <div class="employee-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div>
-                        <h2 class="mb-1">Welcome back, {{ $user->name }}</h2>
-                        <div class="time-display">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            {{ now()->format('l, F j, Y') }}
-                            <span class="ms-3">
-                                <i class="fas fa-clock me-2"></i>
-                                <span id="currentTime"></span>
-                            </span>
-                        </div>
-                        <div class="location-status" id="locationStatus">
-                            <i class="fas fa-map-marker-alt text-success"></i>
-                            <span class="text-success">New York, NY (40.7128, -74.0060)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Simple Header -->
+        <div class="simple-card">
+            <h3>Welcome, {{ $user->name }}</h3>
+            <p class="text-muted mb-0">{{ now()->format('l, F j, Y') }} • <span id="currentTime"></span></p>
         </div>
 
-        <!-- Status Cards Row -->
-        <div class="row mb-4">
-            <!-- Clock In/Out Card -->
-            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                <div class="status-card">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="status-icon status-working">
-                            <i class="fas fa-play"></i>
-                        </div>
-                        <div class="text-end">
-                            <h6 class="text-muted mb-1">Work Status</h6>
-                            <h5 class="mb-0">
-                                <span class="text-success">Working</span>
-                            </h5>
-                        </div>
+        <!-- Simple Status Cards -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="simple-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Current Status</h5>
+                        <span class="status-badge status-working">Working</span>
                     </div>
                     
-                    <div class="clock-display" id="workTimer">
-                        <span class="timeel hours">08</span>:
-                        <span class="timeel minutes">45</span>:
-                        <span class="timeel seconds">32</span>
-                    </div>
+                    <div class="time-display" id="workTimer">8:45:32</div>
                     
-                    <div class="text-center mb-3">
-                        <small class="text-muted">Started at {{ $checkin->punch_time->format('g:i A') }}</small>
-                    </div>
+                    <p class="text-muted mb-3">Started at {{ $checkin->punch_time->format('g:i A') }}</p>
                     
-                    <button class="action-btn btn-clock-out" onclick="showDemo('clock-out')">
-                        <i class="fas fa-stop me-2"></i>End Work Day
+                    <button class="btn-simple btn-danger" onclick="showDemo('clock-out')">
+                        Clock Out
                     </button>
                 </div>
             </div>
 
-            <!-- Break Card -->
-            <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                <div class="status-card">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="status-icon status-pending">
-                            <i class="fas fa-coffee"></i>
-                        </div>
-                        <div class="text-end">
-                            <h6 class="text-muted mb-1">Break Time</h6>
-                            <h5 class="mb-0">
-                                <span class="text-info">Break Taken</span>
-                            </h5>
-                        </div>
+            <div class="col-md-6">
+                <div class="simple-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Break Status</h5>
+                        <span class="status-badge status-break">Completed</span>
                     </div>
                     
-                    <div class="clock-display" id="breakTimer">
-                        <span class="timeel hours">00</span>:
-                        <span class="timeel minutes">30</span>:
-                        <span class="timeel seconds">00</span>
-                    </div>
+                    <div class="time-display">0:30:00</div>
                     
-                    <div class="text-center mb-3">
-                        <small class="text-muted">Break: {{ $breakin->punch_time->format('g:i A') }} - {{ $breakout->punch_time->format('g:i A') }}</small>
-                    </div>
+                    <p class="text-muted mb-3">{{ $breakin->punch_time->format('g:i A') }} - {{ $breakout->punch_time->format('g:i A') }}</p>
                     
-                    <div class="text-center text-muted">
-                        <i class="fas fa-check fa-2x mb-2"></i>
-                        <p class="mb-0">Break completed</p>
-                    </div>
+                    <button class="btn-simple" onclick="showDemo('break')">
+                        Take Break
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <!-- Today's Summary -->
-            <div class="quick-stats">
-                <h5 class="mb-3">
-                    <i class="fas fa-chart-line me-2 text-primary"></i>Today's Summary
-                </h5>
-                <div class="stat-item">
-                    <span>Total Work Time</span>
-                    <strong>{{ floor($workTime / 60) }}h {{ $workTime % 60 }}m</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Break Time</span>
-                    <strong>{{ floor($breakTime / 60) }}h {{ $breakTime % 60 }}m</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Check-in Time</span>
-                    <strong>{{ $checkin->punch_time->format('g:i A') }}</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Status</span>
-                    <strong class="text-success">Working</strong>
+        <!-- Simple Summary -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="simple-card">
+                    <h5 class="mb-3">Today's Summary</h5>
+                    <div class="info-row">
+                        <span>Total Work Time</span>
+                        <strong>{{ floor($workTime / 60) }}h {{ $workTime % 60 }}m</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Break Time</span>
+                        <strong>{{ floor($breakTime / 60) }}h {{ $breakTime % 60 }}m</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Check-in Time</span>
+                        <strong>{{ $checkin->punch_time->format('g:i A') }}</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Status</span>
+                        <strong>Working</strong>
+                    </div>
                 </div>
             </div>
 
-            <!-- Weekly Overview -->
-            <div class="quick-stats">
-                <h5 class="mb-3">
-                    <i class="fas fa-calendar-week me-2 text-success"></i>This Week
-                </h5>
-                <div class="stat-item">
-                    <span>Monday</span>
-                    <strong class="text-success">9:00 AM</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Tuesday</span>
-                    <strong class="text-success">9:10 AM</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Wednesday</span>
-                    <strong class="text-success">9:15 AM</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Thursday</span>
-                    <strong class="text-muted">Absent</strong>
-                </div>
-                <div class="stat-item">
-                    <span>Friday</span>
-                    <strong class="text-muted">Absent</strong>
+            <div class="col-md-6">
+                <div class="simple-card">
+                    <h5 class="mb-3">This Week</h5>
+                    <div class="info-row">
+                        <span>Monday</span>
+                        <strong>9:00 AM</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Tuesday</span>
+                        <strong>9:10 AM</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Wednesday</span>
+                        <strong>9:15 AM</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Thursday</span>
+                        <span class="text-muted">Absent</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Friday</span>
+                        <span class="text-muted">Absent</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Recent Activity -->
-        <div class="recent-activity">
-            <h5 class="mb-3">
-                <i class="fas fa-history me-2 text-info"></i>Recent Activity
-            </h5>
+        <div class="simple-card">
+            <h5 class="mb-3">Recent Activity</h5>
             @foreach($weeklyAttendances as $attendance)
-                <div class="activity-item">
-                    <div class="activity-icon {{ $attendance->punch_state == 0 ? 'status-working' : 'status-complete' }}">
-                        <i class="fas {{ $attendance->punch_state == 0 ? 'fa-play' : 'fa-stop' }}"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex justify-content-between">
-                            <strong>
-                                {{ $attendance->punch_state == 0 ? 'Clock In' : 'Clock Out' }}
-                            </strong>
-                            <span class="text-muted">{{ $attendance->punch_time->format('M j, g:i A') }}</span>
-                        </div>
-                        <small class="text-muted">{{ $attendance->punch_time->diffForHumans() }}</small>
-                    </div>
+                <div class="info-row">
+                    <span>{{ $attendance->punch_state == 0 ? 'Clock In' : 'Clock Out' }}</span>
+                    <strong>{{ $attendance->punch_time->format('M j, g:i A') }}</strong>
                 </div>
             @endforeach
-        </div>
-
-        <!-- Demo Features Info -->
-        <div class="recent-activity mt-4">
-            <h5 class="mb-3">
-                <i class="fas fa-info-circle me-2 text-primary"></i>Dashboard Features
-            </h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <strong><i class="fas fa-mobile-alt me-2 text-success"></i>Mobile Responsive</strong>
-                        <p class="mb-2 text-muted small">Optimized for all device sizes with touch-friendly interfaces</p>
-                    </div>
-                    <div class="mb-3">
-                        <strong><i class="fas fa-map-marker-alt me-2 text-warning"></i>GPS Tracking</strong>
-                        <p class="mb-2 text-muted small">Automatic location detection for attendance verification</p>
-                    </div>
-                    <div class="mb-3">
-                        <strong><i class="fas fa-clock me-2 text-info"></i>Real-time Timers</strong>
-                        <p class="mb-2 text-muted small">Live countdown and work duration tracking</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <strong><i class="fas fa-keyboard me-2 text-primary"></i>Keyboard Shortcuts</strong>
-                        <p class="mb-2 text-muted small">Ctrl+Enter (Clock in/out), Ctrl+Space (Break)</p>
-                    </div>
-                    <div class="mb-3">
-                        <strong><i class="fas fa-bell me-2 text-danger"></i>Smart Notifications</strong>
-                        <p class="mb-2 text-muted small">Toast notifications for all attendance actions</p>
-                    </div>
-                    <div class="mb-3">
-                        <strong><i class="fas fa-chart-bar me-2 text-success"></i>Analytics</strong>
-                        <p class="mb-2 text-muted small">Weekly overview and performance tracking</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -270,34 +241,20 @@
             }
         }
 
-        // Animate work timer
-        function animateTimer() {
+        // Simple timer update
+        function updateTimer() {
             const workTimer = document.getElementById('workTimer');
-            const seconds = workTimer.querySelector('.seconds');
-            const minutes = workTimer.querySelector('.minutes');
-            const hours = workTimer.querySelector('.hours');
+            const startTime = new Date();
+            startTime.setHours(9, 15, 0); // Started at 9:15 AM
             
-            let currentSeconds = parseInt(seconds.textContent);
-            let currentMinutes = parseInt(minutes.textContent);
-            let currentHours = parseInt(hours.textContent);
+            const now = new Date();
+            const elapsed = now - startTime;
             
-            setInterval(() => {
-                currentSeconds++;
-                
-                if (currentSeconds >= 60) {
-                    currentSeconds = 0;
-                    currentMinutes++;
-                    
-                    if (currentMinutes >= 60) {
-                        currentMinutes = 0;
-                        currentHours++;
-                    }
-                }
-                
-                seconds.textContent = String(currentSeconds).padStart(2, '0');
-                minutes.textContent = String(currentMinutes).padStart(2, '0');
-                hours.textContent = String(currentHours).padStart(2, '0');
-            }, 1000);
+            const hours = Math.floor(elapsed / (1000 * 60 * 60));
+            const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+            
+            workTimer.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
         // Demo notification system
@@ -330,12 +287,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
-            animateTimer();
+            updateTimer();
+            setInterval(updateTimer, 1000);
             
             // Show welcome message
             setTimeout(() => {
                 showDemo('welcome');
-                document.getElementById('notificationText').innerHTML = '<i class="fas fa-rocket me-2"></i>Welcome to the redesigned employee dashboard!';
+                document.getElementById('notificationText').innerHTML = 'Welcome to the simple employee dashboard!';
                 document.getElementById('demoNotification').style.display = 'block';
             }, 1000);
         });
