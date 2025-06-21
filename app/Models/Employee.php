@@ -12,7 +12,49 @@ class Employee extends Model
 
     protected $table = 'personnel_employee';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'emp_code',
+        'emp_code_digit',
+        'first_name',
+        'last_name',
+        'nickname',
+        'card_no',
+        'department_id',
+        'position_id',
+        'hire_date',
+        'gender',
+        'birthday',
+        'emp_type',
+        'contact_tel',
+        'office_tel',
+        'mobile',
+        'national',
+        'city',
+        'address',
+        'postcode',
+        'email',
+        'dev_privilege',
+        'app_status',
+        'app_role',
+        'verify_mode',
+        'status',
+        'company_id',
+        'enable_payroll',
+        'is_active',
+        'create_time',
+        'change_time',
+        'update_time',
+        'attendance_sn',
+        'password',
+    ];
+
+    protected $dates = [
+        'hire_date',
+        'birthday',
+        'create_time',
+        'change_time',
+        'update_time',
+    ];
 
     public $timestamps = false;
 
@@ -115,50 +157,6 @@ class Employee extends Model
             $check_attd->approved = false;
             $check_attd->date = $date;
         }
-
-    protected $fillable = [
-        'emp_code',
-        'emp_code_digit',
-        'first_name',
-        'last_name',
-        'nickname',
-        'card_no',
-        'department_id',
-        'position_id',
-        'hire_date',
-        'gender',
-        'birthday',
-        'emp_type',
-        'contact_tel',
-        'office_tel',
-        'mobile',
-        'national',
-        'city',
-        'address',
-        'postcode',
-        'email',
-        'dev_privilege',
-        'app_status',
-        'app_role',
-        'verify_mode',
-        'status',
-        'company_id',
-        'enable_payroll',
-        'is_active',
-        'create_time',
-        'change_time',
-        'update_time',
-        'attendance_sn',
-        'password',
-    ];
-
-    protected $dates = [
-        'hire_date',
-        'birthday',
-        'create_time',
-        'change_time',
-        'update_time',
-    ];
 
         return $check_attd;
     }
