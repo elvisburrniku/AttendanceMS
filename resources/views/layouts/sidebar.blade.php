@@ -33,15 +33,16 @@
                             
                             <li class="menu-title">Management</li>
 
-                            <li>
-                                <a href="/schedule" class="waves-effect {{ request()->is("schedule") || request()->is("schedule/*") ? "mm active" : "" }}">
-                                    <i class="ti-time"></i> <span> Orari </span>
+                            <li class="has_sub">
+                                <a href="javascript:void(0);" class="waves-effect">
+                                    <i class="ti-time"></i> <span> Schedule & Shifts </span> <span class="menu-arrow"></span>
                                 </a>
-                            </li>
-                            <li>
-                                <a href="/shift" class="waves-effect {{ request()->is("shift") || request()->is("shift/*") ? "mm active" : "" }}">
-                                    <i class="ti-time"></i> <span> Shift </span>
-                                </a>
+                                <ul class="list-unstyled">
+                                    <li><a href="{{ route('schedules.index') }}">Employee Schedules</a></li>
+                                    <li><a href="{{ route('shifts.index') }}">Shift Management</a></li>
+                                    <li><a href="{{ route('time-intervals.index') }}">Time Intervals</a></li>
+                                    <li><a href="{{ route('schedules.bulk') }}">Bulk Assignment</a></li>
+                                </ul>
                             </li>
                             <li>
                                 <a href="/check" class="waves-effect {{ request()->is("check") || request()->is("check/*") ? "mm active" : "" }}">

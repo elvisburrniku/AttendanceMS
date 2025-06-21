@@ -7,13 +7,10 @@
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Shift Management</h4>
+                        <h4 class="mb-0">Time Interval Management</h4>
                         <div>
-                            <a href="{{ route('time-intervals.index') }}" class="btn btn-info btn-sm">
-                                <i class="fa fa-clock"></i> Time Intervals
-                            </a>
-                            <a href="{{ route('shifts.create') }}" class="btn btn-primary btn-sm">
-                                <i class="fa fa-plus"></i> New Shift
+                            <a href="{{ route('time-intervals.create') }}" class="btn btn-primary btn-sm">
+                                <i class="fa fa-plus"></i> New Time Interval
                             </a>
                         </div>
                     </div>
@@ -34,71 +31,63 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered" id="shiftsTable">
+                        <table class="table table-striped table-bordered" id="timeIntervalsTable">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Shift Name</th>
-                                    <th>Time Intervals</th>
-                                    <th>Working Hours</th>
-                                    <th>Employees Assigned</th>
-                                    <th>Settings</th>
+                                    <th>Name</th>
+                                    <th>Start Time</th>
+                                    <th>Duration</th>
+                                    <th>Work Hours</th>
+                                    <th>Status</th>
+                                    <th>Used in Shifts</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($shifts as $shift)
+                                @foreach($timeIntervals as $interval)
                                 <tr>
-                                    <td>{{ $shift->id }}</td>
+                                    <td>{{ $interval->id }}</td>
                                     <td>
-                                        <strong>{{ $shift->alias }}</strong>
-                                        <br><small class="text-muted">Cycle: {{ $shift->shift_cycle }} days</small>
+                                        <strong>{{ $interval->alias }}</strong>
                                     </td>
                                     <td>
-                                        @if($shift->timeIntervals->count() > 0)
-                                            @foreach($shift->timeIntervals as $interval)
-                                                <span class="badge badge-secondary mr-1">{{ $interval->alias }}</span>
-                                            @endforeach
+                                        {{ $interval->formatted_in_time }}
+                                    </td>
+                                    <td>
+                                        {{ $interval->duration }} minutes
+                                        <br><small class="text-muted">{{ $interval->duration_in_hours }} hours</small>
+                                    </td>
+                                    <td>
+                                        {{ number_format($interval->work_day, 1) }} day(s)
+                                    </td>
+                                    <td>
+                                        @if($interval->use_mode > 0)
+                                            <span class="badge badge-success">Active</span>
                                         @else
-                                            <span class="text-muted">No intervals assigned</span>
+                                            <span class="badge badge-secondary">Inactive</span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($shift->timeIntervals->count() > 0)
-                                            {{ number_format($shift->timeIntervals->sum('duration') / 60, 1) }} hours
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-primary">{{ $shift->schedules->count() }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="small">
-                                            @if($shift->work_weekend)
-                                                <span class="badge badge-info">Weekend Work</span>
-                                            @endif
-                                            @if($shift->enable_ot_rule)
-                                                <span class="badge badge-warning">OT Enabled</span>
-                                            @endif
-                                            @if($shift->work_day_off)
-                                                <span class="badge badge-secondary">Day Off Work</span>
-                                            @endif
-                                        </div>
+                                        <span class="badge badge-info">{{ $interval->shifts->count() }}</span>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('shifts.show', $shift) }}" class="btn btn-info btn-sm">
+                                            <a href="{{ route('time-intervals.show', $interval) }}" class="btn btn-info btn-sm">
                                                 <i class="fa fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('shifts.edit', $shift) }}" class="btn btn-warning btn-sm">
+                                            <a href="{{ route('time-intervals.edit', $interval) }}" class="btn btn-warning btn-sm">
                                                 <i class="fa fa-edit"></i>
                                             </a>
-                                            <a href="{{ route('shifts.copy', $shift) }}" class="btn btn-secondary btn-sm">
-                                                <i class="fa fa-copy"></i>
-                                            </a>
+                                            <form method="POST" action="{{ route('time-intervals.toggle', $interval) }}" style="display: inline;">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn {{ $interval->use_mode > 0 ? 'btn-secondary' : 'btn-success' }} btn-sm">
+                                                    <i class="fa {{ $interval->use_mode > 0 ? 'fa-pause' : 'fa-play' }}"></i>
+                                                </button>
+                                            </form>
                                             <button type="button" class="btn btn-danger btn-sm" 
-                                                    onclick="deleteShift({{ $shift->id }})">
+                                                    onclick="deleteTimeInterval({{ $interval->id }})">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </div>
@@ -110,7 +99,7 @@
                     </div>
 
                     <div class="d-flex justify-content-center">
-                        {{ $shifts->links() }}
+                        {{ $timeIntervals->links() }}
                     </div>
                 </div>
             </div>
@@ -127,7 +116,7 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this shift? This action cannot be undone.
+                Are you sure you want to delete this time interval?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -146,16 +135,16 @@
 @section('script')
 <script>
 $(document).ready(function() {
-    $('#shiftsTable').DataTable({
+    $('#timeIntervalsTable').DataTable({
         order: [[1, 'asc']],
         columnDefs: [
-            { orderable: false, targets: [6] }
+            { orderable: false, targets: [7] }
         ]
     });
 });
 
-function deleteShift(id) {
-    $('#deleteForm').attr('action', '/shifts/' + id);
+function deleteTimeInterval(id) {
+    $('#deleteForm').attr('action', '/time-intervals/' + id);
     $('#deleteModal').modal('show');
 }
 </script>

@@ -42,6 +42,20 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
 
     Route::get('/admin', '\App\Http\Controllers\AdminController@index')->name('admin');
 
+    // Schedule and Shift Management Routes
+    Route::resource('schedules', 'ScheduleController');
+    Route::get('schedules/bulk/assign', 'ScheduleController@bulk')->name('schedules.bulk');
+    Route::post('schedules/bulk/assign', 'ScheduleController@bulkStore')->name('schedules.bulk.store');
+    Route::get('employees/{employee}/schedules', 'ScheduleController@employeeSchedules')->name('employees.schedules');
+    
+    Route::resource('shifts', 'ShiftController');
+    Route::get('shifts/{shift}/copy', 'ShiftController@copy')->name('shifts.copy');
+    Route::post('shifts/{shift}/duplicate', 'ShiftController@duplicate')->name('shifts.duplicate');
+    
+    Route::resource('time-intervals', 'TimeIntervalController');
+    Route::patch('time-intervals/{timeInterval}/toggle', 'TimeIntervalController@toggle')->name('time-intervals.toggle');
+    
+    // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');
     Route::resource('/shift', '\App\Http\Controllers\ShiftController');
     Route::resource('/timetable', '\App\Http\Controllers\TimetableController');

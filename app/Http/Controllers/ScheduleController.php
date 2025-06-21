@@ -3,61 +3,153 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Http\Requests\ScheduleEmp;
-use App\Helpers\ApiHelper;
-use App\Helpers\ApiUrlHelper;
+use App\Models\Shift;
+use App\Models\Employee;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ScheduleController extends Controller
 {
-   
     public function index()
     {
-        return view('admin.schedule')->with('schedules', Schedule::with('employee')->paginate(100));
-        flash()->success('Success','Schedule has been created successfully !');
-
+        $schedules = Schedule::with(['employee', 'shift'])
+                           ->orderBy('start_date', 'desc')
+                           ->paginate(20);
+        
+        return view('admin.schedules.index', compact('schedules'));
     }
 
-
-    public function store(ScheduleEmp $request)
+    public function create()
     {
-        $request->validated();
-
-        $schedule = new schedule;
-        $schedule->slug = $request->slug;
-        $schedule->time_in = $request->time_in;
-        $schedule->time_out = $request->time_out;
-        $schedule->save();
-
-
-
-
-        flash()->success('Success','Schedule has been created successfully !');
-        return redirect()->route('schedule.index');
-
+        $employees = Employee::orderBy('first_name')->get();
+        $shifts = Shift::orderBy('alias')->get();
+        
+        return view('admin.schedules.create', compact('employees', 'shifts'));
     }
 
-    public function update(ScheduleEmp $request, Schedule $schedule)
+    public function store(Request $request)
     {
-        $request['time_in'] = str_split($request->time_in, 5)[0];
-        $request['time_out'] = str_split($request->time_out, 5)[0];
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'shift_id' => 'required|exists:att_attshift,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
 
-        $request->validated();
+        $employee = Employee::find($request->employee_id);
+        $shift = Shift::find($request->shift_id);
+        
+        $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
 
-        $schedule->slug = $request->slug;
-        $schedule->time_in = $request->time_in;
-        $schedule->time_out = $request->time_out;
-        $schedule->save();
-        flash()->success('Success','Schedule has been Updated successfully !');
-        return redirect()->route('schedule.index');
+        Schedule::create([
+            'slug' => $slug,
+            'employee_id' => $request->employee_id,
+            'shift_id' => $request->shift_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
 
-
+        return redirect()->route('schedules.index')
+                        ->with('success', 'Schedule assigned successfully!');
     }
 
-  
+    public function show(Schedule $schedule)
+    {
+        $schedule->load(['employee', 'shift.timeIntervals']);
+        
+        return view('admin.schedules.show', compact('schedule'));
+    }
+
+    public function edit(Schedule $schedule)
+    {
+        $employees = Employee::orderBy('first_name')->get();
+        $shifts = Shift::orderBy('alias')->get();
+        
+        return view('admin.schedules.edit', compact('schedule', 'employees', 'shifts'));
+    }
+
+    public function update(Request $request, Schedule $schedule)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'shift_id' => 'required|exists:att_attshift,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $employee = Employee::find($request->employee_id);
+        $shift = Shift::find($request->shift_id);
+        
+        $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
+
+        $schedule->update([
+            'slug' => $slug,
+            'employee_id' => $request->employee_id,
+            'shift_id' => $request->shift_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
+
+        return redirect()->route('schedules.index')
+                        ->with('success', 'Schedule updated successfully!');
+    }
+
     public function destroy(Schedule $schedule)
     {
         $schedule->delete();
-        flash()->success('Success','Schedule has been deleted successfully !');
-        return redirect()->route('schedule.index');
+        
+        return redirect()->route('schedules.index')
+                        ->with('success', 'Schedule deleted successfully!');
+    }
+
+    public function bulk()
+    {
+        $employees = Employee::orderBy('first_name')->get();
+        $shifts = Shift::orderBy('alias')->get();
+        
+        return view('admin.schedules.bulk', compact('employees', 'shifts'));
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $request->validate([
+            'employee_ids' => 'required|array',
+            'employee_ids.*' => 'exists:employees,id',
+            'shift_id' => 'required|exists:att_attshift,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $shift = Shift::find($request->shift_id);
+        $createdCount = 0;
+
+        foreach ($request->employee_ids as $employeeId) {
+            $employee = Employee::find($employeeId);
+            $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
+
+            Schedule::create([
+                'slug' => $slug,
+                'employee_id' => $employeeId,
+                'shift_id' => $request->shift_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+            ]);
+
+            $createdCount++;
+        }
+
+        return redirect()->route('schedules.index')
+                        ->with('success', "Successfully assigned schedules to {$createdCount} employees!");
+    }
+
+    public function employeeSchedules($employeeId)
+    {
+        $employee = Employee::findOrFail($employeeId);
+        $schedules = Schedule::with('shift')
+                           ->where('employee_id', $employeeId)
+                           ->orderBy('start_date', 'desc')
+                           ->paginate(10);
+        
+        return view('admin.schedules.employee', compact('employee', 'schedules'));
     }
 }
