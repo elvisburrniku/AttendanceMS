@@ -38,6 +38,7 @@
                                     <i class="ti-time"></i> <span> Schedule & Shifts </span> <span class="menu-arrow"></span>
                                 </a>
                                 <ul class="list-unstyled">
+                                    <li><a href="{{ route('calendar.index') }}">Shift Calendar</a></li>
                                     <li><a href="{{ route('schedules.index') }}">Employee Schedules</a></li>
                                     <li><a href="{{ route('shifts.index') }}">Shift Management</a></li>
                                     <li><a href="{{ route('time-intervals.index') }}">Time Intervals</a></li>

@@ -179,6 +179,15 @@ class ShiftCalendarController extends Controller
                 });
                 
                 $employeeSchedules[$day['date']] = $daySchedules->map(function($schedule) {
+                    $timeIntervals = $schedule->shift && $schedule->shift->timeIntervals ? 
+                        $schedule->shift->timeIntervals->map(function($interval) {
+                            return [
+                                'alias' => $interval->alias,
+                                'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+                                'duration' => $interval->duration_in_hours ?? round($interval->duration / 60, 2)
+                            ];
+                        })->toArray() : [];
+                        
                     return [
                         'id' => $schedule->id,
                         'slug' => $schedule->slug,
@@ -186,18 +195,12 @@ class ShiftCalendarController extends Controller
                             'id' => $schedule->shift->id,
                             'alias' => $schedule->shift->alias,
                             'color' => $this->getShiftColor($schedule->shift->id),
-                            'time_intervals' => $schedule->shift->timeIntervals->map(function($interval) {
-                                return [
-                                    'alias' => $interval->alias,
-                                    'in_time' => $interval->formatted_in_time,
-                                    'duration' => $interval->duration_in_hours
-                                ];
-                            })
+                            'time_intervals' => $timeIntervals
                         ],
                         'start_date' => $schedule->start_date,
                         'end_date' => $schedule->end_date
                     ];
-                })->toArray();
+                })->values()->toArray();
             }
             
             $calendarData[] = [

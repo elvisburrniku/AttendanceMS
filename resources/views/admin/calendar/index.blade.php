@@ -3,6 +3,7 @@
 @section('css')
 <link href="{{ asset('assets/css/calendar.css') }}" rel="stylesheet" type="text/css">
 <style>
+/* Additional inline styles for calendar */
 .shift-calendar {
     background: white;
     border-radius: 8px;
@@ -249,7 +250,7 @@
             <div class="page-title-box">
                 <h4 class="page-title">Shift Calendar</h4>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin') }}">Dashboard</a></li>
                     <li class="breadcrumb-item active">Shift Calendar</li>
                 </ol>
             </div>
@@ -287,8 +288,10 @@
 
             <!-- Calendar Grid -->
             <div class="shift-calendar">
-                <div class="calendar-grid" id="calendarGrid">
-                    <!-- Calendar will be populated by JavaScript -->
+                <div class="calendar-wrapper">
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
 
@@ -373,10 +376,12 @@
 @section('script')
 <script>
 let currentDate = '{{ $currentDate }}';
-let calendarData = @json($calendarData);
-let shifts = @json($shifts);
+let calendarData = {!! json_encode($calendarData) !!};
+let shifts = {!! json_encode($shifts) !!};
 let contextMenuTarget = null;
 let draggedElement = null;
+
+console.log('Initial calendar data:', calendarData);
 
 $(document).ready(function() {
     renderCalendar();
@@ -386,6 +391,13 @@ $(document).ready(function() {
 function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     grid.innerHTML = '';
+    
+    // Validate calendar data
+    if (!calendarData || !calendarData.weekDays || !calendarData.employees) {
+        console.error('Invalid calendar data:', calendarData);
+        grid.innerHTML = '<div class="alert alert-danger">Invalid calendar data</div>';
+        return;
+    }
     
     // Create header row
     const headerRow = document.createElement('div');
@@ -436,7 +448,7 @@ function renderCalendar() {
             
             const schedules = employeeData.schedules[day.date] || [];
             
-            if (schedules.length === 0) {
+            if (!Array.isArray(schedules) || schedules.length === 0) {
                 dayCell.innerHTML = '<div class="empty-day">No shifts</div>';
             } else {
                 schedules.forEach(schedule => {
@@ -461,9 +473,10 @@ function createShiftBlock(schedule) {
     shiftBlock.dataset.scheduleId = schedule.id;
     shiftBlock.draggable = true;
     
-    const timeIntervals = schedule.shift.time_intervals.map(interval => 
-        `${interval.in_time} (${interval.duration}h)`
-    ).join(', ');
+    const timeIntervals = Array.isArray(schedule.shift.time_intervals) ? 
+        schedule.shift.time_intervals.map(interval => 
+            `${interval.in_time} (${interval.duration}h)`
+        ).join(', ') : 'No time info';
     
     shiftBlock.innerHTML = `
         <div>${schedule.shift.alias}</div>
@@ -628,14 +641,17 @@ function loadWeekData() {
         method: 'GET',
         data: { date: currentDate },
         success: function(response) {
-            if (response.success) {
+            if (response.success && response.calendarData) {
                 calendarData = response.calendarData;
                 updateWeekDisplay(response.startDate, response.endDate);
                 renderCalendar();
+            } else {
+                showAlert('error', 'Invalid calendar data received');
             }
         },
-        error: function() {
-            showAlert('error', 'Error loading calendar data');
+        error: function(xhr, status, error) {
+            console.error('Calendar load error:', error);
+            showAlert('error', 'Error loading calendar data: ' + error);
         },
         complete: function() {
             hideLoading();
