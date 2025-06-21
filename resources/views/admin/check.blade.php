@@ -79,7 +79,7 @@
 
                                 <tr>
                                     <td>{{ $employee->first_name }} {{ $employee->last_name }}</td>
-                                    <td>{{ $employee->department->dept_name }}</td>
+                                    <td>{{ $employee->department ? $employee->department->dept_name : 'No Department' }}</td>
                                     <!-- <td>{{ $employee->id }}</td> -->
                                     @php
                                         $total = 0;

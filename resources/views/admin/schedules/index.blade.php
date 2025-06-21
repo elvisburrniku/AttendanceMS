@@ -44,11 +44,19 @@
                                 <tr>
                                     <td>{{ $schedule->id }}</td>
                                     <td>
-                                        <strong>{{ $schedule->employee->first_name }} {{ $schedule->employee->last_name }}</strong>
-                                        <br><small class="text-muted">{{ $schedule->employee->emp_code }}</small>
+                                        @if($schedule->employee)
+                                            <strong>{{ $schedule->employee->first_name }} {{ $schedule->employee->last_name }}</strong>
+                                            <br><small class="text-muted">{{ $schedule->employee->emp_code }}</small>
+                                        @else
+                                            <span class="text-muted">Employee not found</span>
+                                        @endif
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $schedule->shift->alias }}</span>
+                                        @if($schedule->shift)
+                                            <span class="badge badge-info">{{ $schedule->shift->alias }}</span>
+                                        @else
+                                            <span class="text-muted">Shift not found</span>
+                                        @endif
                                     </td>
                                     <td>{{ $schedule->start_date }}</td>
                                     <td>{{ $schedule->end_date }}</td>

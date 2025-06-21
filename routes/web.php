@@ -43,17 +43,17 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::get('/admin', '\App\Http\Controllers\AdminController@index')->name('admin');
 
     // Schedule and Shift Management Routes
-    Route::resource('schedules', 'ScheduleController');
-    Route::get('schedules/bulk/assign', 'ScheduleController@bulk')->name('schedules.bulk');
-    Route::post('schedules/bulk/assign', 'ScheduleController@bulkStore')->name('schedules.bulk.store');
-    Route::get('employees/{employee}/schedules', 'ScheduleController@employeeSchedules')->name('employees.schedules');
+    Route::resource('schedules', '\App\Http\Controllers\ScheduleController');
+    Route::get('schedules/bulk/assign', '\App\Http\Controllers\ScheduleController@bulk')->name('schedules.bulk');
+    Route::post('schedules/bulk/assign', '\App\Http\Controllers\ScheduleController@bulkStore')->name('schedules.bulk.store');
+    Route::get('employees/{employee}/schedules', '\App\Http\Controllers\ScheduleController@employeeSchedules')->name('employees.schedules');
     
-    Route::resource('shifts', 'ShiftController');
-    Route::get('shifts/{shift}/copy', 'ShiftController@copy')->name('shifts.copy');
-    Route::post('shifts/{shift}/duplicate', 'ShiftController@duplicate')->name('shifts.duplicate');
+    Route::resource('shifts', '\App\Http\Controllers\ShiftController');
+    Route::get('shifts/{shift}/copy', '\App\Http\Controllers\ShiftController@copy')->name('shifts.copy');
+    Route::post('shifts/{shift}/duplicate', '\App\Http\Controllers\ShiftController@duplicate')->name('shifts.duplicate');
     
-    Route::resource('time-intervals', 'TimeIntervalController');
-    Route::patch('time-intervals/{timeInterval}/toggle', 'TimeIntervalController@toggle')->name('time-intervals.toggle');
+    Route::resource('time-intervals', '\App\Http\Controllers\TimeIntervalController');
+    Route::patch('time-intervals/{timeInterval}/toggle', '\App\Http\Controllers\TimeIntervalController@toggle')->name('time-intervals.toggle');
     
     // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');
