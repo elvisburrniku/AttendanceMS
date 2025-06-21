@@ -87,6 +87,7 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['employee']], functi
     Route::get('/employee', '\App\Http\Controllers\HomeController@index')->name('employee');
 
     Route::post('/attendance-tap', '\App\Http\Controllers\AttendanceController@startClocking')->name('attendance.tap');
+    Route::post('/attendance/punch', '\App\Http\Controllers\AttendanceController@punchAttendance')->name('attendance.punch');
 });
 
 // Route::get('/attendance/assign', function () {

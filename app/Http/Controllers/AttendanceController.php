@@ -588,6 +588,86 @@ class AttendanceController extends Controller
         return \Carbon\Carbon::today()->subYears(30)->subYears(rand(0, 20))->subDays(rand(0, 365))->subMinutes(random_int(0, 55));
     }
 
+    public function punchAttendance(Request $request)
+    {
+        $employee = auth()->user()->employee;
+        
+        if (!$employee) {
+            return response()->json(['success' => false, 'message' => 'Employee record not found'], 404);
+        }
+
+        $punchState = $request->input('punch_state');
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
+
+        // Get default attendance record for template
+        $random_attendance = Attendance::first();
+        
+        // Default values when no existing attendance record is found
+        $defaultValues = [
+            'verify_type' => 1,
+            'work_code' => '',
+            'terminal_sn' => 'WEB001',
+            'terminal_alias' => 'Web Terminal',
+            'area_alias' => 'Office',
+            'mobile' => false,
+            'source' => 0,
+            'purpose' => 0,
+            'crc' => '',
+            'is_attendance' => true,
+            'reserved' => '',
+            'upload_time' => now(),
+            'sync_status' => 0,
+            'sync_time' => null,
+            'is_mask' => false,
+            'temperature' => null,
+            'terminal_id' => 1,
+            'company_code' => ''
+        ];
+
+        try {
+            $attendance = Attendance::create([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => now(),
+                "punch_state" => $punchState,
+                "verify_type" => $random_attendance ? $random_attendance->verify_type : $defaultValues['verify_type'],
+                "work_code" => $random_attendance ? $random_attendance->work_code : $defaultValues['work_code'],
+                "terminal_sn" => $random_attendance ? $random_attendance->terminal_sn : $defaultValues['terminal_sn'],
+                "terminal_alias" => $random_attendance ? $random_attendance->terminal_alias : $defaultValues['terminal_alias'],
+                "area_alias" => $random_attendance ? $random_attendance->area_alias : $defaultValues['area_alias'],
+                "longitude" => $longitude,
+                "latitude" => $latitude,
+                "gps_location" => !empty($latitude) && !empty($longitude),
+                "mobile" => $random_attendance ? $random_attendance->mobile : $defaultValues['mobile'],
+                "source" => $random_attendance ? $random_attendance->source : $defaultValues['source'],
+                "purpose" => $random_attendance ? $random_attendance->purpose : $defaultValues['purpose'],
+                "crc" => $random_attendance ? $random_attendance->crc : $defaultValues['crc'],
+                "is_attendance" => $random_attendance ? $random_attendance->is_attendance : $defaultValues['is_attendance'],
+                "reserved" => $random_attendance ? $random_attendance->reserved : $defaultValues['reserved'],
+                "upload_time" => $random_attendance ? $random_attendance->upload_time : $defaultValues['upload_time'],
+                "sync_status" => $random_attendance ? $random_attendance->sync_status : $defaultValues['sync_status'],
+                "sync_time" => $random_attendance ? $random_attendance->sync_time : $defaultValues['sync_time'],
+                "is_mask" => $random_attendance ? $random_attendance->is_mask : $defaultValues['is_mask'],
+                "temperature" => $random_attendance ? $random_attendance->temperature : $defaultValues['temperature'],
+                "emp_id" => $employee->id,
+                "terminal_id" => $random_attendance ? $random_attendance->terminal_id : $defaultValues['terminal_id'],
+                "company_code" => $random_attendance ? $random_attendance->company_code : $defaultValues['company_code'],
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Attendance recorded successfully',
+                'data' => $attendance
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to record attendance: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function export()
     {
         $api = new ApiHelper();
