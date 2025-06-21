@@ -267,7 +267,13 @@ if($employee->attendances()->exists()) {
                 @foreach($weeklyData as $day => $attendance)
                     <div class="info-row">
                         <span>{{ $day }}</span>
-                        <strong>{{ $attendance ? $attendance->punch_time->format('g:i A') : 'Absent' }}</strong>
+                        <strong>
+                            @if($attendance)
+                                {{ is_string($attendance->punch_time) ? \Carbon\Carbon::parse($attendance->punch_time)->format('g:i A') : $attendance->punch_time->format('g:i A') }}
+                            @else
+                                Absent
+                            @endif
+                        </strong>
                     </div>
                 @endforeach
             </div>

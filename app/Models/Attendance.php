@@ -13,11 +13,45 @@ class Attendance extends Model
 
     const CREATED_AT = 'upload_time';
     const UPDATED_AT = null;
-    
+
     public function employee()
     {
         return $this->belongsTo(Employee::class,'emp_id');
     }
+
+    protected $fillable = [
+        'emp_code',
+        'punch_time',
+        'punch_state',
+        'verify_type',
+        'work_code',
+        'terminal_sn',
+        'terminal_alias',
+        'area_alias',
+        'longitude',
+        'latitude',
+        'gps_location',
+        'mobile',
+        'source',
+        'purpose',
+        'crc',
+        'is_attendance',
+        'reserved',
+        'upload_time',
+        'sync_status',
+        'sync_time',
+        'is_mask',
+        'temperature',
+        'emp_id',
+        'terminal_id',
+        'company_code',
+    ];
+
+    protected $dates = [
+        'punch_time',
+        'upload_time',
+        'sync_time',
+    ];
 
     public static function calculateOvertime($attendances)
     {
