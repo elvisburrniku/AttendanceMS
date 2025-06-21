@@ -55,6 +55,13 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::resource('time-intervals', '\App\Http\Controllers\TimeIntervalController');
     Route::patch('time-intervals/{timeInterval}/toggle', '\App\Http\Controllers\TimeIntervalController@toggle')->name('time-intervals.toggle');
     
+    // Shift Calendar Routes
+    Route::get('calendar', '\App\Http\Controllers\ShiftCalendarController@index')->name('calendar.index');
+    Route::post('calendar/update', '\App\Http\Controllers\ShiftCalendarController@updateSchedule')->name('calendar.update');
+    Route::post('calendar/create', '\App\Http\Controllers\ShiftCalendarController@createSchedule')->name('calendar.create');
+    Route::post('calendar/delete', '\App\Http\Controllers\ShiftCalendarController@deleteSchedule')->name('calendar.delete');
+    Route::get('calendar/week-data', '\App\Http\Controllers\ShiftCalendarController@getWeekData')->name('calendar.week-data');
+    
     // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');
     Route::resource('/shift', '\App\Http\Controllers\ShiftController');
