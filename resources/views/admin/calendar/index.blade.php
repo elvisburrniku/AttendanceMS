@@ -346,6 +346,7 @@
                     <div class="form-group">
                         <label>Duration (days)</label>
                         <input type="number" name="duration" class="form-control" value="1" min="1" max="365">
+                        <small class="form-text text-muted">Number of consecutive days for this schedule</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -521,28 +522,57 @@ function handleDragOver(e) {
 }
 
 function handleDragEnter(e) {
-    if (e.target.classList.contains('day-cell')) {
-        e.target.classList.add('drag-over');
+    e.preventDefault();
+    let targetCell = e.target;
+    while (targetCell && !targetCell.classList.contains('day-cell')) {
+        targetCell = targetCell.parentElement;
+    }
+    if (targetCell) {
+        targetCell.classList.add('drag-over');
     }
 }
 
 function handleDragLeave(e) {
-    if (e.target.classList.contains('day-cell')) {
-        e.target.classList.remove('drag-over');
+    // Only remove drag-over if we're actually leaving the cell
+    let targetCell = e.target;
+    while (targetCell && !targetCell.classList.contains('day-cell')) {
+        targetCell = targetCell.parentElement;
+    }
+    if (targetCell && !targetCell.contains(e.relatedTarget)) {
+        targetCell.classList.remove('drag-over');
     }
 }
 
 function handleDrop(e) {
     e.preventDefault();
-    e.target.classList.remove('drag-over');
     
-    if (!draggedElement || !e.target.classList.contains('day-cell')) {
+    // Find the actual day cell (might be nested)
+    let targetCell = e.target;
+    while (targetCell && !targetCell.classList.contains('day-cell')) {
+        targetCell = targetCell.parentElement;
+    }
+    
+    if (targetCell) {
+        targetCell.classList.remove('drag-over');
+    }
+    
+    if (!draggedElement || !targetCell) {
         return;
     }
     
     const scheduleId = draggedElement.dataset.scheduleId;
-    const newDate = e.target.dataset.date;
-    const newEmployeeId = e.target.dataset.employeeId;
+    const newDate = targetCell.dataset.date;
+    const newEmployeeId = targetCell.dataset.employeeId;
+    
+    console.log('Dropping schedule', scheduleId, 'to date', newDate, 'employee', newEmployeeId);
+    
+    // Visual feedback - temporarily move the element
+    if (draggedElement && targetCell) {
+        const clone = draggedElement.cloneNode(true);
+        clone.style.opacity = '0.5';
+        targetCell.appendChild(clone);
+        draggedElement.style.display = 'none';
+    }
     
     updateSchedule(scheduleId, newDate, newEmployeeId);
 }
@@ -565,10 +595,13 @@ function updateSchedule(scheduleId, newDate, employeeId) {
                 refreshCalendar();
             } else {
                 showAlert('error', 'Failed to update schedule');
+                refreshCalendar(); // Refresh to reset any visual changes
             }
         },
-        error: function() {
-            showAlert('error', 'Error updating schedule');
+        error: function(xhr, status, error) {
+            console.error('Update error:', error);
+            showAlert('error', 'Error updating schedule: ' + error);
+            refreshCalendar(); // Refresh to reset any visual changes
         },
         complete: function() {
             hideLoading();

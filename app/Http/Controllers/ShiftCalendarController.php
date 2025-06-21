@@ -60,14 +60,18 @@ class ShiftCalendarController extends Controller
         $newDate = Carbon::parse($request->new_date);
         $employee = Employee::findOrFail($request->employee_id);
         
-        // Calculate the duration of the original schedule
-        $originalDuration = Carbon::parse($schedule->start_date)->diffInDays(Carbon::parse($schedule->end_date));
+        // Calculate the duration of the original schedule (inclusive days)
+        $originalStartDate = Carbon::parse($schedule->start_date);
+        $originalEndDate = Carbon::parse($schedule->end_date);
+        $originalDuration = $originalStartDate->diffInDays($originalEndDate);
         
-        // Update the schedule
+        // Update the schedule maintaining the same duration
+        $endDate = $originalDuration === 0 ? $newDate->copy() : $newDate->copy()->addDays($originalDuration);
+        
         $schedule->update([
             'employee_id' => $request->employee_id,
             'start_date' => $newDate->format('Y-m-d'),
-            'end_date' => $newDate->addDays($originalDuration)->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
             'slug' => Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $schedule->shift->alias . '-' . $newDate->format('Y-m-d'))
         ]);
 
@@ -90,7 +94,10 @@ class ShiftCalendarController extends Controller
         $employee = Employee::findOrFail($request->employee_id);
         $shift = Shift::findOrFail($request->shift_id);
         $startDate = Carbon::parse($request->date);
-        $endDate = $startDate->copy()->addDays($request->duration ?? 1);
+        
+        // Calculate end date correctly (duration - 1 days for single day schedules)
+        $duration = $request->duration ?? 1;
+        $endDate = $duration === 1 ? $startDate->copy() : $startDate->copy()->addDays($duration - 1);
 
         $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $startDate->format('Y-m-d'));
 
