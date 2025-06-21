@@ -668,6 +668,257 @@ class AttendanceController extends Controller
         }
     }
 
+    public function kioskCheckin(Request $request)
+    {
+        $request->validate([
+            'emp_code' => 'required|string',
+            'pin' => 'nullable|string'
+        ]);
+
+        $employee = Employee::where('emp_code', $request->emp_code)->first();
+        
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
+        }
+
+        // Check if already checked in today
+        $existingCheckin = Attendance::where('emp_code', $request->emp_code)
+            ->where('punch_state', '0')
+            ->whereDate('punch_time', now()->toDateString())
+            ->first();
+
+        if ($existingCheckin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Already checked in today'
+            ], 400);
+        }
+
+        $random_attendance = Attendance::first();
+        $defaultValues = [
+            'verify_type' => 1,
+            'work_code' => '',
+            'terminal_sn' => 'KIOSK001',
+            'terminal_alias' => 'Kiosk Terminal',
+            'area_alias' => 'Main Office',
+            'mobile' => false,
+            'source' => 0,
+            'purpose' => 0,
+            'crc' => '',
+            'is_attendance' => true,
+            'reserved' => '',
+            'upload_time' => now(),
+            'sync_status' => 0,
+            'sync_time' => null,
+            'is_mask' => false,
+            'temperature' => null,
+            'terminal_id' => 1,
+            'company_code' => ''
+        ];
+
+        try {
+            $attendance = Attendance::create([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => now(),
+                "punch_state" => "0",
+                "verify_type" => $random_attendance ? $random_attendance->verify_type : $defaultValues['verify_type'],
+                "work_code" => $random_attendance ? $random_attendance->work_code : $defaultValues['work_code'],
+                "terminal_sn" => $defaultValues['terminal_sn'],
+                "terminal_alias" => $defaultValues['terminal_alias'],
+                "area_alias" => $defaultValues['area_alias'],
+                "longitude" => $request->longitude,
+                "latitude" => $request->latitude,
+                "gps_location" => !empty($request->latitude) && !empty($request->longitude),
+                "mobile" => $defaultValues['mobile'],
+                "source" => $defaultValues['source'],
+                "purpose" => $defaultValues['purpose'],
+                "crc" => $defaultValues['crc'],
+                "is_attendance" => $defaultValues['is_attendance'],
+                "reserved" => $defaultValues['reserved'],
+                "upload_time" => $defaultValues['upload_time'],
+                "sync_status" => $defaultValues['sync_status'],
+                "sync_time" => $defaultValues['sync_time'],
+                "is_mask" => $defaultValues['is_mask'],
+                "temperature" => $defaultValues['temperature'],
+                "emp_id" => $employee->id,
+                "terminal_id" => $defaultValues['terminal_id'],
+                "company_code" => $defaultValues['company_code'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Check-in successful',
+                'employee' => $employee->first_name . ' ' . $employee->last_name,
+                'time' => now()->format('H:i:s')
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check in: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function kioskCheckout(Request $request)
+    {
+        $request->validate([
+            'emp_code' => 'required|string',
+            'pin' => 'nullable|string'
+        ]);
+
+        $employee = Employee::where('emp_code', $request->emp_code)->first();
+        
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
+        }
+
+        // Check if checked in today
+        $checkin = Attendance::where('emp_code', $request->emp_code)
+            ->where('punch_state', '0')
+            ->whereDate('punch_time', now()->toDateString())
+            ->first();
+
+        if (!$checkin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Must check in first'
+            ], 400);
+        }
+
+        // Check if already checked out
+        $existingCheckout = Attendance::where('emp_code', $request->emp_code)
+            ->where('punch_state', '1')
+            ->whereDate('punch_time', now()->toDateString())
+            ->first();
+
+        if ($existingCheckout) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Already checked out today'
+            ], 400);
+        }
+
+        $random_attendance = Attendance::first();
+        $defaultValues = [
+            'verify_type' => 1,
+            'work_code' => '',
+            'terminal_sn' => 'KIOSK001',
+            'terminal_alias' => 'Kiosk Terminal',
+            'area_alias' => 'Main Office',
+            'mobile' => false,
+            'source' => 0,
+            'purpose' => 0,
+            'crc' => '',
+            'is_attendance' => true,
+            'reserved' => '',
+            'upload_time' => now(),
+            'sync_status' => 0,
+            'sync_time' => null,
+            'is_mask' => false,
+            'temperature' => null,
+            'terminal_id' => 1,
+            'company_code' => ''
+        ];
+
+        try {
+            $attendance = Attendance::create([
+                "emp_code" => $employee->emp_code,
+                "punch_time" => now(),
+                "punch_state" => "1",
+                "verify_type" => $random_attendance ? $random_attendance->verify_type : $defaultValues['verify_type'],
+                "work_code" => $random_attendance ? $random_attendance->work_code : $defaultValues['work_code'],
+                "terminal_sn" => $defaultValues['terminal_sn'],
+                "terminal_alias" => $defaultValues['terminal_alias'],
+                "area_alias" => $defaultValues['area_alias'],
+                "longitude" => $request->longitude,
+                "latitude" => $request->latitude,
+                "gps_location" => !empty($request->latitude) && !empty($request->longitude),
+                "mobile" => $defaultValues['mobile'],
+                "source" => $defaultValues['source'],
+                "purpose" => $defaultValues['purpose'],
+                "crc" => $defaultValues['crc'],
+                "is_attendance" => $defaultValues['is_attendance'],
+                "reserved" => $defaultValues['reserved'],
+                "upload_time" => $defaultValues['upload_time'],
+                "sync_status" => $defaultValues['sync_status'],
+                "sync_time" => $defaultValues['sync_time'],
+                "is_mask" => $defaultValues['is_mask'],
+                "temperature" => $defaultValues['temperature'],
+                "emp_id" => $employee->id,
+                "terminal_id" => $defaultValues['terminal_id'],
+                "company_code" => $defaultValues['company_code'],
+            ]);
+
+            $workedHours = \Carbon\Carbon::parse($checkin->punch_time)->diffInHours(now());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Check-out successful',
+                'employee' => $employee->first_name . ' ' . $employee->last_name,
+                'time' => now()->format('H:i:s'),
+                'worked_hours' => round($workedHours, 2)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check out: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function verifyEmployee(Request $request)
+    {
+        $empCode = $request->route('emp_code');
+        $employee = Employee::where('emp_code', $empCode)->first();
+        
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee not found'
+            ], 404);
+        }
+
+        // Check today's attendance status
+        $todayCheckin = Attendance::where('emp_code', $empCode)
+            ->where('punch_state', '0')
+            ->whereDate('punch_time', now()->toDateString())
+            ->first();
+
+        $todayCheckout = Attendance::where('emp_code', $empCode)
+            ->where('punch_state', '1')
+            ->whereDate('punch_time', now()->toDateString())
+            ->first();
+
+        $status = 'not_checked_in';
+        if ($todayCheckin && $todayCheckout) {
+            $status = 'checked_out';
+        } elseif ($todayCheckin) {
+            $status = 'checked_in';
+        }
+
+        return response()->json([
+            'success' => true,
+            'employee' => [
+                'id' => $employee->id,
+                'name' => $employee->first_name . ' ' . $employee->last_name,
+                'emp_code' => $employee->emp_code,
+                'department' => $employee->department->name ?? 'N/A',
+                'position' => $employee->position->name ?? 'N/A'
+            ],
+            'status' => $status,
+            'checkin_time' => $todayCheckin ? $todayCheckin->punch_time : null,
+            'checkout_time' => $todayCheckout ? $todayCheckout->punch_time : null
+        ]);
+    }
+
     public function export()
     {
         $api = new ApiHelper();

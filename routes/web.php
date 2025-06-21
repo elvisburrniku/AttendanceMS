@@ -131,6 +131,34 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['employee']], functi
 
     Route::post('/attendance-tap', '\App\Http\Controllers\AttendanceController@startClocking')->name('attendance.tap');
     Route::post('/attendance/punch', '\App\Http\Controllers\AttendanceController@punchAttendance')->name('attendance.punch');
+    
+    // Employee Dashboard Routes
+    Route::get('/employee/dashboard', '\App\Http\Controllers\HomeController@dashboard')->name('employee.dashboard');
+    Route::get('/employee/attendance/history', '\App\Http\Controllers\HomeController@attendanceHistory')->name('employee.attendance.history');
+    Route::get('/employee/reports', '\App\Http\Controllers\HomeController@reports')->name('employee.reports');
+});
+
+// Public Check-in/out Routes (for kiosk mode or public terminals)
+Route::group(['prefix' => 'kiosk'], function () {
+    Route::get('/', function () {
+        return view('kiosk.index');
+    })->name('kiosk.index');
+    
+    Route::post('/checkin', '\App\Http\Controllers\AttendanceController@kioskCheckin')->name('kiosk.checkin');
+    Route::post('/checkout', '\App\Http\Controllers\AttendanceController@kioskCheckout')->name('kiosk.checkout');
+    Route::get('/verify/{emp_code}', '\App\Http\Controllers\AttendanceController@verifyEmployee')->name('kiosk.verify');
+});
+
+// Reports Routes for Admin
+Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
+    Route::get('/reports', '\App\Http\Controllers\ReportController@index')->name('reports.index');
+    Route::get('/reports/attendance', '\App\Http\Controllers\ReportController@attendance')->name('reports.attendance');
+    Route::get('/reports/attendance/export', '\App\Http\Controllers\ReportController@exportAttendance')->name('reports.attendance.export');
+    Route::get('/reports/monthly', '\App\Http\Controllers\ReportController@monthly')->name('reports.monthly');
+    Route::get('/reports/daily', '\App\Http\Controllers\ReportController@daily')->name('reports.daily');
+    Route::get('/reports/employee/{employee}', '\App\Http\Controllers\ReportController@employeeReport')->name('reports.employee');
+    Route::get('/reports/summary', '\App\Http\Controllers\ReportController@summary')->name('reports.summary');
+    Route::post('/reports/custom', '\App\Http\Controllers\ReportController@customReport')->name('reports.custom');
 });
 
 // Route::get('/attendance/assign', function () {
