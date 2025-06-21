@@ -331,27 +331,27 @@ function updateTimer() {
     @if($checkin && !$checkout)
         const workTimer = document.getElementById('workTimer');
         const startTime = new Date('{{ $checkin->punch_time->toISOString() }}');
-        const now = new Date();
-        const elapsed = now - startTime;
+        const currentTime = new Date();
+        const workElapsed = currentTime - startTime;
         
-        const hours = Math.floor(elapsed / (1000 * 60 * 60));
-        const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+        const workHours = Math.floor(workElapsed / (1000 * 60 * 60));
+        const workMinutes = Math.floor((workElapsed % (1000 * 60 * 60)) / (1000 * 60));
+        const workSeconds = Math.floor((workElapsed % (1000 * 60)) / 1000);
         
-        workTimer.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        workTimer.textContent = `${workHours}:${workMinutes.toString().padStart(2, '0')}:${workSeconds.toString().padStart(2, '0')}`;
     @endif
     
     @if($breakin && !$breakout)
         const breakTimer = document.getElementById('breakTimer');
         const breakStartTime = new Date('{{ $breakin->punch_time->toISOString() }}');
-        const now = new Date();
-        const elapsed = now - breakStartTime;
+        const breakCurrentTime = new Date();
+        const breakElapsed = breakCurrentTime - breakStartTime;
         
-        const hours = Math.floor(elapsed / (1000 * 60 * 60));
-        const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+        const breakHours = Math.floor(breakElapsed / (1000 * 60 * 60));
+        const breakMinutes = Math.floor((breakElapsed % (1000 * 60 * 60)) / (1000 * 60));
+        const breakSeconds = Math.floor((breakElapsed % (1000 * 60)) / 1000);
         
-        breakTimer.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        breakTimer.textContent = `${breakHours}:${breakMinutes.toString().padStart(2, '0')}:${breakSeconds.toString().padStart(2, '0')}`;
     @endif
 }
 
