@@ -12,7 +12,7 @@ class User extends Authenticatable
 
     public function employee()
     {
-        return $this->hasOne('App\Models\Employee', 'email', 'email');
+        return $this->hasOne('App\Models\Employee', 'nickname', 'email');
     }
 
     public function getRouteKeyName()

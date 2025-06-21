@@ -92,62 +92,18 @@ body {
 @section('content')
 @php
     $employee = auth()->user()->employee;
-    
-    // Create employee record if it doesn't exist
-    if (!$employee) {
-        $employee = \App\Models\Employee::firstOrCreate(
-            ['email' => auth()->user()->email],
-            [
-                'emp_code' => auth()->id(),
-                'first_name' => auth()->user()->name ? explode(' ', auth()->user()->name)[0] : 'Employee',
-                'last_name' => auth()->user()->name ? (explode(' ', auth()->user()->name)[1] ?? '') : '',
-                'nickname' => auth()->user()->name ? explode(' ', auth()->user()->name)[0] : 'Employee',
-                'card_no' => 'CARD' . str_pad(auth()->id(), 6, '0', STR_PAD_LEFT),
-                'department_id' => 1,
-                'position_id' => 1,
-                'hire_date' => auth()->user()->created_at ?? now(),
-                'gender' => 'M',
-                'birthday' => now()->subYears(25),
-                'emp_type' => 1,
-                'create_time' => now(),
-                'create_user' => 'system',
-                'change_time' => now(),
-                'change_user' => 'system',
-                'status' => 1,
-                'verify_mode' => 15,
-                'city' => '',
-                'live_city' => '',
-                'province' => '',
-                'address' => '',
-                'zip_code' => '',
-                'office_tel' => '',
-                'contact_tel' => '',
-                'mobile' => '',
-                'national_num' => '',
-                'payroll_id' => '',
-                'att_bonus' => 0,
-                'overtime_policy' => 1,
-                'holiday_policy' => 1,
-                'att_policy' => 1,
-                'app_role' => 1,
-                'app_status' => 1,
-                'machine_sn' => '',
-                'dev_privilege' => 1,
-                'fb_palm_vein' => '',
-                'fb_face_vein' => '',
-                'image_content' => '',
-                'first_name_en' => '',
-                'last_name_en' => '',
-                'emp_code_digits' => 4,
-                'pin_code' => '1234'
-            ]
-        );
-    }
-    
+
+    $checkin = null;
+    $checkout = null;
+    $breakin = null;
+    $breakout = null;
+
+if($employee->attendances()->exists()) {
     $checkin = $employee->attendances()->where('punch_state', 0)->whereDate('punch_time', now()->format('Y-m-d'))->first();
     $checkout = $employee->attendances()->where('punch_state', 1)->whereDate('punch_time', now()->format('Y-m-d'))->first();
     $breakin = $employee->attendances()->where('punch_state', 3)->whereDate('punch_time', now()->format('Y-m-d'))->first();
     $breakout = $employee->attendances()->where('punch_state', 2)->whereDate('punch_time', now()->format('Y-m-d'))->first();
+}
     
     // Calculate work status
     $currentStatus = 'not_started';
