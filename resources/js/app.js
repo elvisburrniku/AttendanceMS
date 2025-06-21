@@ -801,6 +801,43 @@ axios.interceptors.response.use(
     }
 );
 
+// Global toast function
+window.showToast = function(message, type = 'info') {
+    const container = document.getElementById('toast-container') || document.body;
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0 show`;
+    toast.setAttribute('role', 'alert');
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '1050';
+    toast.style.minWidth = '250px';
+    
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 3000);
+};
+
+// Make toast available to Vue
+Vue.prototype.$toast = {
+    success: (msg) => showToast(msg, 'success'),
+    error: (msg) => showToast(msg, 'danger'),
+    info: (msg) => showToast(msg, 'info'),
+    warning: (msg) => showToast(msg, 'warning')
+};
+
 // Create Vue app
 const app = new Vue({
     router,

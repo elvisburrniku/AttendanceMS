@@ -245,31 +245,6 @@
     
     <!-- Bootstrap JS for dropdown functionality -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Toast Helper -->
-    <script>
-        Vue.prototype.$toast = {
-            success(message) {
-                this.show(message, 'success');
-            },
-            error(message) {
-                this.show(message, 'danger');
-            },
-            info(message) {
-                this.show(message, 'info');
-            },
-            warning(message) {
-                this.show(message, 'warning');
-            },
-            show(message, type = 'info') {
-                const container = document.getElementById('toast-container');
-                const toast = document.createElement('div');
-                toast.className = `toast align-items-center text-white bg-${type} border-0`;
-                toast.setAttribute('role', 'alert');
-                
-                toast.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
                     </div>
                 `;
