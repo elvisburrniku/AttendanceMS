@@ -3027,7 +3027,44 @@ axios__WEBPACK_IMPORTED_MODULE_1___default().interceptors.response.use(function 
   }
 
   return Promise.reject(error);
-}); // Create Vue app
+}); // Global toast function
+
+window.showToast = function (message) {
+  var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'info';
+  var container = document.getElementById('toast-container') || document.body;
+  var toast = document.createElement('div');
+  toast.className = "toast align-items-center text-white bg-".concat(type, " border-0 show");
+  toast.setAttribute('role', 'alert');
+  toast.style.position = 'fixed';
+  toast.style.top = '20px';
+  toast.style.right = '20px';
+  toast.style.zIndex = '1050';
+  toast.style.minWidth = '250px';
+  toast.innerHTML = "\n        <div class=\"d-flex\">\n            <div class=\"toast-body\">".concat(message, "</div>\n            <button type=\"button\" class=\"btn-close btn-close-white me-2 m-auto\" onclick=\"this.parentElement.parentElement.remove()\"></button>\n        </div>\n    ");
+  container.appendChild(toast); // Auto hide after 3 seconds
+
+  setTimeout(function () {
+    if (toast.parentElement) {
+      toast.remove();
+    }
+  }, 3000);
+}; // Make toast available to Vue
+
+
+vue__WEBPACK_IMPORTED_MODULE_5__["default"].prototype.$toast = {
+  success: function success(msg) {
+    return showToast(msg, 'success');
+  },
+  error: function error(msg) {
+    return showToast(msg, 'danger');
+  },
+  info: function info(msg) {
+    return showToast(msg, 'info');
+  },
+  warning: function warning(msg) {
+    return showToast(msg, 'warning');
+  }
+}; // Create Vue app
 
 var app = new vue__WEBPACK_IMPORTED_MODULE_5__["default"]({
   router: router,
