@@ -55,34 +55,12 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::resource('time-intervals', '\App\Http\Controllers\TimeIntervalController');
     Route::patch('time-intervals/{timeInterval}/toggle', '\App\Http\Controllers\TimeIntervalController@toggle')->name('time-intervals.toggle');
     
-    // Shift Calendar Routes (Legacy)
+    // Shift Calendar Routes
     Route::get('calendar', '\App\Http\Controllers\ShiftCalendarController@index')->name('calendar.index');
     Route::post('calendar/update', '\App\Http\Controllers\ShiftCalendarController@updateSchedule')->name('calendar.update');
     Route::post('calendar/create', '\App\Http\Controllers\ShiftCalendarController@createSchedule')->name('calendar.create');
     Route::post('calendar/delete', '\App\Http\Controllers\ShiftCalendarController@deleteSchedule')->name('calendar.delete');
     Route::get('calendar/week-data', '\App\Http\Controllers\ShiftCalendarController@getWeekData')->name('calendar.week-data');
-    
-    // API Routes for Vue SPA
-    Route::prefix('api')->group(function () {
-        Route::get('employees', '\App\Http\Controllers\ApiController@employees');
-        Route::get('shifts', '\App\Http\Controllers\ApiController@shifts');
-        Route::get('time-intervals', '\App\Http\Controllers\ApiController@timeIntervals');
-        Route::get('schedules', '\App\Http\Controllers\ApiController@schedules');
-        Route::get('calendar/week-data', '\App\Http\Controllers\ApiController@weekData');
-        Route::post('calendar/create', '\App\Http\Controllers\ApiController@createSchedule');
-        Route::post('calendar/update', '\App\Http\Controllers\ApiController@updateSchedule');
-        Route::post('calendar/delete', '\App\Http\Controllers\ApiController@deleteSchedule');
-    });
-    
-    // SPA Route - catch all except login
-    Route::get('app/{any?}', function () {
-        return view('spa');
-    })->where('any', '.*')->name('spa');
-    
-    // Redirect admin dashboard to SPA
-    Route::get('admin', function () {
-        return redirect('/app/dashboard');
-    });
     
     // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');
@@ -131,34 +109,6 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['employee']], functi
 
     Route::post('/attendance-tap', '\App\Http\Controllers\AttendanceController@startClocking')->name('attendance.tap');
     Route::post('/attendance/punch', '\App\Http\Controllers\AttendanceController@punchAttendance')->name('attendance.punch');
-    
-    // Employee Dashboard Routes
-    Route::get('/employee/dashboard', '\App\Http\Controllers\HomeController@dashboard')->name('employee.dashboard');
-    Route::get('/employee/attendance/history', '\App\Http\Controllers\HomeController@attendanceHistory')->name('employee.attendance.history');
-    Route::get('/employee/reports', '\App\Http\Controllers\HomeController@reports')->name('employee.reports');
-});
-
-// Public Check-in/out Routes (for kiosk mode or public terminals)
-Route::group(['prefix' => 'kiosk'], function () {
-    Route::get('/', function () {
-        return view('kiosk.index');
-    })->name('kiosk.index');
-    
-    Route::post('/checkin', '\App\Http\Controllers\AttendanceController@kioskCheckin')->name('kiosk.checkin');
-    Route::post('/checkout', '\App\Http\Controllers\AttendanceController@kioskCheckout')->name('kiosk.checkout');
-    Route::get('/verify/{emp_code}', '\App\Http\Controllers\AttendanceController@verifyEmployee')->name('kiosk.verify');
-});
-
-// Reports Routes for Admin
-Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
-    Route::get('/reports', '\App\Http\Controllers\ReportController@index')->name('reports.index');
-    Route::get('/reports/attendance', '\App\Http\Controllers\ReportController@attendance')->name('reports.attendance');
-    Route::get('/reports/attendance/export', '\App\Http\Controllers\ReportController@exportAttendance')->name('reports.attendance.export');
-    Route::get('/reports/monthly', '\App\Http\Controllers\ReportController@monthly')->name('reports.monthly');
-    Route::get('/reports/daily', '\App\Http\Controllers\ReportController@daily')->name('reports.daily');
-    Route::get('/reports/employee/{employee}', '\App\Http\Controllers\ReportController@employeeReport')->name('reports.employee');
-    Route::get('/reports/summary', '\App\Http\Controllers\ReportController@summary')->name('reports.summary');
-    Route::post('/reports/custom', '\App\Http\Controllers\ReportController@customReport')->name('reports.custom');
 });
 
 // Route::get('/attendance/assign', function () {
