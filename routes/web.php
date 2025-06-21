@@ -55,12 +55,34 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::resource('time-intervals', '\App\Http\Controllers\TimeIntervalController');
     Route::patch('time-intervals/{timeInterval}/toggle', '\App\Http\Controllers\TimeIntervalController@toggle')->name('time-intervals.toggle');
     
-    // Shift Calendar Routes
+    // Shift Calendar Routes (Legacy)
     Route::get('calendar', '\App\Http\Controllers\ShiftCalendarController@index')->name('calendar.index');
     Route::post('calendar/update', '\App\Http\Controllers\ShiftCalendarController@updateSchedule')->name('calendar.update');
     Route::post('calendar/create', '\App\Http\Controllers\ShiftCalendarController@createSchedule')->name('calendar.create');
     Route::post('calendar/delete', '\App\Http\Controllers\ShiftCalendarController@deleteSchedule')->name('calendar.delete');
     Route::get('calendar/week-data', '\App\Http\Controllers\ShiftCalendarController@getWeekData')->name('calendar.week-data');
+    
+    // API Routes for Vue SPA
+    Route::prefix('api')->group(function () {
+        Route::get('employees', '\App\Http\Controllers\ApiController@employees');
+        Route::get('shifts', '\App\Http\Controllers\ApiController@shifts');
+        Route::get('time-intervals', '\App\Http\Controllers\ApiController@timeIntervals');
+        Route::get('schedules', '\App\Http\Controllers\ApiController@schedules');
+        Route::get('calendar/week-data', '\App\Http\Controllers\ApiController@weekData');
+        Route::post('calendar/create', '\App\Http\Controllers\ApiController@createSchedule');
+        Route::post('calendar/update', '\App\Http\Controllers\ApiController@updateSchedule');
+        Route::post('calendar/delete', '\App\Http\Controllers\ApiController@deleteSchedule');
+    });
+    
+    // SPA Route - catch all except login
+    Route::get('app/{any?}', function () {
+        return view('spa');
+    })->where('any', '.*')->name('spa');
+    
+    // Redirect admin dashboard to SPA
+    Route::get('admin', function () {
+        return redirect('/app/dashboard');
+    });
     
     // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');

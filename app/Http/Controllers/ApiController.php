@@ -2,136 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Employee;
-use App\Models\Attendance;
-use App\Models\Check;
-use App\Models\Leave;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\AttendanceEmp;
+use App\Models\Shift;
+use App\Models\TimeInterval;
+use App\Models\Schedule;
 use Illuminate\Http\Request;
-use App\Helpers\ApiHelper;
-use App\Helpers\ApiUrlHelper;
 
 class ApiController extends Controller
 {
-
-    public function attendancesApi()
+    public function employees()
     {
-        $api = new ApiHelper();
-
-        $api->url(ApiUrlHelper::url('Attendances.Api'));
-
-        $attendances_api = $api->get();
-
-        return response()->json($attendances_api);
+        return response()->json(
+            Employee::orderBy('first_name')->get()
+        );
     }
-    
-    public function check(AttendanceEmp $request)
+
+    public function shifts()
     {
-        $request->validated();
-
-        if ($employee = Employee::whereEmail(request('email'))->first()) {
-
-            if (Hash::check($request->pin_code, $employee->pin_code)) {
-
-
-
-
-                if(null == Check::whereEmp_id($employee->id)->latest()->first()){
-                    ApiController::newAttandance($employee);
-                }else{
-                    
-                    if(Check::whereEmp_id($employee->id)->latest()->first()->leave_time !== null){
-                        ApiController::newAttandance($employee);
-                    } else {
-                        $check = Check::whereEmp_id($employee->id)->latest()->first();
-                        $check->leave_time = date("Y-m-d H:i:s");
-                        $check->save();
-                        return response()->json(['success' => 'Successful in assign the leave'], 200);
-                    }
-
-                }
-
-            } else {
-                return response()->json(['error' => 'Failed to assign the attendance'], 404);
-            }
-        }
-        return response()->json(['success' => 'Successful in assign the attendance'], 200);
+        return response()->json(
+            Shift::with('timeIntervals')->orderBy('alias')->get()
+        );
     }
 
-
-    public function newAttandance($employee){
-        $check = new Check;
-        $check->emp_id = $employee->id;
-        $check->attendance_time = date("Y-m-d H:i:s");
-        $check->leave_time = null;
-        $check->save();
-    }
-
-
-
-    public function attendance(AttendanceEmp $request)
+    public function timeIntervals()
     {
-         $request->validated();
-
-        if ($employee = Employee::whereEmail(request('email'))->first()) {
-
-            if (Hash::check($request->pin_code, $employee->pin_code)) {
-                if (!Attendance::whereAttendance_date(date("Y-m-d"))->whereEmp_id($employee->id)->first()) {
-                    $attendance = new Attendance;
-                    $attendance->emp_id = $employee->id;
-                    $attendance->attendance_time = date("H:i:s");
-                    $attendance->attendance_date = date("Y-m-d");
-
-                    if (!($employee->schedules->first()->time_in >= $attendance->attendance_time)) {
-                        $attendance->status = 0;
-                        AttendanceController::lateTime($employee);
-                    };
-
-                    $attendance->save();
-                 } else {
-                    return response()->json(['error' => 'you assigned your attendance before'], 404);
-                }
-            } else {
-                return response()->json(['error' => 'Failed to assign the attendance'], 404);
-            }
-        }
-        return response()->json(['success' => 'Successful in assign the attendance'], 200);
-
+        return response()->json(
+            TimeInterval::orderBy('alias')->get()
+        );
     }
 
-
-
-    public function leave(AttendanceEmp $request)
+    public function schedules()
     {
-        $request->validated();
-
-        if ($employee = Employee::whereEmail(request('email'))->first()) {
-
-            if (Hash::check($request->pin_code, $employee->pin_code)) {
-                if (!Leave::whereLeave_date(date("Y-m-d"))->whereEmp_id($employee->id)->first()) {
-                    $leave = new Leave;
-                    $leave->emp_id = $employee->id;
-                    $leave->leave_time = date("H:i:s");
-                    $leave->leave_date = date("Y-m-d");
-                    // ontime + overtime if true , else "early go" ....
-                    if ($leave->leave_time >= $employee->schedules->first()->time_out) {
-                        leaveController::overTime($employee);
-                    } else {
-                        $leave->status = 0;
-                    }
-
-                    $leave->save();
-                } else {
-                    return response()->json(['error' => 'you assigned your leave before'], 404);
-                }
-            } else {
-                return response()->json(['error' => 'Failed to assign the leave'], 404);
-            }
-        }
-
-        return response()->json(['success' => 'Successful in assign the leave'], 200);
+        return response()->json(
+            Schedule::with(['employee', 'shift.timeIntervals'])
+                ->orderBy('start_date', 'desc')
+                ->get()
+        );
     }
 
+    public function weekData(Request $request)
+    {
+        $controller = new ShiftCalendarController();
+        return $controller->getWeekData($request);
+    }
+
+    public function createSchedule(Request $request)
+    {
+        $controller = new ShiftCalendarController();
+        return $controller->createSchedule($request);
+    }
+
+    public function updateSchedule(Request $request)
+    {
+        $controller = new ShiftCalendarController();
+        return $controller->updateSchedule($request);
+    }
+
+    public function deleteSchedule(Request $request)
+    {
+        $controller = new ShiftCalendarController();
+        return $controller->deleteSchedule($request);
+    }
 }
