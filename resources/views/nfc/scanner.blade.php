@@ -2,172 +2,115 @@
 
 @section('title', 'NFC Scanner')
 
-@push('head')
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#4285f4">
-<link rel="manifest" href="{{ asset('nfc-manifest.json') }}">
-<style>
-    .scanner-container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    .scanner-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 30px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    .scan-area {
-        background: rgba(255,255,255,0.1);
-        border: 3px dashed rgba(255,255,255,0.5);
-        border-radius: 15px;
-        padding: 40px;
-        margin: 20px 0;
-        transition: all 0.3s ease;
-    }
-    .scan-area.scanning {
-        border-color: #00ff00;
-        background: rgba(0,255,0,0.1);
-        animation: pulse 2s infinite;
-    }
-    .scan-area.error {
-        border-color: #ff0000;
-        background: rgba(255,0,0,0.1);
-    }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-    .nfc-icon {
-        font-size: 4rem;
-        margin-bottom: 15px;
-        opacity: 0.8;
-    }
-    .status-message {
-        font-size: 1.2rem;
-        margin: 15px 0;
-        font-weight: 500;
-    }
-    .employee-info {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
-        color: #333;
-        display: none;
-    }
-    .attendance-log {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-    .log-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #eee;
-    }
-    .log-item:last-child {
-        border-bottom: none;
-    }
-    .action-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
-    .check-in { background: #e8f5e8; color: #2e7d32; }
-    .check-out { background: #fff3e0; color: #f57c00; }
-    .control-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-    .btn-nfc {
-        flex: 1;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    .btn-primary { background: #4285f4; color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-    .btn-success { background: #28a745; color: white; }
-    .btn-warning { background: #ffc107; color: #212529; }
-    .btn-nfc:hover { transform: translateY(-2px); }
-    .btn-nfc:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-    .alert {
-        padding: 15px;
-        border-radius: 8px;
-        margin: 15px 0;
-    }
-    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-</style>
-@endpush
-
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="scanner-container">
-                <!-- Scanner Header -->
-                <div class="scanner-card">
-                    <div class="nfc-icon">📱</div>
-                    <h2>NFC Attendance Scanner</h2>
-                    <p class="status-message" id="statusMessage">Ready to scan NFC cards</p>
+<div class="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="page-title-box">
+                    <div class="btn-group float-right">
+                        <ol class="breadcrumb hide-phone p-0 m-0">
+                            <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                            <li class="breadcrumb-item active">NFC Scanner</li>
+                        </ol>
+                    </div>
+                    <h4 class="page-title">NFC Attendance Scanner</h4>
                 </div>
+            </div>
+        </div>
 
-                <!-- NFC Support Check -->
-                <div class="alert alert-warning" id="nfcUnsupported" style="display: none;">
-                    <strong>NFC Not Supported</strong><br>
-                    Your browser doesn't support Web NFC. Please use Chrome on Android or enable the feature in chrome://flags
+        <!-- Scanner Interface -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">
+                            <i class="fas fa-mobile-alt text-primary"></i> 
+                            NFC Scanner Interface
+                        </h4>
+                        
+                        <!-- Scanner Status -->
+                        <div class="alert alert-info" id="scanner-status">
+                            <i class="fas fa-info-circle"></i>
+                            Ready to scan NFC cards. Please tap an employee's NFC card or phone.
+                        </div>
+
+                        <!-- Employee Preview -->
+                        <div class="card border-primary" id="employee-preview" style="display: none;">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-user"></i> Employee Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> <span id="emp-name"></span></p>
+                                        <p><strong>Employee Code:</strong> <span id="emp-code"></span></p>
+                                        <p><strong>Department:</strong> <span id="emp-department"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Position:</strong> <span id="emp-position"></span></p>
+                                        <p><strong>Next Action:</strong> <span id="next-action" class="badge"></span></p>
+                                        <p><strong>Last Action:</strong> <span id="last-action-time"></span></p>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button type="button" class="btn btn-success btn-lg" id="confirm-attendance">
+                                        <i class="fas fa-check"></i> Confirm <span id="action-text">Check In</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual NFC Input (Fallback) -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Manual NFC Input (Fallback)</h6>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="manual-nfc-input" 
+                                           placeholder="Enter NFC Card ID manually if scanning fails">
+                                    <button type="button" class="btn btn-secondary mt-2" id="manual-lookup">
+                                        <i class="fas fa-search"></i> Lookup Employee
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Scan Area -->
-                <div class="scan-area" id="scanArea">
-                    <div class="nfc-icon">🔍</div>
-                    <h4>Tap NFC Card Here</h4>
-                    <p>Bring your NFC card close to the device</p>
-                </div>
-
-                <!-- Employee Information -->
-                <div class="employee-info" id="employeeInfo">
-                    <h5>Employee Information</h5>
-                    <div id="employeeDetails"></div>
-                    <div class="control-buttons">
-                        <button class="btn-nfc btn-success" id="confirmAction">Confirm Check-in</button>
-                        <button class="btn-nfc btn-secondary" id="cancelAction">Cancel</button>
+            <div class="col-lg-4">
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">
+                            <i class="fas fa-clock text-success"></i> 
+                            Recent Activity
+                        </h4>
+                        <div id="recent-attendance" class="activity-list">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Control Buttons -->
-                <div class="control-buttons">
-                    <button class="btn-nfc btn-primary" id="startScanBtn">Start NFC Scan</button>
-                    <button class="btn-nfc btn-secondary" id="manualEntryBtn">Manual Entry</button>
-                    <button class="btn-nfc btn-secondary" id="refreshBtn">Refresh</button>
-                </div>
-
-                <!-- Recent Attendance Log -->
-                <div class="attendance-log">
-                    <h5>Today's Attendance</h5>
-                    <div id="attendanceList">
-                        <div class="text-center">
-                            <div class="spinner-border" role="status">
-                                <span class="sr-only">Loading...</span>
+                <!-- Statistics -->
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">
+                            <i class="fas fa-chart-bar text-info"></i> 
+                            Today's Stats
+                        </h4>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-right">
+                                    <h3 class="text-success" id="checkin-count">0</h3>
+                                    <p class="text-muted mb-0">Check-ins</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h3 class="text-warning" id="checkout-count">0</h3>
+                                <p class="text-muted mb-0">Check-outs</p>
                             </div>
                         </div>
                     </div>
@@ -177,141 +120,122 @@
     </div>
 </div>
 
-<!-- Manual Entry Modal -->
-<div class="modal fade" id="manualEntryModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- NFC Registration Modal -->
+<div class="modal fade" id="registerNfcModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Manual NFC Entry</h5>
+                <h5 class="modal-title">Register New NFC Card</h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="manualEntryForm">
+                <form id="register-nfc-form">
                     <div class="form-group">
-                        <label for="manualEmpCode">Employee Code</label>
-                        <input type="text" class="form-control" id="manualEmpCode" required>
+                        <label>Employee Code</label>
+                        <input type="text" class="form-control" id="register-emp-code" required>
                     </div>
                     <div class="form-group">
-                        <label for="manualNfcId">NFC Card ID</label>
-                        <input type="text" class="form-control" id="manualNfcId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="terminalAlias">Terminal Location</label>
-                        <input type="text" class="form-control" id="terminalAlias" value="NFC Scanner" required>
+                        <label>NFC Card ID</label>
+                        <input type="text" class="form-control" id="register-nfc-id" required>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitManualEntry">Submit</button>
+                <button type="button" class="btn btn-primary" id="save-nfc-registration">
+                    <i class="fas fa-save"></i> Register Card
+                </button>
             </div>
         </div>
     </div>
 </div>
 @endsection
 
-@push('scripts')
+@section('script')
 <script>
 class NFCScanner {
     constructor() {
-        this.isScanning = false;
         this.currentEmployee = null;
         this.init();
+        this.loadRecentAttendance();
+        this.setupPeriodicRefresh();
     }
 
     init() {
-        this.checkNFCSupport();
-        this.bindEvents();
-        this.loadRecentAttendance();
-        this.requestLocationPermission();
-    }
-
-    checkNFCSupport() {
-        if (!('NDEFReader' in window)) {
-            document.getElementById('nfcUnsupported').style.display = 'block';
-            document.getElementById('startScanBtn').disabled = true;
-            return false;
+        // Check for Web NFC API support
+        if ('NDEFReader' in window) {
+            this.initWebNFC();
+        } else {
+            this.showFallbackMode();
         }
-        return true;
+
+        // Setup event listeners
+        this.setupEventListeners();
     }
 
-    bindEvents() {
-        document.getElementById('startScanBtn').addEventListener('click', () => this.startNFCScanner());
-        document.getElementById('manualEntryBtn').addEventListener('click', () => $('#manualEntryModal').modal('show'));
-        document.getElementById('refreshBtn').addEventListener('click', () => this.loadRecentAttendance());
-        document.getElementById('confirmAction').addEventListener('click', () => this.confirmAttendance());
-        document.getElementById('cancelAction').addEventListener('click', () => this.cancelAction());
-        document.getElementById('submitManualEntry').addEventListener('click', () => this.submitManualEntry());
-    }
-
-    async startNFCScanner() {
-        if (!this.checkNFCSupport()) return;
-
+    async initWebNFC() {
         try {
-            this.isScanning = true;
-            this.updateStatus('Scanning for NFC cards...', 'scanning');
-            document.getElementById('startScanBtn').disabled = true;
-
             const ndef = new NDEFReader();
             await ndef.scan();
+            
+            this.updateStatus('NFC Scanner active. Tap an NFC card or phone.', 'success');
 
-            ndef.addEventListener("reading", event => {
-                this.handleNFCRead(event);
+            ndef.addEventListener('reading', ({ message, serialNumber }) => {
+                this.handleNFCRead(serialNumber);
             });
 
-            ndef.addEventListener("readingerror", event => {
-                this.updateStatus('Error reading NFC card. Please try again.', 'error');
-                this.resetScanner();
+            ndef.addEventListener('readingerror', () => {
+                this.updateStatus('Error reading NFC card. Please try again.', 'danger');
             });
 
         } catch (error) {
-            console.error('NFC Error:', error);
-            this.updateStatus('Failed to start NFC scanner: ' + error.message, 'error');
-            this.resetScanner();
+            console.error('Web NFC Error:', error);
+            this.showFallbackMode();
         }
     }
 
-    async handleNFCRead(event) {
-        try {
-            let nfcId = '';
-            
-            if (event.serialNumber) {
-                nfcId = event.serialNumber;
-            } else if (event.message && event.message.records.length > 0) {
-                const record = event.message.records[0];
-                if (record.recordType === "text") {
-                    const textDecoder = new TextDecoder(record.encoding || "utf-8");
-                    nfcId = textDecoder.decode(record.data);
-                } else {
-                    nfcId = Array.from(new Uint8Array(record.data))
-                        .map(b => b.toString(16).padStart(2, '0'))
-                        .join('');
+    showFallbackMode() {
+        this.updateStatus('Web NFC not supported. Use manual input below.', 'warning');
+        $('#manual-nfc-input').focus();
+    }
+
+    setupEventListeners() {
+        $('#manual-lookup').on('click', () => {
+            const nfcId = $('#manual-nfc-input').val().trim();
+            if (nfcId) {
+                this.handleNFCRead(nfcId);
+            }
+        });
+
+        $('#manual-nfc-input').on('keypress', (e) => {
+            if (e.which === 13) { // Enter key
+                const nfcId = $('#manual-nfc-input').val().trim();
+                if (nfcId) {
+                    this.handleNFCRead(nfcId);
                 }
             }
+        });
 
-            if (!nfcId) {
-                throw new Error('Could not read NFC ID');
-            }
+        $('#confirm-attendance').on('click', () => {
+            this.processAttendance();
+        });
 
-            this.updateStatus('NFC card detected. Looking up employee...', 'scanning');
-            await this.lookupEmployee(nfcId);
-
-        } catch (error) {
-            console.error('Error processing NFC data:', error);
-            this.updateStatus('Error processing NFC card: ' + error.message, 'error');
-            this.resetScanner();
-        }
+        $('#save-nfc-registration').on('click', () => {
+            this.registerNfcCard();
+        });
     }
 
-    async lookupEmployee(nfcId) {
+    async handleNFCRead(nfcId) {
+        this.updateStatus('Reading NFC card...', 'info');
+        
         try {
-            const response = await fetch('/nfc/employee-info', {
+            const response = await fetch('{{ route("nfc.employee-info") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 body: JSON.stringify({ nfc_id: nfcId })
             });
@@ -319,227 +243,261 @@ class NFCScanner {
             const data = await response.json();
 
             if (data.success) {
-                this.showEmployeeInfo(data.data, nfcId);
+                this.showEmployeePreview(data.data, nfcId);
             } else {
-                this.updateStatus(data.message, 'error');
-                this.resetScanner();
+                this.handleUnknownCard(nfcId);
             }
 
         } catch (error) {
-            console.error('Error looking up employee:', error);
-            this.updateStatus('Failed to lookup employee information', 'error');
-            this.resetScanner();
+            console.error('Error:', error);
+            this.updateStatus('Error processing NFC card. Please try again.', 'danger');
         }
     }
 
-    showEmployeeInfo(employee, nfcId) {
+    showEmployeePreview(employee, nfcId) {
         this.currentEmployee = { ...employee, nfc_id: nfcId };
         
-        const actionText = employee.next_action === 'check_in' ? 'Check In' : 'Check Out';
-        const actionClass = employee.next_action === 'check_in' ? 'check-in' : 'check-out';
+        $('#emp-name').text(employee.name);
+        $('#emp-code').text(employee.emp_code);
+        $('#emp-department').text(employee.department || 'N/A');
+        $('#emp-position').text(employee.position || 'N/A');
         
-        document.getElementById('employeeDetails').innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <strong>Name:</strong> ${employee.name}<br>
-                    <strong>Code:</strong> ${employee.emp_code}<br>
-                    <strong>Department:</strong> ${employee.department || 'N/A'}
-                </div>
-                <div class="col-md-6">
-                    <strong>Position:</strong> ${employee.position || 'N/A'}<br>
-                    <strong>Next Action:</strong> <span class="action-badge ${actionClass}">${actionText}</span><br>
-                    <strong>Last Action:</strong> ${employee.last_action_time || 'Never'}
-                </div>
-            </div>
-        `;
-
-        document.getElementById('confirmAction').textContent = `Confirm ${actionText}`;
-        document.getElementById('confirmAction').className = `btn-nfc ${employee.next_action === 'check_in' ? 'btn-success' : 'btn-warning'}`;
+        const nextAction = employee.next_action;
+        const actionBadge = nextAction === 'check_in' ? 'badge-success' : 'badge-warning';
+        const actionText = nextAction === 'check_in' ? 'Check In' : 'Check Out';
         
-        document.getElementById('employeeInfo').style.display = 'block';
+        $('#next-action').removeClass('badge-success badge-warning').addClass(actionBadge).text(actionText);
+        $('#action-text').text(actionText);
+        $('#last-action-time').text(employee.last_action_time || 'No previous record');
+        
+        $('#employee-preview').show();
         this.updateStatus(`Employee found: ${employee.name}`, 'success');
     }
 
-    async confirmAttendance() {
+    handleUnknownCard(nfcId) {
+        this.updateStatus('NFC card not registered. Would you like to register it?', 'warning');
+        $('#register-nfc-id').val(nfcId);
+        $('#registerNfcModal').modal('show');
+    }
+
+    async processAttendance() {
         if (!this.currentEmployee) return;
 
-        try {
-            document.getElementById('confirmAction').disabled = true;
-            this.updateStatus('Processing attendance...', 'scanning');
+        const attendanceData = {
+            emp_code: this.currentEmployee.emp_code,
+            nfc_id: this.currentEmployee.nfc_id,
+            location: await this.getCurrentLocation(),
+            terminal_alias: 'Web NFC Scanner',
+            area_alias: 'Office'
+        };
 
-            const location = await this.getCurrentLocation();
-            
-            const response = await fetch('/nfc/attendance', {
+        try {
+            const response = await fetch('{{ route("nfc.attendance") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                body: JSON.stringify({
-                    emp_code: this.currentEmployee.emp_code,
-                    nfc_id: this.currentEmployee.nfc_id,
-                    location: location,
-                    terminal_alias: 'NFC Scanner',
-                    area_alias: 'Office'
-                })
+                body: JSON.stringify(attendanceData)
             });
 
             const data = await response.json();
 
             if (data.success) {
-                this.updateStatus(data.message, 'success');
-                this.showSuccessAlert(data.message);
-                await this.loadRecentAttendance();
+                this.showSuccessMessage(data.message);
+                this.resetScanner();
+                this.loadRecentAttendance();
             } else {
-                this.updateStatus(data.message, 'error');
-                this.showErrorAlert(data.message);
+                this.updateStatus('Error: ' + data.message, 'danger');
             }
 
         } catch (error) {
-            console.error('Error processing attendance:', error);
-            this.updateStatus('Failed to process attendance', 'error');
-            this.showErrorAlert('Failed to process attendance');
-        } finally {
-            this.resetScanner();
+            console.error('Error:', error);
+            this.updateStatus('Error processing attendance. Please try again.', 'danger');
         }
     }
 
-    cancelAction() {
-        this.currentEmployee = null;
-        document.getElementById('employeeInfo').style.display = 'none';
-        this.resetScanner();
+    async getCurrentLocation() {
+        return new Promise((resolve) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    () => resolve(null),
+                    { timeout: 5000 }
+                );
+            } else {
+                resolve(null);
+            }
+        });
     }
 
-    async submitManualEntry() {
-        const empCode = document.getElementById('manualEmpCode').value;
-        const nfcId = document.getElementById('manualNfcId').value;
-        const terminalAlias = document.getElementById('terminalAlias').value;
+    async registerNfcCard() {
+        const empCode = $('#register-emp-code').val().trim();
+        const nfcId = $('#register-nfc-id').val().trim();
 
         if (!empCode || !nfcId) {
-            this.showErrorAlert('Please fill in all required fields');
+            alert('Please fill in all fields');
             return;
         }
 
         try {
-            await this.lookupEmployee(nfcId);
-            $('#manualEntryModal').modal('hide');
-            document.getElementById('manualEntryForm').reset();
+            const response = await fetch('{{ route("nfc.register-card") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify({ emp_code: empCode, nfc_id: nfcId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                $('#registerNfcModal').modal('hide');
+                this.updateStatus('NFC card registered successfully!', 'success');
+                $('#register-nfc-form')[0].reset();
+            } else {
+                alert('Error: ' + data.message);
+            }
+
         } catch (error) {
-            this.showErrorAlert('Failed to process manual entry');
+            console.error('Error:', error);
+            alert('Error registering NFC card. Please try again.');
         }
     }
 
     async loadRecentAttendance() {
         try {
-            const response = await fetch('/nfc/recent-attendance');
+            const response = await fetch('{{ route("nfc.recent-attendance") }}');
             const data = await response.json();
 
             if (data.success) {
-                this.displayAttendanceLog(data.data);
+                this.displayRecentAttendance(data.data);
+                this.updateStats(data.data);
             }
+
         } catch (error) {
-            console.error('Error loading attendance:', error);
+            console.error('Error loading recent attendance:', error);
         }
     }
 
-    displayAttendanceLog(records) {
-        const container = document.getElementById('attendanceList');
+    displayRecentAttendance(records) {
+        const container = $('#recent-attendance');
         
         if (records.length === 0) {
-            container.innerHTML = '<p class="text-center text-muted">No attendance records for today</p>';
+            container.html('<div class="text-center text-muted">No recent activity</div>');
             return;
         }
 
         const html = records.map(record => `
-            <div class="log-item">
-                <div>
-                    <strong>${record.name}</strong> (${record.emp_code})<br>
-                    <small class="text-muted">${record.terminal} - ${record.area}</small>
-                </div>
-                <div class="text-right">
-                    <span class="action-badge ${record.action.toLowerCase().replace(' ', '-')}">${record.action}</span><br>
-                    <small class="text-muted">${record.time}</small>
+            <div class="activity-item mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="activity-icon ${record.action === 'Check In' ? 'bg-success' : 'bg-warning'}">
+                        <i class="fas ${record.action === 'Check In' ? 'fa-sign-in-alt' : 'fa-sign-out-alt'}"></i>
+                    </div>
+                    <div class="activity-content ml-3">
+                        <h6 class="mb-1">${record.name}</h6>
+                        <p class="text-muted mb-0 small">
+                            ${record.action} at ${record.time}
+                            <br><small>${record.terminal}</small>
+                        </p>
+                    </div>
                 </div>
             </div>
         `).join('');
 
-        container.innerHTML = html;
+        container.html(html);
     }
 
-    async getCurrentLocation() {
-        return new Promise((resolve) => {
-            if (!navigator.geolocation) {
-                resolve(null);
-                return;
-            }
+    updateStats(records) {
+        const checkins = records.filter(r => r.action === 'Check In').length;
+        const checkouts = records.filter(r => r.action === 'Check Out').length;
+        
+        $('#checkin-count').text(checkins);
+        $('#checkout-count').text(checkouts);
+    }
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                },
-                () => resolve(null),
-                { timeout: 5000, enableHighAccuracy: false }
-            );
+    updateStatus(message, type) {
+        const alertClass = `alert-${type}`;
+        $('#scanner-status')
+            .removeClass('alert-info alert-success alert-warning alert-danger')
+            .addClass(alertClass)
+            .html(`<i class="fas fa-info-circle"></i> ${message}`);
+    }
+
+    showSuccessMessage(message) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: message,
+            timer: 3000,
+            showConfirmButton: false
         });
     }
 
-    async requestLocationPermission() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(() => {}, () => {});
-        }
-    }
-
-    updateStatus(message, status = '') {
-        document.getElementById('statusMessage').textContent = message;
-        const scanArea = document.getElementById('scanArea');
-        scanArea.className = `scan-area ${status}`;
-    }
-
     resetScanner() {
-        this.isScanning = false;
-        document.getElementById('startScanBtn').disabled = false;
-        document.getElementById('confirmAction').disabled = false;
-        document.getElementById('employeeInfo').style.display = 'none';
         this.currentEmployee = null;
-        
-        setTimeout(() => {
-            this.updateStatus('Ready to scan NFC cards', '');
-        }, 3000);
+        $('#employee-preview').hide();
+        $('#manual-nfc-input').val('');
+        this.updateStatus('Ready to scan next NFC card.', 'info');
     }
 
-    showSuccessAlert(message) {
-        this.showAlert(message, 'success');
-    }
-
-    showErrorAlert(message) {
-        this.showAlert(message, 'danger');
-    }
-
-    showAlert(message, type) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            </div>
-        `;
-        
-        const container = document.querySelector('.scanner-container');
-        container.insertAdjacentHTML('afterbegin', alertHtml);
-        
-        setTimeout(() => {
-            const alert = container.querySelector('.alert');
-            if (alert) alert.remove();
-        }, 5000);
+    setupPeriodicRefresh() {
+        // Refresh recent attendance every 30 seconds
+        setInterval(() => {
+            this.loadRecentAttendance();
+        }, 30000);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize scanner when page loads
+$(document).ready(() => {
     new NFCScanner();
 });
 </script>
-@endpush
+
+<style>
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+}
+
+.activity-item {
+    padding: 10px;
+    border-left: 3px solid #e9ecef;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+#employee-preview {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-lg {
+    padding: 12px 30px;
+    font-size: 18px;
+}
+</style>
+@endsection

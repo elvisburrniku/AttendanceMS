@@ -305,4 +305,192 @@ class NfcController extends Controller
 
         return "Lat: {$location['latitude']}, Lng: {$location['longitude']}";
     }
+
+    /**
+     * NFC Management Dashboard
+     */
+    public function dashboard()
+    {
+        $stats = [
+            'total_nfc_cards' => DB::table('personnel_employee')->whereNotNull('card_no')->count(),
+            'active_employees' => DB::table('personnel_employee')->where('is_active', true)->count(),
+            'today_scans' => DB::table('iclock_transaction')
+                ->where('punch_time', '>=', Carbon::today())
+                ->where('verify_type', 2)
+                ->count(),
+            'unique_scanners' => DB::table('iclock_transaction')
+                ->where('punch_time', '>=', Carbon::today())
+                ->where('verify_type', 2)
+                ->distinct('terminal_sn')
+                ->count('terminal_sn')
+        ];
+
+        $recentActivity = DB::table('iclock_transaction as it')
+            ->leftJoin('personnel_employee as pe', 'it.emp_code', '=', 'pe.emp_code')
+            ->select([
+                'it.emp_code',
+                'pe.first_name',
+                'pe.last_name',
+                'it.punch_time',
+                'it.punch_state',
+                'it.terminal_alias',
+                'it.verify_type'
+            ])
+            ->where('it.verify_type', 2) // NFC only
+            ->where('it.punch_time', '>=', Carbon::today()->subDays(7))
+            ->orderBy('it.punch_time', 'desc')
+            ->limit(50)
+            ->get();
+
+        return view('nfc.dashboard', compact('stats', 'recentActivity'));
+    }
+
+    /**
+     * NFC Device Management
+     */
+    public function devices()
+    {
+        $devices = DB::table('iclock_transaction')
+            ->select([
+                'terminal_sn',
+                'terminal_alias',
+                'area_alias',
+                DB::raw('COUNT(*) as scan_count'),
+                DB::raw('MAX(punch_time) as last_activity'),
+                DB::raw('COUNT(DISTINCT emp_code) as unique_employees')
+            ])
+            ->where('verify_type', 2)
+            ->where('punch_time', '>=', Carbon::today()->subDays(30))
+            ->groupBy('terminal_sn', 'terminal_alias', 'area_alias')
+            ->orderBy('last_activity', 'desc')
+            ->get();
+
+        return view('nfc.devices', compact('devices'));
+    }
+
+    /**
+     * Bulk NFC Card Registration
+     */
+    public function bulkRegister(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'registrations' => 'required|array',
+            'registrations.*.emp_code' => 'required|string|exists:personnel_employee,emp_code',
+            'registrations.*.nfc_id' => 'required|string|unique:personnel_employee,card_no'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid data provided',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        try {
+            $successCount = 0;
+            $errors = [];
+
+            foreach ($request->registrations as $registration) {
+                try {
+                    DB::table('personnel_employee')
+                        ->where('emp_code', $registration['emp_code'])
+                        ->update([
+                            'card_no' => $registration['nfc_id'],
+                            'change_time' => Carbon::now()
+                        ]);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Failed to register {$registration['emp_code']}: " . $e->getMessage();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully registered {$successCount} NFC cards",
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bulk registration failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * NFC Analytics Data
+     */
+    public function analytics(Request $request)
+    {
+        $period = $request->get('period', '7d');
+        
+        switch ($period) {
+            case '24h':
+                $startDate = Carbon::now()->subHours(24);
+                $groupBy = 'HOUR(punch_time)';
+                break;
+            case '7d':
+                $startDate = Carbon::now()->subDays(7);
+                $groupBy = 'DATE(punch_time)';
+                break;
+            case '30d':
+                $startDate = Carbon::now()->subDays(30);
+                $groupBy = 'DATE(punch_time)';
+                break;
+            default:
+                $startDate = Carbon::now()->subDays(7);
+                $groupBy = 'DATE(punch_time)';
+        }
+
+        // Scan frequency over time
+        $scanFrequency = DB::table('iclock_transaction')
+            ->select([
+                DB::raw("{$groupBy} as period"),
+                DB::raw('COUNT(*) as total_scans'),
+                DB::raw('COUNT(DISTINCT emp_code) as unique_employees')
+            ])
+            ->where('verify_type', 2)
+            ->where('punch_time', '>=', $startDate)
+            ->groupBy(DB::raw($groupBy))
+            ->orderBy('period')
+            ->get();
+
+        // Top locations
+        $topLocations = DB::table('iclock_transaction')
+            ->select([
+                'area_alias',
+                DB::raw('COUNT(*) as scan_count')
+            ])
+            ->where('verify_type', 2)
+            ->where('punch_time', '>=', $startDate)
+            ->groupBy('area_alias')
+            ->orderBy('scan_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Device usage
+        $deviceUsage = DB::table('iclock_transaction')
+            ->select([
+                'terminal_alias',
+                DB::raw('COUNT(*) as usage_count'),
+                DB::raw('MAX(punch_time) as last_used')
+            ])
+            ->where('verify_type', 2)
+            ->where('punch_time', '>=', $startDate)
+            ->groupBy('terminal_alias')
+            ->orderBy('usage_count', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'scan_frequency' => $scanFrequency,
+                'top_locations' => $topLocations,
+                'device_usage' => $deviceUsage,
+                'period' => $period
+            ]
+        ]);
+    }
 }

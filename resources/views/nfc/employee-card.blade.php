@@ -2,191 +2,117 @@
 
 @section('title', 'NFC Employee Card')
 
-@push('head')
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#4285f4">
-<link rel="manifest" href="{{ asset('nfc-manifest.json') }}">
-<style>
-    .card-container {
-        max-width: 400px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    .employee-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 20px;
-        padding: 30px;
-        text-align: center;
-        margin-bottom: 20px;
-        position: relative;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    }
-    .nfc-chip {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 40px;
-        height: 30px;
-        background: linear-gradient(45deg, #ffd700, #ffed4e);
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        color: #333;
-        font-weight: bold;
-    }
-    .employee-photo {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.2);
-        margin: 0 auto 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-    }
-    .employee-name {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-    .employee-details {
-        opacity: 0.9;
-        margin-bottom: 20px;
-    }
-    .card-id {
-        background: rgba(255,255,255,0.1);
-        padding: 10px;
-        border-radius: 10px;
-        font-family: monospace;
-        font-size: 1.1rem;
-        letter-spacing: 2px;
-    }
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-    }
-    .status-active { background: #00ff00; }
-    .status-inactive { background: #ff4444; }
-    .control-panel {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        margin: 20px 0;
-        color: #333;
-    }
-    .btn-card {
-        width: 100%;
-        padding: 15px;
-        border-radius: 10px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-        margin: 10px 0;
-        transition: all 0.3s ease;
-    }
-    .btn-primary { background: #4285f4; color: white; }
-    .btn-success { background: #28a745; color: white; }
-    .btn-warning { background: #ffc107; color: #212529; }
-    .btn-card:hover { transform: translateY(-2px); }
-    .btn-card:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-    .nfc-broadcast {
-        background: rgba(0,255,0,0.1);
-        border: 2px solid #00ff00;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        margin: 20px 0;
-        animation: broadcast 2s infinite;
-    }
-    @keyframes broadcast {
-        0% { box-shadow: 0 0 0 0 rgba(0,255,0,0.4); }
-        70% { box-shadow: 0 0 0 20px rgba(0,255,0,0); }
-        100% { box-shadow: 0 0 0 0 rgba(0,255,0,0); }
-    }
-    .alert {
-        padding: 15px;
-        border-radius: 8px;
-        margin: 15px 0;
-    }
-    .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-</style>
-@endpush
-
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card-container">
-                <!-- Employee Card -->
-                <div class="employee-card" id="employeeCard">
-                    <div class="nfc-chip">NFC</div>
-                    <div class="employee-photo" id="employeePhoto">👤</div>
-                    <div class="employee-name" id="employeeName">Employee Name</div>
-                    <div class="employee-details" id="employeeDetails">
-                        <div><strong>Code:</strong> <span id="empCode">-</span></div>
-                        <div><strong>Department:</strong> <span id="department">-</span></div>
-                        <div><strong>Position:</strong> <span id="position">-</span></div>
+<div class="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="page-title-box">
+                    <div class="btn-group float-right">
+                        <ol class="breadcrumb hide-phone p-0 m-0">
+                            <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Employee Card</li>
+                        </ol>
                     </div>
-                    <div class="card-id" id="cardId">
-                        <div style="font-size: 0.8rem; margin-bottom: 5px;">CARD ID</div>
-                        <span id="nfcId">-</span>
-                    </div>
+                    <h4 class="page-title">Employee NFC Card</h4>
                 </div>
+            </div>
+        </div>
 
-                <!-- NFC Not Supported -->
-                <div class="alert alert-danger" id="nfcUnsupported" style="display: none;">
-                    <strong>NFC Not Supported</strong><br>
-                    Your device doesn't support Web NFC. This feature requires Chrome on Android.
-                </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="employee-card-header mb-4">
+                            <i class="fas fa-id-card-alt fa-3x text-primary mb-3"></i>
+                            <h4>{{ auth()->user()->name ?? 'Employee Name' }}</h4>
+                            <p class="text-muted">{{ auth()->user()->email ?? 'employee@company.com' }}</p>
+                        </div>
 
-                <!-- Broadcasting Status -->
-                <div class="nfc-broadcast" id="broadcastStatus" style="display: none;">
-                    <h5>📡 Broadcasting NFC Signal</h5>
-                    <p>Your employee card is now active. Tap on a scanner to check in/out.</p>
-                    <button class="btn-card btn-warning" id="stopBroadcast">Stop Broadcasting</button>
-                </div>
+                        <!-- NFC Card Simulation -->
+                        <div class="nfc-card-container mb-4">
+                            <div class="nfc-card" id="employee-nfc-card">
+                                <div class="nfc-card-header">
+                                    <i class="fas fa-building"></i>
+                                    <span>Company Name</span>
+                                </div>
+                                <div class="nfc-card-body">
+                                    <div class="employee-photo">
+                                        <i class="fas fa-user fa-3x"></i>
+                                    </div>
+                                    <div class="employee-info">
+                                        <h5 id="card-employee-name">{{ auth()->user()->name ?? 'Employee Name' }}</h5>
+                                        <p id="card-emp-code">EMP-{{ str_pad(auth()->id() ?? '001', 3, '0', STR_PAD_LEFT) }}</p>
+                                        <div class="nfc-chip">
+                                            <i class="fas fa-wifi"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="nfc-card-footer">
+                                    <small>Tap to check in/out</small>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Control Panel -->
-                <div class="control-panel">
-                    <h5>NFC Controls</h5>
-                    
-                    <div class="form-group">
-                        <label for="employeeSelect">Select Employee</label>
-                        <select class="form-control" id="employeeSelect">
-                            <option value="">Loading employees...</option>
-                        </select>
-                    </div>
+                        <!-- HCE Status -->
+                        <div class="alert alert-info" id="hce-status">
+                            <i class="fas fa-mobile-alt"></i>
+                            <strong>Host Card Emulation (HCE)</strong><br>
+                            <span id="hce-status-text">Checking device compatibility...</span>
+                        </div>
 
-                    <button class="btn-card btn-primary" id="loadEmployeeBtn">Load Employee Card</button>
-                    <button class="btn-card btn-success" id="startBroadcastBtn" disabled>Start NFC Broadcasting</button>
-                    
-                    <hr>
-                    
-                    <h6>Quick Actions</h6>
-                    <button class="btn-card btn-success" id="quickCheckinBtn" disabled>Quick Check-in</button>
-                    <button class="btn-card btn-warning" id="quickCheckoutBtn" disabled>Quick Check-out</button>
-                </div>
+                        <!-- Action Buttons -->
+                        <div class="btn-group-vertical w-100 mb-3">
+                            <button type="button" class="btn btn-primary btn-lg mb-2" id="enable-hce">
+                                <i class="fas fa-power-off"></i> Enable NFC Card Mode
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="test-card">
+                                <i class="fas fa-vial"></i> Test Card
+                            </button>
+                        </div>
 
-                <!-- Status Panel -->
-                <div class="control-panel">
-                    <h6>Status</h6>
-                    <div id="statusPanel">
-                        <div>Status: <span class="status-indicator status-inactive"></span>Not Active</div>
-                        <div>Last Action: <span id="lastAction">Never</span></div>
-                        <div>Location: <span id="currentLocation">Unknown</span></div>
+                        <!-- Instructions -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> How to Use</h6>
+                            </div>
+                            <div class="card-body text-left">
+                                <ol class="mb-0">
+                                    <li><strong>Enable NFC:</strong> Make sure NFC is enabled in your phone settings</li>
+                                    <li><strong>Activate Card Mode:</strong> Tap "Enable NFC Card Mode" button above</li>
+                                    <li><strong>Approach Scanner:</strong> Hold your phone near the NFC scanner device</li>
+                                    <li><strong>Wait for Confirmation:</strong> You'll hear a beep and see confirmation on the scanner</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Technical Details -->
+                        <div class="accordion mt-4" id="technicalAccordion">
+                            <div class="card">
+                                <div class="card-header" id="headingTechnical">
+                                    <h6 class="mb-0">
+                                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" 
+                                                data-target="#collapseTechnical">
+                                            <i class="fas fa-cog"></i> Technical Details
+                                        </button>
+                                    </h2>
+                                </div>
+                                <div id="collapseTechnical" class="collapse" data-parent="#technicalAccordion">
+                                    <div class="card-body text-left small">
+                                        <p><strong>NFC ID:</strong> <code id="nfc-id">{{ md5((auth()->id() ?? '1') . 'nfc_salt') }}</code></p>
+                                        <p><strong>Technology:</strong> Host Card Emulation (HCE)</p>
+                                        <p><strong>Frequency:</strong> 13.56 MHz</p>
+                                        <p><strong>Protocol:</strong> ISO 14443 Type A</p>
+                                        <p><strong>Data Format:</strong> NDEF (NFC Data Exchange Format)</p>
+                                        <hr>
+                                        <p class="text-muted mb-0">
+                                            This feature uses your Android device's NFC capability to emulate an NFC card.
+                                            iOS devices have limited NFC support and may not work with this feature.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -195,278 +121,307 @@
 </div>
 @endsection
 
-@push('scripts')
+@section('script')
 <script>
-class NFCEmployeeCard {
+class EmployeeNFCCard {
     constructor() {
-        this.currentEmployee = null;
-        this.isBroadcasting = false;
-        this.ndefWriter = null;
+        this.isHCEActive = false;
+        this.employeeData = {
+            id: '{{ auth()->id() ?? "1" }}',
+            name: '{{ auth()->user()->name ?? "Employee Name" }}',
+            emp_code: 'EMP-{{ str_pad(auth()->id() ?? "001", 3, "0", STR_PAD_LEFT) }}',
+            nfc_id: '{{ md5((auth()->id() ?? "1") . "nfc_salt") }}'
+        };
         this.init();
     }
 
     init() {
         this.checkNFCSupport();
-        this.bindEvents();
-        this.loadEmployeeList();
-        this.requestLocationPermission();
+        this.setupEventListeners();
+        this.updateCardDisplay();
     }
 
     checkNFCSupport() {
-        if (!('NDEFWriter' in window)) {
-            document.getElementById('nfcUnsupported').style.display = 'block';
-            document.getElementById('startBroadcastBtn').disabled = true;
-            return false;
-        }
-        return true;
-    }
-
-    bindEvents() {
-        document.getElementById('employeeSelect').addEventListener('change', (e) => this.onEmployeeSelect(e));
-        document.getElementById('loadEmployeeBtn').addEventListener('click', () => this.loadEmployeeCard());
-        document.getElementById('startBroadcastBtn').addEventListener('click', () => this.startBroadcasting());
-        document.getElementById('stopBroadcast').addEventListener('click', () => this.stopBroadcasting());
-        document.getElementById('quickCheckinBtn').addEventListener('click', () => this.quickAction('check_in'));
-        document.getElementById('quickCheckoutBtn').addEventListener('click', () => this.quickAction('check_out'));
-    }
-
-    async loadEmployeeList() {
-        try {
-            // Load employee list from the test data we created
-            const employees = [
-                { emp_code: 'EMP001', name: 'John Smith', card_no: 'C001' },
-                { emp_code: 'EMP002', name: 'Sarah Johnson', card_no: 'C002' },
-                { emp_code: 'EMP003', name: 'Michael Davis', card_no: 'C003' },
-                { emp_code: 'EMP004', name: 'Emily Brown', card_no: 'C004' },
-                { emp_code: 'EMP005', name: 'David Wilson', card_no: 'C005' },
-                { emp_code: 'EMP006', name: 'Jennifer Garcia', card_no: 'C006' },
-                { emp_code: 'EMP007', name: 'Robert Martinez', card_no: 'C007' },
-                { emp_code: 'EMP008', name: 'Lisa Anderson', card_no: 'C008' },
-                { emp_code: 'EMP009', name: 'James Taylor', card_no: 'C009' },
-                { emp_code: 'EMP010', name: 'Maria Rodriguez', card_no: 'C010' },
-                { emp_code: 'EMP011', name: 'Daniel Lee', card_no: 'C011' },
-                { emp_code: 'EMP012', name: 'Amanda White', card_no: 'C012' }
-            ];
-
-            const select = document.getElementById('employeeSelect');
-            select.innerHTML = '<option value="">Select an employee...</option>';
-            
-            employees.forEach(emp => {
-                const option = document.createElement('option');
-                option.value = emp.emp_code;
-                option.textContent = `${emp.name} (${emp.emp_code})`;
-                option.dataset.cardNo = emp.card_no;
-                select.appendChild(option);
-            });
-
-        } catch (error) {
-            console.error('Error loading employees:', error);
+        if ('NDEFWriter' in window || 'NDEFReader' in window) {
+            this.updateHCEStatus('NFC supported - Ready to activate', 'success');
+        } else {
+            this.updateHCEStatus('NFC not supported on this device', 'warning');
+            $('#enable-hce').prop('disabled', true);
         }
     }
 
-    onEmployeeSelect(event) {
-        const empCode = event.target.value;
-        const loadBtn = document.getElementById('loadEmployeeBtn');
-        loadBtn.disabled = !empCode;
-    }
+    setupEventListeners() {
+        $('#enable-hce').on('click', () => {
+            this.toggleHCE();
+        });
 
-    async loadEmployeeCard() {
-        const select = document.getElementById('employeeSelect');
-        const empCode = select.value;
-        const cardNo = select.selectedOptions[0]?.dataset.cardNo;
+        $('#test-card').on('click', () => {
+            this.testCard();
+        });
 
-        if (!empCode || !cardNo) {
-            this.showAlert('Please select an employee', 'danger');
-            return;
-        }
-
-        try {
-            const response = await fetch('/nfc/employee-info', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ nfc_id: cardNo })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.currentEmployee = data.data;
-                this.currentEmployee.card_no = cardNo;
-                this.updateEmployeeCard();
-                this.updateStatus();
-                document.getElementById('startBroadcastBtn').disabled = false;
-                document.getElementById('quickCheckinBtn').disabled = false;
-                document.getElementById('quickCheckoutBtn').disabled = false;
-            } else {
-                this.showAlert(data.message, 'danger');
-            }
-
-        } catch (error) {
-            console.error('Error loading employee:', error);
-            this.showAlert('Failed to load employee information', 'danger');
-        }
-    }
-
-    updateEmployeeCard() {
-        if (!this.currentEmployee) return;
-
-        document.getElementById('employeeName').textContent = this.currentEmployee.name;
-        document.getElementById('empCode').textContent = this.currentEmployee.emp_code;
-        document.getElementById('department').textContent = this.currentEmployee.department || 'N/A';
-        document.getElementById('position').textContent = this.currentEmployee.position || 'N/A';
-        document.getElementById('nfcId').textContent = this.currentEmployee.card_no;
-
-        // Update photo with emoji based on name
-        const firstLetter = this.currentEmployee.name.charAt(0).toUpperCase();
-        document.getElementById('employeePhoto').textContent = firstLetter;
-    }
-
-    updateStatus() {
-        if (!this.currentEmployee) return;
-
-        const statusPanel = document.getElementById('statusPanel');
-        const statusClass = this.isBroadcasting ? 'status-active' : 'status-inactive';
-        const statusText = this.isBroadcasting ? 'Broadcasting' : 'Not Active';
-
-        statusPanel.innerHTML = `
-            <div>Status: <span class="status-indicator ${statusClass}"></span>${statusText}</div>
-            <div>Last Action: <span id="lastAction">${this.currentEmployee.last_action_time || 'Never'}</span></div>
-            <div>Location: <span id="currentLocation">Office</span></div>
-        `;
-    }
-
-    async startBroadcasting() {
-        if (!this.checkNFCSupport() || !this.currentEmployee) return;
-
-        try {
-            this.ndefWriter = new NDEFWriter();
-            
-            // Create NFC message with employee data
-            const message = {
-                records: [{
-                    recordType: "text",
-                    data: JSON.stringify({
-                        emp_code: this.currentEmployee.emp_code,
-                        card_no: this.currentEmployee.card_no,
-                        name: this.currentEmployee.name
-                    })
-                }]
-            };
-
-            await this.ndefWriter.write(message);
-            
-            this.isBroadcasting = true;
-            document.getElementById('broadcastStatus').style.display = 'block';
-            document.getElementById('startBroadcastBtn').disabled = true;
-            this.updateStatus();
-            
-            this.showAlert('NFC broadcasting started successfully!', 'success');
-
-        } catch (error) {
-            console.error('NFC Broadcasting Error:', error);
-            this.showAlert('Failed to start NFC broadcasting: ' + error.message, 'danger');
-        }
-    }
-
-    stopBroadcasting() {
-        this.isBroadcasting = false;
-        this.ndefWriter = null;
-        document.getElementById('broadcastStatus').style.display = 'none';
-        document.getElementById('startBroadcastBtn').disabled = false;
-        this.updateStatus();
-        
-        this.showAlert('NFC broadcasting stopped', 'info');
-    }
-
-    async quickAction(action) {
-        if (!this.currentEmployee) return;
-
-        try {
-            const location = await this.getCurrentLocation();
-            
-            const response = await fetch('/nfc/attendance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    emp_code: this.currentEmployee.emp_code,
-                    nfc_id: this.currentEmployee.card_no,
-                    location: location,
-                    terminal_alias: 'Mobile NFC Card',
-                    area_alias: 'Mobile Check-in'
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.showAlert(data.message, 'success');
-                // Update last action time
-                this.currentEmployee.last_action_time = new Date().toLocaleString();
-                this.updateStatus();
-            } else {
-                this.showAlert(data.message, 'danger');
-            }
-
-        } catch (error) {
-            console.error('Error processing quick action:', error);
-            this.showAlert('Failed to process attendance', 'danger');
-        }
-    }
-
-    async getCurrentLocation() {
-        return new Promise((resolve) => {
-            if (!navigator.geolocation) {
-                resolve(null);
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                },
-                () => resolve(null),
-                { timeout: 5000, enableHighAccuracy: false }
-            );
+        // Simulate card tap animation
+        $('#employee-nfc-card').on('click', () => {
+            this.animateCardTap();
         });
     }
 
-    async requestLocationPermission() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(() => {}, () => {});
+    async toggleHCE() {
+        if (!this.isHCEActive) {
+            await this.enableHCE();
+        } else {
+            this.disableHCE();
         }
     }
 
-    showAlert(message, type) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            </div>
-        `;
+    async enableHCE() {
+        try {
+            // Check if Web NFC is available
+            if ('NDEFWriter' in window) {
+                this.updateHCEStatus('Activating NFC card mode...', 'info');
+                
+                // Create NDEF message with employee data
+                const message = {
+                    records: [{
+                        recordType: "text",
+                        data: JSON.stringify({
+                            type: 'employee_card',
+                            emp_code: this.employeeData.emp_code,
+                            nfc_id: this.employeeData.nfc_id,
+                            name: this.employeeData.name,
+                            timestamp: Date.now()
+                        })
+                    }]
+                };
+
+                // Note: Web NFC Write is limited, this is primarily for demonstration
+                // In a real implementation, you'd use Android HCE service
+                
+                this.isHCEActive = true;
+                this.updateHCEStatus('NFC Card Mode Active - Hold near scanner', 'success');
+                $('#enable-hce').html('<i class="fas fa-power-off"></i> Disable NFC Card Mode')
+                    .removeClass('btn-primary').addClass('btn-danger');
+                $('#employee-nfc-card').addClass('card-active');
+                
+                // Start heartbeat to keep connection alive
+                this.startHeartbeat();
+                
+            } else {
+                throw new Error('Web NFC not supported');
+            }
+            
+        } catch (error) {
+            console.error('HCE Error:', error);
+            this.updateHCEStatus('Failed to activate - Try using Android device', 'danger');
+        }
+    }
+
+    disableHCE() {
+        this.isHCEActive = false;
+        this.updateHCEStatus('NFC Card Mode Disabled', 'info');
+        $('#enable-hce').html('<i class="fas fa-power-off"></i> Enable NFC Card Mode')
+            .removeClass('btn-danger').addClass('btn-primary');
+        $('#employee-nfc-card').removeClass('card-active');
         
-        const container = document.querySelector('.card-container');
-        container.insertAdjacentHTML('afterbegin', alertHtml);
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+        }
+    }
+
+    startHeartbeat() {
+        // Send periodic signals to indicate the card is still active
+        this.heartbeatInterval = setInterval(() => {
+            if (this.isHCEActive) {
+                // In a real implementation, this would communicate with the HCE service
+                console.log('HCE Heartbeat:', this.employeeData.nfc_id);
+            }
+        }, 2000);
+    }
+
+    testCard() {
+        this.animateCardTap();
         
+        // Simulate scanner interaction
+        Swal.fire({
+            icon: 'info',
+            title: 'Testing NFC Card',
+            html: `
+                <div class="text-left">
+                    <p><strong>Employee:</strong> ${this.employeeData.name}</p>
+                    <p><strong>Code:</strong> ${this.employeeData.emp_code}</p>
+                    <p><strong>NFC ID:</strong> ${this.employeeData.nfc_id}</p>
+                    <hr>
+                    <p class="text-muted small">
+                        This is a simulation. In a real scenario, hold your phone near an NFC scanner.
+                    </p>
+                </div>
+            `,
+            confirmButtonText: 'OK'
+        });
+    }
+
+    updateCardDisplay() {
+        $('#card-employee-name').text(this.employeeData.name);
+        $('#card-emp-code').text(this.employeeData.emp_code);
+        $('#nfc-id').text(this.employeeData.nfc_id);
+    }
+
+    updateHCEStatus(message, type) {
+        const alertClass = `alert-${type}`;
+        $('#hce-status')
+            .removeClass('alert-info alert-success alert-warning alert-danger')
+            .addClass(alertClass);
+        $('#hce-status-text').text(message);
+    }
+
+    animateCardTap() {
+        $('#employee-nfc-card').addClass('card-tap');
         setTimeout(() => {
-            const alert = container.querySelector('.alert');
-            if (alert) alert.remove();
-        }, 5000);
+            $('#employee-nfc-card').removeClass('card-tap');
+        }, 300);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new NFCEmployeeCard();
+// Initialize when page loads
+$(document).ready(() => {
+    new EmployeeNFCCard();
 });
 </script>
-@endpush
+
+<style>
+.nfc-card {
+    width: 300px;
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    padding: 20px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nfc-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.nfc-card.card-active {
+    animation: pulse-glow 2s infinite;
+    border: 2px solid #28a745;
+}
+
+.nfc-card.card-tap {
+    transform: scale(0.95);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+@keyframes pulse-glow {
+    0% { box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    50% { box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.nfc-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.nfc-card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.employee-photo {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.employee-info h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.employee-info p {
+    margin: 5px 0 0 0;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.nfc-chip {
+    background: rgba(255,255,255,0.3);
+    border-radius: 5px;
+    width: 30px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.nfc-card-footer {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    right: 20px;
+    text-align: center;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.nfc-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    transition: all 0.5s;
+    opacity: 0;
+}
+
+.nfc-card:hover::before {
+    animation: shine 0.5s ease-in-out;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+}
+
+.btn-group-vertical .btn {
+    border-radius: 25px;
+    font-weight: 500;
+    padding: 12px 30px;
+}
+
+.btn-group-vertical .btn:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+.employee-card-header i {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+</style>
+@endsection

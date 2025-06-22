@@ -49,12 +49,20 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::get('employees/{employee}/schedules', '\App\Http\Controllers\ScheduleController@employeeSchedules')->name('employees.schedules');
 
     // NFC Attendance System Routes
-    Route::get('/nfc/scanner', '\App\Http\Controllers\NfcController@scanner')->name('nfc.scanner');
+    Route::prefix('nfc')->name('nfc.')->group(function () {
+        Route::get('/dashboard', '\App\Http\Controllers\NfcController@dashboard')->name('dashboard');
+        Route::get('/scanner', '\App\Http\Controllers\NfcController@scanner')->name('scanner');
+        Route::get('/devices', '\App\Http\Controllers\NfcController@devices')->name('devices');
+        Route::get('/analytics', '\App\Http\Controllers\NfcController@analytics')->name('analytics');
+        Route::post('/attendance', '\App\Http\Controllers\NfcController@processAttendance')->name('attendance');
+        Route::post('/employee-info', '\App\Http\Controllers\NfcController@getEmployeeByNfc')->name('employee-info');
+        Route::get('/recent-attendance', '\App\Http\Controllers\NfcController@getRecentAttendance')->name('recent-attendance');
+        Route::post('/register-card', '\App\Http\Controllers\NfcController@registerNfcCard')->name('register-card');
+        Route::post('/bulk-register', '\App\Http\Controllers\NfcController@bulkRegister')->name('bulk-register');
+    });
+    
+    // Employee NFC Card (accessible to employees)
     Route::get('/nfc/employee-card', '\App\Http\Controllers\NfcController@employeeCard')->name('nfc.employee-card');
-    Route::post('/nfc/attendance', '\App\Http\Controllers\NfcController@processAttendance')->name('nfc.attendance');
-    Route::post('/nfc/employee-info', '\App\Http\Controllers\NfcController@getEmployeeByNfc')->name('nfc.employee-info');
-    Route::get('/nfc/recent-attendance', '\App\Http\Controllers\NfcController@getRecentAttendance')->name('nfc.recent-attendance');
-    Route::post('/nfc/register-card', '\App\Http\Controllers\NfcController@registerNfcCard')->name('nfc.register-card');
     
     Route::resource('shifts', '\App\Http\Controllers\ShiftController');
     Route::get('shifts/{shift}/copy', '\App\Http\Controllers\ShiftController@copy')->name('shifts.copy');
