@@ -50,6 +50,16 @@
                                     <i class="dripicons-to-do"></i> <span> Raporti Checkin/Out </span>
                                 </a>
                             </li>
+                            
+                            <li class="has_sub">
+                                <a href="javascript:void(0);" class="waves-effect">
+                                    <i class="dripicons-device-mobile"></i> <span> NFC Attendance </span> <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="list-unstyled">
+                                    <li><a href="{{ route('nfc.scanner') }}">NFC Scanner</a></li>
+                                    <li><a href="{{ route('nfc.employee-card') }}">Employee Card</a></li>
+                                </ul>
+                            </li>
 
                             <li>
                                 <a href="/overtime" class="waves-effect {{ request()->is("overtime") || request()->is("overtime/*") ? "mm active" : "" }}">
