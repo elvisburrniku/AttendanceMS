@@ -130,12 +130,40 @@
                             <button type="button" class="btn btn-primary btn-lg mb-2" id="enable-hce">
                                 <i class="fas fa-power-off"></i> Enable NFC Card Mode
                             </button>
+                            <button type="button" class="btn btn-success mb-2" id="generate-qr">
+                                <i class="fas fa-qrcode"></i> Generate QR Code
+                            </button>
                             <button type="button" class="btn btn-outline-secondary mb-2" id="test-card">
                                 <i class="fas fa-vial"></i> Test Card
                             </button>
                             <a href="{{ route('nfc.role-switcher') }}" class="btn btn-outline-info">
                                 <i class="fas fa-exchange-alt"></i> Try Different Roles
                             </a>
+                        </div>
+
+                        <!-- QR Code Display -->
+                        <div class="qr-code-section mt-4" id="qr-code-section" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-qrcode"></i> Employee QR Code</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div id="qr-code-display">
+                                        <canvas id="employee-qr-code" width="200" height="200"></canvas>
+                                    </div>
+                                    <p class="mt-2 mb-0 text-muted small">
+                                        Show this QR code to scanners for attendance tracking
+                                    </p>
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-success" id="download-qr">
+                                            <i class="fas fa-download"></i> Download QR Code
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="share-qr">
+                                            <i class="fas fa-share"></i> Share
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Instructions -->
@@ -190,6 +218,7 @@
 
 @section('script')
 <script src="/js/nfc-ios-compat.js"></script>
+<script src="/js/qr-code-generator.js"></script>
 <script>
 class EmployeeNFCCard {
     constructor() {
@@ -360,6 +389,154 @@ class EmployeeNFCCard {
             .removeClass('btn-info').addClass('btn-success');
         
         this.updateHCEStatus('QR Code generated - Show to scanner', 'success');
+    }
+
+    generateEmployeeQRCode() {
+        const canvas = document.getElementById('employee-qr-code');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Employee data for QR code
+        const qrData = JSON.stringify({
+            type: 'employee_attendance',
+            emp_code: this.employeeData.emp_code,
+            name: this.employeeData.name,
+            nfc_id: this.employeeData.nfc_id,
+            role: this.employeeData.role,
+            access_level: this.employeeData.access_level,
+            timestamp: Date.now(),
+            scan_method: 'qr_code'
+        });
+        
+        // Use QR Code Generator
+        QRCodeGenerator.generate(canvas, {
+            emp_code: this.employeeData.emp_code,
+            name: this.employeeData.name,
+            role: this.employeeData.role,
+            nfc_id: this.employeeData.nfc_id,
+            access_level: this.employeeData.access_level
+        });
+        
+        // Show QR code section
+        $('#qr-code-section').slideDown();
+        
+        // Update button state
+        $('#generate-qr').html('<i class="fas fa-check"></i> QR Code Generated').removeClass('btn-success').addClass('btn-outline-success');
+        
+        console.log('QR Code generated with data:', qrData);
+    }
+    
+    drawQRPattern(ctx, data) {
+        // Simple QR-like pattern generation
+        const size = 200;
+        const modules = 25; // 25x25 grid
+        const moduleSize = size / modules;
+        
+        // Create pattern based on data hash
+        const hash = this.simpleHash(data);
+        
+        ctx.fillStyle = '#000000';
+        
+        // Draw finder patterns (corners)
+        this.drawFinderPattern(ctx, 0, 0, moduleSize);
+        this.drawFinderPattern(ctx, (modules - 7) * moduleSize, 0, moduleSize);
+        this.drawFinderPattern(ctx, 0, (modules - 7) * moduleSize, moduleSize);
+        
+        // Draw data modules
+        for (let row = 0; row < modules; row++) {
+            for (let col = 0; col < modules; col++) {
+                // Skip finder pattern areas
+                if (this.isFinderPatternArea(row, col, modules)) continue;
+                
+                // Generate module based on hash and position
+                const moduleValue = (hash + row * col) % 3;
+                if (moduleValue === 0) {
+                    ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+                }
+            }
+        }
+        
+        // Add employee code in center
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(80, 80, 40, 40);
+        ctx.fillStyle = '#000000';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.employeeData.emp_code, 100, 95);
+        ctx.fillText('SCAN', 100, 105);
+        ctx.fillText('ME', 100, 115);
+    }
+    
+    drawFinderPattern(ctx, x, y, moduleSize) {
+        // Draw 7x7 finder pattern
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x, y, 7 * moduleSize, 7 * moduleSize);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x + moduleSize, y + moduleSize, 5 * moduleSize, 5 * moduleSize);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x + 2 * moduleSize, y + 2 * moduleSize, 3 * moduleSize, 3 * moduleSize);
+    }
+    
+    isFinderPatternArea(row, col, modules) {
+        // Top-left
+        if (row < 9 && col < 9) return true;
+        // Top-right
+        if (row < 9 && col >= modules - 8) return true;
+        // Bottom-left
+        if (row >= modules - 8 && col < 9) return true;
+        return false;
+    }
+    
+    simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+    }
+    
+    downloadQRCode() {
+        const canvas = document.getElementById('employee-qr-code');
+        const link = document.createElement('a');
+        link.download = `${this.employeeData.emp_code}_qr_code.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+    
+    shareQRCode() {
+        const canvas = document.getElementById('employee-qr-code');
+        
+        if (navigator.share && canvas.toBlob) {
+            canvas.toBlob(blob => {
+                const file = new File([blob], `${this.employeeData.emp_code}_qr.png`, { type: 'image/png' });
+                navigator.share({
+                    title: 'Employee QR Code',
+                    text: `QR Code for ${this.employeeData.name} (${this.employeeData.emp_code})`,
+                    files: [file]
+                }).catch(err => console.log('Error sharing:', err));
+            });
+        } else {
+            // Fallback: copy to clipboard
+            this.copyQRToClipboard();
+        }
+    }
+    
+    copyQRToClipboard() {
+        const canvas = document.getElementById('employee-qr-code');
+        canvas.toBlob(blob => {
+            const item = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([item]).then(() => {
+                alert('QR code copied to clipboard!');
+            }).catch(err => {
+                console.log('Copy failed:', err);
+                alert('Could not copy QR code. Try downloading instead.');
+            });
+        });
     }
 
     disableHCE() {

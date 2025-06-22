@@ -333,6 +333,10 @@ class NFCScanner {
         $('.card-body').first().append(cameraHtml);
         
         $('#start-camera-scan').on('click', () => this.startCameraScanner());
+        
+        // QR Scanner button
+        $('#start-camera-scanner').on('click', () => this.startQRScanner());
+        $('#stop-camera-scanner').on('click', () => this.stopQRScanner());
     }
 
     async startCameraScanner() {
@@ -357,6 +361,127 @@ class NFCScanner {
         } catch (error) {
             console.error('Camera access error:', error);
             this.updateStatus('Camera access denied. Use manual input instead.', 'warning');
+        }
+    }
+
+    async startQRScanner() {
+        try {
+            this.cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            });
+            
+            const video = document.getElementById('camera-preview');
+            video.srcObject = this.cameraStream;
+            
+            // Show camera interface
+            $('#camera-container').slideDown();
+            $('#scanner-status').show();
+            $('#start-camera-scanner').hide();
+            $('#stop-camera-scanner').show();
+            
+            this.updateStatus('Camera scanner active. Point at QR codes to scan.', 'info');
+            
+            // Start QR detection
+            this.startQRDetection(video);
+            
+        } catch (error) {
+            console.error('Camera scanner error:', error);
+            this.updateStatus('Could not start camera scanner. Check permissions.', 'danger');
+        }
+    }
+    
+    stopQRScanner() {
+        if (this.cameraStream) {
+            this.cameraStream.getTracks().forEach(track => track.stop());
+            this.cameraStream = null;
+        }
+        
+        if (this.qrDetectionInterval) {
+            clearInterval(this.qrDetectionInterval);
+            this.qrDetectionInterval = null;
+        }
+        
+        $('#camera-container').slideUp();
+        $('#scanner-status').hide();
+        $('#start-camera-scanner').show();
+        $('#stop-camera-scanner').hide();
+        
+        this.updateStatus('Camera scanner stopped.', 'info');
+    }
+    
+    startQRDetection(video) {
+        // Simple QR detection simulation
+        // In production, use a library like jsQR or ZXing
+        this.qrDetectionInterval = setInterval(() => {
+            this.detectQRFromVideo(video);
+        }, 1000);
+    }
+    
+    detectQRFromVideo(video) {
+        // Simulate QR detection
+        // In real implementation, capture frame and process with QR library
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        if (canvas.width > 0 && canvas.height > 0) {
+            ctx.drawImage(video, 0, 0);
+            
+            // Simulate finding QR code (random chance for demo)
+            if (Math.random() < 0.1) { // 10% chance per second
+                const mockQRData = this.generateMockQRData();
+                this.handleQRCodeDetected(mockQRData);
+            }
+        }
+    }
+    
+    generateMockQRData() {
+        const employees = [
+            { emp_code: 'EMP001', name: 'John Smith', role: 'employee' },
+            { emp_code: 'SA001', name: 'Alex Johnson', role: 'super_admin' },
+            { emp_code: 'HR001', name: 'Sarah Wilson', role: 'hr_manager' },
+            { emp_code: 'MGR001', name: 'David Martinez', role: 'manager' }
+        ];
+        
+        const employee = employees[Math.floor(Math.random() * employees.length)];
+        
+        return JSON.stringify({
+            type: 'employee_attendance',
+            emp_code: employee.emp_code,
+            name: employee.name,
+            nfc_id: employee.emp_code + '-QR',
+            role: employee.role,
+            timestamp: Date.now(),
+            scan_method: 'qr_code'
+        });
+    }
+    
+    handleQRCodeDetected(qrDataString) {
+        try {
+            const qrData = JSON.parse(qrDataString);
+            
+            if (qrData.type === 'employee_attendance') {
+                this.stopQRScanner();
+                
+                $('#scanner-status').removeClass('alert-secondary').addClass('alert-success')
+                    .html('<i class="fas fa-check"></i> QR Code detected successfully!');
+                
+                // Simulate employee lookup
+                this.handleNFCRead(qrData.nfc_id);
+                
+                setTimeout(() => {
+                    $('#scanner-status').removeClass('alert-success').addClass('alert-secondary').hide();
+                }, 3000);
+            }
+            
+        } catch (error) {
+            console.error('Invalid QR code data:', error);
         }
     }
 
