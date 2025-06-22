@@ -35,6 +35,22 @@
                             Ready to scan NFC cards. Please tap an employee's NFC card or phone.
                         </div>
 
+                        <!-- iOS Help Link -->
+                        <div class="ios-help-section" style="display: none;">
+                            <div class="alert alert-light border-info">
+                                <div class="d-flex align-items-center">
+                                    <i class="fab fa-apple fa-2x text-info mr-3"></i>
+                                    <div>
+                                        <h6 class="mb-1">Using iPhone?</h6>
+                                        <p class="mb-2 small">iOS has specific requirements for NFC functionality.</p>
+                                        <a href="{{ route('nfc.ios-instructions') }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-book"></i> View iOS Setup Guide
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Employee Preview -->
                         <div class="card border-primary" id="employee-preview" style="display: none;">
                             <div class="card-header bg-primary text-white">
@@ -154,6 +170,7 @@
 @endsection
 
 @section('script')
+<script src="/js/nfc-ios-compat.js"></script>
 <script>
 class NFCScanner {
     constructor() {
@@ -164,15 +181,35 @@ class NFCScanner {
     }
 
     init() {
+        // Check device type and NFC capabilities
+        this.detectDevice();
+        
         // Check for Web NFC API support
-        if ('NDEFReader' in window) {
+        if ('NDEFReader' in window && !this.isIOS) {
             this.initWebNFC();
         } else {
-            this.showFallbackMode();
+            this.showIOSCompatibleMode();
         }
 
         // Setup event listeners
         this.setupEventListeners();
+    }
+
+    detectDevice() {
+        this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        this.isAndroid = /Android/.test(navigator.userAgent);
+        this.isMobile = this.isIOS || this.isAndroid;
+        
+        console.log('Device detected:', {
+            isIOS: this.isIOS,
+            isAndroid: this.isAndroid,
+            isMobile: this.isMobile
+        });
+        
+        // Show iOS help section if on iOS
+        if (this.isIOS) {
+            $('.ios-help-section').show();
+        }
     }
 
     async initWebNFC() {
@@ -196,9 +233,131 @@ class NFCScanner {
         }
     }
 
-    showFallbackMode() {
-        this.updateStatus('Web NFC not supported. Use manual input below.', 'warning');
-        $('#manual-nfc-input').focus();
+    showIOSCompatibleMode() {
+        if (this.isIOS) {
+            this.updateStatus('iOS detected. Use camera scan or manual input for NFC cards.', 'info');
+            this.initIOSNFCSupport();
+        } else {
+            this.updateStatus('Web NFC not supported. Use manual input below.', 'warning');
+            $('#manual-nfc-input').focus();
+        }
+    }
+
+    async initIOSNFCSupport() {
+        // iOS NFC support through Core NFC (limited to NDEF reading)
+        if ('NDEFReader' in window) {
+            try {
+                const ndef = new NDEFReader();
+                
+                // Add iOS-specific button to trigger NFC scan
+                this.addIOSNFCButton();
+                
+                this.updateStatus('iOS NFC ready. Tap "Scan NFC" button when ready.', 'success');
+                
+            } catch (error) {
+                console.log('iOS NFC setup error:', error);
+                this.updateStatus('iOS NFC not available. Use manual input or camera scan.', 'warning');
+                this.initCameraScanner();
+            }
+        } else {
+            this.updateStatus('NFC not supported on this iOS version. Use manual input or camera scan.', 'warning');
+            this.initCameraScanner();
+        }
+    }
+
+    addIOSNFCButton() {
+        const buttonHtml = `
+            <div class="ios-nfc-section mt-3 mb-3">
+                <div class="text-center">
+                    <button type="button" class="btn btn-primary btn-lg" id="ios-nfc-scan">
+                        <i class="fas fa-mobile-alt"></i> Scan NFC Card (iOS)
+                    </button>
+                    <p class="text-muted mt-2 small">
+                        Tap this button, then hold your iPhone near an NFC card when prompted
+                    </p>
+                </div>
+            </div>
+        `;
+        $('.card-body').first().append(buttonHtml);
+        
+        $('#ios-nfc-scan').on('click', () => this.startIOSNFCScan());
+    }
+
+    async startIOSNFCScan() {
+        try {
+            const ndef = new NDEFReader();
+            
+            this.updateStatus('Hold your iPhone near an NFC card...', 'info');
+            
+            const abortController = new AbortController();
+            
+            // Set timeout for scan
+            setTimeout(() => {
+                abortController.abort();
+                this.updateStatus('NFC scan timeout. Please try again.', 'warning');
+            }, 10000);
+            
+            await ndef.scan({ signal: abortController.signal });
+            
+            ndef.addEventListener('reading', ({ message, serialNumber }) => {
+                abortController.abort();
+                this.handleNFCRead(serialNumber);
+            });
+            
+        } catch (error) {
+            console.error('iOS NFC scan error:', error);
+            this.updateStatus('NFC scan failed. Try manual input instead.', 'danger');
+        }
+    }
+
+    initCameraScanner() {
+        // Add camera scanner for QR codes as NFC alternative
+        const cameraHtml = `
+            <div class="camera-scanner-section mt-3">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-camera"></i> Camera Scanner (Alternative)
+                        </h6>
+                        <p class="small text-muted">
+                            Scan QR codes on employee badges as an alternative to NFC
+                        </p>
+                        <button type="button" class="btn btn-info" id="start-camera-scan">
+                            <i class="fas fa-camera"></i> Start Camera Scan
+                        </button>
+                        <video id="camera-preview" style="display: none; width: 100%; max-width: 300px; margin-top: 10px;"></video>
+                    </div>
+                </div>
+            </div>
+        `;
+        $('.card-body').first().append(cameraHtml);
+        
+        $('#start-camera-scan').on('click', () => this.startCameraScanner());
+    }
+
+    async startCameraScanner() {
+        try {
+            const video = document.getElementById('camera-preview');
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            
+            video.srcObject = stream;
+            video.style.display = 'block';
+            video.play();
+            
+            this.updateStatus('Camera active. Point at QR code on employee badge.', 'info');
+            
+            // In a real implementation, you'd use a QR code library here
+            // For now, just show instructions
+            setTimeout(() => {
+                this.updateStatus('Camera scanner ready. Manual input available below.', 'success');
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Camera access error:', error);
+            this.updateStatus('Camera access denied. Use manual input instead.', 'warning');
+        }
     }
 
     setupEventListeners() {

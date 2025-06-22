@@ -64,6 +64,11 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     // Employee NFC Card (accessible to employees)
     Route::get('/nfc/employee-card', '\App\Http\Controllers\NfcController@employeeCard')->name('nfc.employee-card');
     
+    // iOS-specific routes
+    Route::get('/nfc/ios-instructions', function() {
+        return view('nfc.ios-instructions');
+    })->name('nfc.ios-instructions');
+    
     Route::resource('shifts', '\App\Http\Controllers\ShiftController');
     Route::get('shifts/{shift}/copy', '\App\Http\Controllers\ShiftController@copy')->name('shifts.copy');
     Route::post('shifts/{shift}/duplicate', '\App\Http\Controllers\ShiftController@duplicate')->name('shifts.duplicate');

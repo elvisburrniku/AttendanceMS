@@ -1,14 +1,22 @@
 {
   "name": "NFC Attendance Scanner",
   "short_name": "NFC Scanner",
-  "description": "NFC-based employee attendance management system",
+  "description": "NFC-based employee attendance management system with iOS compatibility",
   "start_url": "/nfc/scanner",
   "display": "standalone",
   "background_color": "#4285f4",
   "theme_color": "#4285f4",
   "orientation": "portrait",
-  "scope": "/nfc/",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
     {
       "src": "/assets/images/nfc-icon-192.png",
       "sizes": "192x192",
@@ -22,6 +30,50 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity"],
-  "prefer_related_applications": false
+  "categories": ["business", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/assets/images/screenshot-scanner.png",
+      "type": "image/png",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Scanner",
+      "short_name": "Scanner",
+      "description": "Open NFC scanner directly",
+      "url": "/nfc/scanner",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Employee Card",
+      "short_name": "My Card",
+      "description": "Show employee NFC card",
+      "url": "/nfc/employee-card",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "/nfc/scanner"
+    }
+  ],
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

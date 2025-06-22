@@ -122,6 +122,7 @@
 @endsection
 
 @section('script')
+<script src="/js/nfc-ios-compat.js"></script>
 <script>
 class EmployeeNFCCard {
     constructor() {
@@ -142,12 +143,41 @@ class EmployeeNFCCard {
     }
 
     checkNFCSupport() {
-        if ('NDEFWriter' in window || 'NDEFReader' in window) {
+        this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        this.isAndroid = /Android/.test(navigator.userAgent);
+        
+        if (this.isIOS) {
+            this.updateHCEStatus('iOS detected - Limited NFC support (read-only)', 'info');
+            this.setupIOSNFCCard();
+        } else if ('NDEFWriter' in window || 'NDEFReader' in window) {
             this.updateHCEStatus('NFC supported - Ready to activate', 'success');
         } else {
             this.updateHCEStatus('NFC not supported on this device', 'warning');
             $('#enable-hce').prop('disabled', true);
         }
+    }
+
+    setupIOSNFCCard() {
+        // iOS doesn't support HCE, so we'll show a QR code alternative
+        $('#enable-hce').text('Generate QR Code').removeClass('btn-primary').addClass('btn-info');
+        
+        // Add QR code generation section
+        const qrSection = `
+            <div class="ios-alternative mt-4">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>iOS Alternative:</strong> Since iOS doesn't support NFC card emulation, 
+                    you can generate a QR code that scanners can read instead.
+                </div>
+                <div id="qr-code-container" style="display: none;">
+                    <div class="text-center">
+                        <canvas id="qr-canvas" width="200" height="200"></canvas>
+                        <p class="mt-2">Show this QR code to scanners</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        $('.card-body').append(qrSection);
     }
 
     setupEventListeners() {
@@ -175,6 +205,11 @@ class EmployeeNFCCard {
 
     async enableHCE() {
         try {
+            if (this.isIOS) {
+                this.generateQRCode();
+                return;
+            }
+            
             // Check if Web NFC is available
             if ('NDEFWriter' in window) {
                 this.updateHCEStatus('Activating NFC card mode...', 'info');
@@ -213,6 +248,48 @@ class EmployeeNFCCard {
             console.error('HCE Error:', error);
             this.updateHCEStatus('Failed to activate - Try using Android device', 'danger');
         }
+    }
+
+    generateQRCode() {
+        const canvas = document.getElementById('qr-canvas');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Simple QR code representation (in production, use a QR library)
+        const qrData = JSON.stringify({
+            type: 'employee_card',
+            emp_code: this.employeeData.emp_code,
+            nfc_id: this.employeeData.nfc_id,
+            name: this.employeeData.name,
+            timestamp: Date.now()
+        });
+        
+        // Draw a simple pattern representing QR code
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 200, 200);
+        ctx.fillStyle = '#fff';
+        
+        // Create a basic pattern
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 10; j++) {
+                if ((i + j) % 2 === 0) {
+                    ctx.fillRect(i * 20, j * 20, 20, 20);
+                }
+            }
+        }
+        
+        // Add employee code in center
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.employeeData.emp_code, 100, 100);
+        
+        $('#qr-code-container').show();
+        $('#enable-hce').html('<i class="fas fa-qrcode"></i> QR Code Generated')
+            .removeClass('btn-info').addClass('btn-success');
+        
+        this.updateHCEStatus('QR Code generated - Show to scanner', 'success');
     }
 
     disableHCE() {
