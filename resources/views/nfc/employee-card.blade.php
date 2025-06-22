@@ -24,32 +24,96 @@
                 <div class="card">
                     <div class="card-body text-center">
                         <div class="employee-card-header mb-4">
-                            <i class="fas fa-id-card-alt fa-3x text-primary mb-3"></i>
-                            <h4>{{ auth()->user()->name ?? 'Employee Name' }}</h4>
+                            <i class="{{ $cardConfig['icon'] ?? 'fas fa-id-card-alt' }} fa-3x text-primary mb-3"></i>
+                            <h4>
+                                @if(isset($employee) && $employee)
+                                    {{ $employee->first_name }} {{ $employee->last_name }}
+                                @else
+                                    {{ auth()->user()->name ?? 'Employee Name' }}
+                                @endif
+                            </h4>
                             <p class="text-muted">{{ auth()->user()->email ?? 'employee@company.com' }}</p>
+                            <div class="role-badge">
+                                <span class="badge badge-info">{{ ucwords(str_replace('_', ' ', $userRole ?? 'employee')) }}</span>
+                            </div>
                         </div>
 
-                        <!-- NFC Card Simulation -->
+                        <!-- Role-Based NFC Card -->
                         <div class="nfc-card-container mb-4">
-                            <div class="nfc-card" id="employee-nfc-card">
-                                <div class="nfc-card-header">
-                                    <i class="fas fa-building"></i>
-                                    <span>Company Name</span>
-                                </div>
-                                <div class="nfc-card-body">
-                                    <div class="employee-photo">
-                                        <i class="fas fa-user fa-3x"></i>
-                                    </div>
-                                    <div class="employee-info">
-                                        <h5 id="card-employee-name">{{ auth()->user()->name ?? 'Employee Name' }}</h5>
-                                        <p id="card-emp-code">EMP-{{ str_pad(auth()->id() ?? '001', 3, '0', STR_PAD_LEFT) }}</p>
-                                        <div class="nfc-chip">
-                                            <i class="fas fa-wifi"></i>
+                            <div class="card role-based-nfc-card" id="employee-nfc-card" data-role="{{ $userRole ?? 'employee' }}">
+                                <div class="card-body text-center" style="background: {{ $cardConfig['card_color'] ?? 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)' }}; color: white;">
+                                    <div class="nfc-card-visual">
+                                        <!-- Role-specific header -->
+                                        <div class="card-header-info mb-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge badge-light text-dark">{{ $cardConfig['card_type'] ?? 'STANDARD' }}</span>
+                                                <i class="{{ $cardConfig['icon'] ?? 'fas fa-id-card' }} fa-lg"></i>
+                                            </div>
+                                            <small class="access-level">{{ $cardConfig['access_level'] ?? 'LEVEL 1 - EMPLOYEE' }}</small>
+                                        </div>
+                                        
+                                        <!-- NFC Icon -->
+                                        <div class="nfc-icon">
+                                            <i class="fas fa-wifi fa-3x"></i>
+                                        </div>
+                                        
+                                        <!-- Employee Information -->
+                                        <h4 class="mt-3">
+                                            @if(isset($employee) && $employee)
+                                                {{ $employee->first_name }} {{ $employee->last_name }}
+                                            @else
+                                                {{ auth()->user()->name ?? 'Employee Name' }}
+                                            @endif
+                                        </h4>
+                                        <p class="emp-code">
+                                            @if(isset($employee) && $employee)
+                                                {{ $employee->emp_code }}
+                                            @else
+                                                EMP-{{ str_pad(auth()->id() ?? '001', 3, '0', STR_PAD_LEFT) }}
+                                            @endif
+                                        </p>
+                                        
+                                        <!-- Department & Position -->
+                                        @if(isset($employee) && $employee && ($employee->dept_name || $employee->position_name))
+                                        <div class="employee-details mb-3">
+                                            @if($employee->dept_name)
+                                                <small class="badge badge-light text-dark mr-1">{{ $employee->dept_name }}</small>
+                                            @endif
+                                            @if($employee->position_name)
+                                                <small class="badge badge-light text-dark">{{ $employee->position_name }}</small>
+                                            @endif
+                                        </div>
+                                        @endif
+                                        
+                                        <!-- NFC ID -->
+                                        <div class="nfc-id">
+                                            <small>NFC ID: {{ (isset($employee) && $employee ? $employee->card_no : null) ?? md5((auth()->id() ?? '1') . 'nfc_salt') }}</small>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="nfc-card-footer">
-                                    <small>Tap to check in/out</small>
+                                
+                                <!-- Role-specific permissions footer -->
+                                <div class="card-footer bg-light">
+                                    <h6 class="text-center mb-2 text-dark">Access Permissions</h6>
+                                    <div class="permissions-list">
+                                        @if(isset($cardConfig['permissions']))
+                                            @foreach($cardConfig['permissions'] as $permission)
+                                                <span class="badge badge-primary badge-sm mr-1 mb-1">{{ $permission }}</span>
+                                            @endforeach
+                                        @else
+                                            <span class="badge badge-primary badge-sm mr-1 mb-1">Check In/Out</span>
+                                            <span class="badge badge-primary badge-sm mr-1 mb-1">View Schedule</span>
+                                        @endif
+                                    </div>
+                                    
+                                    @if(isset($cardConfig['special_features']) && !empty($cardConfig['special_features']))
+                                    <div class="special-features mt-2">
+                                        <small class="text-muted">Special Features:</small><br>
+                                        @foreach($cardConfig['special_features'] as $feature)
+                                            <small class="badge badge-info badge-sm mr-1">{{ $feature }}</small>
+                                        @endforeach
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -66,9 +130,12 @@
                             <button type="button" class="btn btn-primary btn-lg mb-2" id="enable-hce">
                                 <i class="fas fa-power-off"></i> Enable NFC Card Mode
                             </button>
-                            <button type="button" class="btn btn-outline-secondary" id="test-card">
+                            <button type="button" class="btn btn-outline-secondary mb-2" id="test-card">
                                 <i class="fas fa-vial"></i> Test Card
                             </button>
+                            <a href="{{ route('nfc.role-switcher') }}" class="btn btn-outline-info">
+                                <i class="fas fa-exchange-alt"></i> Try Different Roles
+                            </a>
                         </div>
 
                         <!-- Instructions -->
@@ -129,9 +196,12 @@ class EmployeeNFCCard {
         this.isHCEActive = false;
         this.employeeData = {
             id: '{{ auth()->id() ?? "1" }}',
-            name: '{{ auth()->user()->name ?? "Employee Name" }}',
-            emp_code: 'EMP-{{ str_pad(auth()->id() ?? "001", 3, "0", STR_PAD_LEFT) }}',
-            nfc_id: '{{ md5((auth()->id() ?? "1") . "nfc_salt") }}'
+            name: '@if(isset($employee) && $employee){{ $employee->first_name }} {{ $employee->last_name }}@else{{ auth()->user()->name ?? "Employee Name" }}@endif',
+            emp_code: '@if(isset($employee) && $employee){{ $employee->emp_code }}@elseEMP-{{ str_pad(auth()->id() ?? "001", 3, "0", STR_PAD_LEFT) }}@endif',
+            nfc_id: '{{ (isset($employee) && $employee ? $employee->card_no : null) ?? md5((auth()->id() ?? "1") . "nfc_salt") }}',
+            role: '{{ $userRole ?? "employee" }}',
+            access_level: '{{ $cardConfig["access_level"] ?? "LEVEL 1 - EMPLOYEE" }}',
+            card_type: '{{ $cardConfig["card_type"] ?? "STANDARD" }}'
         };
         this.init();
     }

@@ -69,6 +69,16 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
         return view('nfc.ios-instructions');
     })->name('nfc.ios-instructions');
     
+    // Role Cards Showcase
+    Route::get('/nfc/role-cards', function() {
+        return view('nfc.role-cards-showcase');
+    })->name('nfc.role-cards');
+    
+    // Role Switcher for Testing
+    Route::get('/nfc/role-switcher', function() {
+        return view('nfc.role-switcher');
+    })->name('nfc.role-switcher');
+    
     Route::resource('shifts', '\App\Http\Controllers\ShiftController');
     Route::get('shifts/{shift}/copy', '\App\Http\Controllers\ShiftController@copy')->name('shifts.copy');
     Route::post('shifts/{shift}/duplicate', '\App\Http\Controllers\ShiftController@duplicate')->name('shifts.duplicate');
