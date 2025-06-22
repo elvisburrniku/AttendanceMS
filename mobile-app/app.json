@@ -1,0 +1,24 @@
+{
+  "name": "AttendanceApp",
+  "displayName": "Attendance Management",
+  "description": "Mobile app for employee attendance tracking with check-in/check-out functionality",
+  "version": "1.0.0",
+  "expo": {
+    "name": "Attendance Management",
+    "slug": "attendance-app",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "permissions": [
+      "ACCESS_FINE_LOCATION",
+      "ACCESS_COARSE_LOCATION",
+      "CAMERA"
+    ]
+  }
+}
