@@ -1,14 +1,14 @@
-modules = ["nodejs-20", "web", "php-8.2", "postgresql-16"]
-run = "php artisan serve --host 0.0.0.0 --port 5000"
+modules = ["nodejs-20", "web", "php-8.2"]
+run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "vendor", "dist"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["php82", "php82Packages.composer"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["php", "artisan", "start"] # You might adjust this based on your production server setup (e.g., managing php-fpm and nginx)
-build = ["composer", "install", "--no-dev", "--optimize-autoloader"] # Running composer install for production
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 5000
