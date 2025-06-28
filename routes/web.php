@@ -18,6 +18,12 @@ Route::post('/create-checkout-session', '\App\Http\Controllers\PaymentController
 Route::get('/success', '\App\Http\Controllers\PaymentController@success')->name('payment.success');
 Route::get('/cancel', '\App\Http\Controllers\PaymentController@cancel')->name('payment.cancel');
 
+// Tenant management routes
+Route::middleware(['auth'])->group(function () {
+    Route::resource('tenants', \App\Http\Controllers\TenantController::class);
+    Route::get('/tenants/{tenant}/switch', '\App\Http\Controllers\TenantController@switch')->name('tenants.switch');
+});
+
 Route::get('attended/{user_id}', '\App\Http\Controllers\AttendanceController@attended' )->name('attended');
 Route::get('attended-before/{user_id}', '\App\Http\Controllers\AttendanceController@attendedBefore' )->name('attendedBefore');
 Auth::routes(['register' => false, 'reset' => false]);

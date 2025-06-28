@@ -1,311 +1,269 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Dashboard - AttendanceTracker Pro')
-
-@section('breadcrumb')
-    <li><a href="{{ route('admin') }}">Dashboard</a></li>
-    <li class="active">Overview</li>
-@endsection
-
-@section('topbar-actions')
-    <div class="d-flex align-items-center gap-2">
-        <span class="text-muted small">Last updated: {{ now()->format('M d, Y H:i') }}</span>
-        <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
-            <i class="fas fa-sync-alt"></i>
-        </button>
-    </div>
-@endsection
+@section('title', 'Dashboard - Solar Eagles')
+@section('page-title', 'Dashboard')
 
 @section('content')
 <div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="stats-card primary">
-            <div class="stats-icon primary">
-                <i class="fas fa-users"></i>
-            </div>
-            <h3 class="fw-bold mb-1">{{ $totalEmployees ?? '25' }}</h3>
-            <p class="text-muted mb-0">Total Employees</p>
-            <small class="text-success">
-                <i class="fas fa-arrow-up"></i> 12% from last month
-            </small>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="stats-card success">
-            <div class="stats-icon success">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h3 class="fw-bold mb-1">{{ $presentToday ?? '18' }}</h3>
-            <p class="text-muted mb-0">Present Today</p>
-            <small class="text-success">
-                <i class="fas fa-arrow-up"></i> 72% attendance rate
-            </small>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="stats-card warning">
-            <div class="stats-icon warning">
-                <i class="fas fa-clock"></i>
-            </div>
-            <h3 class="fw-bold mb-1">{{ $lateToday ?? '3' }}</h3>
-            <p class="text-muted mb-0">Late Arrivals</p>
-            <small class="text-warning">
-                <i class="fas fa-exclamation-triangle"></i> Needs attention
-            </small>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="stats-card info">
-            <div class="stats-icon info">
-                <i class="fas fa-building"></i>
-            </div>
-            <h3 class="fw-bold mb-1">{{ $totalDepartments ?? '8' }}</h3>
-            <p class="text-muted mb-0">Departments</p>
-            <small class="text-info">
-                <i class="fas fa-info-circle"></i> Active departments
-            </small>
-        </div>
+    <div class="col-12">
+        <p class="text-muted mb-4">Monitoring de Asistencia y Marcaciones de Empleados</p>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-lg-8 mb-4">
-        <div class="card-modern">
-            <div class="card-header-modern d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-600">Recent Attendance Activity</h5>
-                <a href="{{ route('attendance') }}" class="btn btn-sm btn-primary-modern">
-                    <i class="fas fa-eye"></i> View All
-                </a>
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <!-- Total Employees Card -->
+    <div class="stat-card purple">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Total Employees</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-users"></i>
             </div>
-            <div class="card-body-modern">
-                <div class="table-modern">
-                    <table class="table">
+        </div>
+        <div class="stat-card-value">{{ $stats['total_employees'] ?? 13 }}</div>
+        <div class="stat-card-change">{{ $stats['employees_change'] ?? '+2 this month' }}</div>
+    </div>
+
+    <!-- Present Today Card -->
+    <div class="stat-card blue">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Present Today</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ $stats['present_today'] ?? 0 }}</div>
+        <div class="stat-card-change">{{ $stats['attendance_rate'] ?? '0% attendance rate' }}</div>
+    </div>
+
+    <!-- Late Arrivals Card -->
+    <div class="stat-card orange">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Late Arrivals</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ $stats['late_arrivals'] ?? 0 }}</div>
+        <div class="stat-card-change">{{ $stats['late_change'] ?? 'No late arrivals today' }}</div>
+    </div>
+
+    <!-- Departments Card -->
+    <div class="stat-card green">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Departments</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-building"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ $stats['departments'] ?? 13 }}</div>
+        <div class="stat-card-change">{{ $stats['dept_change'] ?? 'Active departments' }}</div>
+    </div>
+
+    <!-- Working Hours Card -->
+    <div class="stat-card red">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Working Hours</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ $stats['working_hours'] ?? '0%' }}</div>
+        <div class="stat-card-change">{{ $stats['hours_change'] ?? 'Average completion' }}</div>
+    </div>
+
+    <!-- Check Ins Today Card -->
+    <div class="stat-card purple">
+        <div class="stat-card-header">
+            <div class="stat-card-title">Check Ins Today</div>
+            <div class="stat-card-icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+        </div>
+        <div class="stat-card-value">{{ $stats['checkins_today'] ?? 12 }}</div>
+        <div class="stat-card-change">{{ $stats['checkin_change'] ?? 'Total check-ins' }}</div>
+    </div>
+</div>
+
+<!-- Recent Activity Section -->
+<div class="row mt-5">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Attendance Activity</h5>
+                <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
                         <thead>
                             <tr>
                                 <th>Employee</th>
-                                <th>Time</th>
                                 <th>Action</th>
+                                <th>Time</th>
+                                <th>Location</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @if(isset($recent_activity) && count($recent_activity) > 0)
+                                @foreach($recent_activity as $activity)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ substr($activity['name'], 0, 2) }}
+                                            </div>
+                                            {{ $activity['name'] }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ $activity['action'] === 'Check In' ? 'success' : 'warning' }}">
+                                            {{ $activity['action'] }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $activity['time'] }}</td>
+                                    <td>{{ $activity['location'] }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $activity['status'] === 'On Time' ? 'success' : 'danger' }}">
+                                            {{ $activity['status'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="profile-avatar me-3" style="width: 35px; height: 35px; font-size: 0.8rem;">
-                                            JD
-                                        </div>
-                                        <div>
-                                            <div class="fw-500">John Doe</div>
-                                            <small class="text-muted">Software Engineer</small>
-                                        </div>
-                                    </div>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="fas fa-clock fa-2x mb-3 d-block"></i>
+                                    No attendance records for today
                                 </td>
-                                <td>{{ now()->format('H:i') }}</td>
-                                <td><span class="badge bg-success">Check In</span></td>
-                                <td><span class="badge bg-success">On Time</span></td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="profile-avatar me-3" style="width: 35px; height: 35px; font-size: 0.8rem;">
-                                            SM
-                                        </div>
-                                        <div>
-                                            <div class="fw-500">Sarah Miller</div>
-                                            <small class="text-muted">HR Manager</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ now()->subMinutes(15)->format('H:i') }}</td>
-                                <td><span class="badge bg-info">Break Out</span></td>
-                                <td><span class="badge bg-primary">Active</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="profile-avatar me-3" style="width: 35px; height: 35px; font-size: 0.8rem;">
-                                            MJ
-                                        </div>
-                                        <div>
-                                            <div class="fw-500">Mike Johnson</div>
-                                            <small class="text-muted">Designer</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>{{ now()->subMinutes(30)->format('H:i') }}</td>
-                                <td><span class="badge bg-warning">Late Check In</span></td>
-                                <td><span class="badge bg-warning">Late</span></td>
-                            </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-lg-4 mb-4">
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-600">Quick Actions</h5>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
             </div>
-            <div class="card-body-modern">
-                <div class="d-grid gap-3">
-                    <a href="{{ route('employees.create') }}" class="btn btn-modern btn-primary-modern">
-                        <i class="fas fa-user-plus"></i>
-                        Add New Employee
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Add New Employee
                     </a>
-                    
-                    <a href="{{ route('attendance.export') }}" class="btn btn-modern btn-outline-success">
-                        <i class="fas fa-download"></i>
-                        Export Attendance
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Generate Report
                     </a>
-                    
-                    <a href="{{ route('schedules.create') }}" class="btn btn-modern btn-outline-info">
-                        <i class="fas fa-calendar-plus"></i>
-                        Create Schedule
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-2"></i>System Settings
                     </a>
-                    
-                    <a href="{{ route('holiday') }}" class="btn btn-modern btn-outline-warning">
-                        <i class="fas fa-calendar-times"></i>
-                        Manage Holidays
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-download me-2"></i>Export Data
                     </a>
                 </div>
             </div>
         </div>
-        
-        <div class="card-modern mt-4">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-600">System Status</h5>
-            </div>
-            <div class="card-body-modern">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Database</span>
-                    <span class="badge bg-success">Online</span>
+
+        @auth
+            @if(auth()->user()->is_super_admin || auth()->user()->role === 'admin')
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Management</h5>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>NFC Scanner</span>
-                    <span class="badge bg-success">Active</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>GPS Tracking</span>
-                    <span class="badge bg-success">Enabled</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>Backup Status</span>
-                    <span class="badge bg-info">Auto</span>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('tenants.create') }}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Create New System
+                        </a>
+                        <a href="{{ route('tenants.index') }}" class="btn btn-outline-success">
+                            <i class="fas fa-building me-2"></i>Manage Systems
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
+            @endif
+        @endauth
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-6 mb-4">
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-600">Weekly Overview</h5>
-            </div>
-            <div class="card-body-modern">
-                <canvas id="weeklyChart" height="200"></canvas>
-            </div>
+@if(session('success'))
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show" role="alert">
+        <div class="toast-header">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
         </div>
-    </div>
-    
-    <div class="col-lg-6 mb-4">
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <h5 class="mb-0 fw-600">Department Attendance</h5>
-            </div>
-            <div class="card-body-modern">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Engineering</span>
-                        <span class="fw-600">85%</span>
-                    </div>
-                    <div class="progress" style="height: 8px; border-radius: 4px;">
-                        <div class="progress-bar" style="width: 85%; background: var(--primary-gradient);"></div>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Human Resources</span>
-                        <span class="fw-600">92%</span>
-                    </div>
-                    <div class="progress" style="height: 8px; border-radius: 4px;">
-                        <div class="progress-bar bg-success" style="width: 92%;"></div>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Marketing</span>
-                        <span class="fw-600">78%</span>
-                    </div>
-                    <div class="progress" style="height: 8px; border-radius: 4px;">
-                        <div class="progress-bar bg-warning" style="width: 78%;"></div>
-                    </div>
-                </div>
-                
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Sales</span>
-                        <span class="fw-600">89%</span>
-                    </div>
-                    <div class="progress" style="height: 8px; border-radius: 4px;">
-                        <div class="progress-bar bg-info" style="width: 89%;"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="toast-body">
+            {{ session('success') }}
         </div>
     </div>
 </div>
+@endif
+
 @endsection
 
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Weekly attendance chart
-const ctx = document.getElementById('weeklyChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-            label: 'Attendance Rate',
-            data: [85, 92, 78, 88, 82, 65, 45],
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: function(value) {
-                        return value + '%';
-                    }
-                }
-            }
-        }
+@push('styles')
+<style>
+    .card {
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
     }
-});
-</script>
-@endsection
 
+    .card-header {
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .table td {
+        border-top: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .btn {
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background: var(--primary-purple);
+        border-color: var(--primary-purple);
+    }
+
+    .btn-primary:hover {
+        background: var(--dark-purple);
+        border-color: var(--dark-purple);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary-purple);
+        border-color: var(--primary-purple);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-purple);
+        border-color: var(--primary-purple);
+    }
+</style>
+@endpush
