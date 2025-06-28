@@ -7,11 +7,21 @@ use App\Http\Controllers\FingerDevicesControlller;
 use App\Providers\RouteServiceProvider;
 
 Route::get('/', function () {
+    return view('landing');
+})->name('landing');
+
+Route::get('/dashboard', function () {
     if(auth()->check() && auth()->user()->hasRole('employee')){
         return redirect(RouteServiceProvider::HOME_EMPLOYEE);
     }
     return view('welcome');
 })->name('welcome');
+// Trial signup and payment routes
+Route::post('/trial-signup', '\App\Http\Controllers\PaymentController@trialSignup')->name('trial-signup');
+Route::post('/create-checkout-session', '\App\Http\Controllers\PaymentController@createCheckoutSession')->name('create-checkout-session');
+Route::get('/success', '\App\Http\Controllers\PaymentController@success')->name('payment.success');
+Route::get('/cancel', '\App\Http\Controllers\PaymentController@cancel')->name('payment.cancel');
+
 Route::get('attended/{user_id}', '\App\Http\Controllers\AttendanceController@attended' )->name('attended');
 Route::get('attended-before/{user_id}', '\App\Http\Controllers\AttendanceController@attendedBefore' )->name('attendedBefore');
 Auth::routes(['register' => false, 'reset' => false]);
