@@ -78,7 +78,18 @@ class AdminController extends Controller
 
         $data[3] = $data[0] > 0 ? round(($data[1] / $data[0]) * 100, 1) : 0;
 
-        return view('admin.index')->with(['data' => $data]);
+        // Use modern dashboard by default
+        $totalEmployees = $totalEmp;
+        $presentToday = $AllAttendance;
+        $lateToday = $latetimeEmp;
+        $onLeave = 0; // Will be calculated when Leave model is available
+        
+        return view('admin.modern-dashboard', compact(
+            'totalEmployees',
+            'presentToday', 
+            'lateToday',
+            'onLeave'
+        ));
     }
 
 }

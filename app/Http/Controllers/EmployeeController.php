@@ -28,7 +28,8 @@ class EmployeeController extends Controller
 
         $areas = Area::all();
 
-        return view('admin.employee')->with(['employees'=> $employees, 'employee_count' => $employee_count, 'departments' => $departments, 'positions' => $positions, 'areas' => $areas]);
+        // Use modern employee view
+        return view('admin.modern-employees')->with(['employees'=> $employees, 'employee_count' => $employee_count, 'departments' => $departments, 'positions' => $positions, 'areas' => $areas, 'total' => $employees->count()]);
     }
 
     public function store(EmployeeRec $request)
