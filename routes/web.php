@@ -1,8 +1,7 @@
 <?php
 
-
-
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\FingerDevicesControlller;
 use App\Providers\RouteServiceProvider;
 
@@ -11,9 +10,6 @@ Route::get('/', function () {
 })->name('landing');
 
 Route::get('/dashboard', function () {
-    if(auth()->check() && auth()->user()->hasRole('employee')){
-        return redirect(RouteServiceProvider::HOME_EMPLOYEE);
-    }
     return view('welcome');
 })->name('welcome');
 // Trial signup and payment routes
