@@ -23,6 +23,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('employee.index');
+        // Redirect to modern dashboard for a better user experience
+        return redirect()->route('modern.dashboard');
     }
 }

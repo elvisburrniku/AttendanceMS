@@ -28,6 +28,13 @@ Route::get('attended/{user_id}', '\App\Http\Controllers\AttendanceController@att
 Route::get('attended-before/{user_id}', '\App\Http\Controllers\AttendanceController@attendedBefore' )->name('attendedBefore');
 Auth::routes(['register' => false, 'reset' => false]);
 
+// Modern UI Routes
+Route::get('/modern-login', '\App\Http\Controllers\ModernDashboardController@showLogin')->name('modern.login');
+Route::get('/modern-dashboard', '\App\Http\Controllers\ModernDashboardController@index')->name('modern.dashboard')->middleware('auth');
+Route::get('/modern-employees', function() { return view('admin.modern-employees'); })->name('modern.employees')->middleware('auth');
+Route::get('/api/dashboard-stats', '\App\Http\Controllers\ModernDashboardController@getDashboardStats')->name('api.dashboard.stats')->middleware('auth');
+Route::get('/api/activity-data', '\App\Http\Controllers\ModernDashboardController@getActivityData')->name('api.activity.data')->middleware('auth');
+
 Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
     Route::resource('/employees', '\App\Http\Controllers\EmployeeController');
     Route::resource('/departments', '\App\Http\Controllers\DepartmentController');
