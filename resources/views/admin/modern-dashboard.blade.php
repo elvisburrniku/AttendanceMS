@@ -4,11 +4,11 @@
 @section('page-title', 'Dashboard')
 
 @section('page-actions')
-    <a href="{{ route('admin.employees.create') }}" class="action-btn">
+    <a href="{{ route('employees.create') }}" class="action-btn">
         <i class="fas fa-plus"></i>
         Add Employee
     </a>
-    <a href="{{ route('admin.attendance.reports') }}" class="action-btn btn-secondary">
+    <a href="{{ route('attendance') }}" class="action-btn btn-secondary">
         <i class="fas fa-chart-bar"></i>
         View Reports
     </a>
@@ -307,7 +307,7 @@
     
     <!-- Quick Actions -->
     <div class="quick-actions">
-        <a href="{{ route('admin.employees.create') }}" class="quick-action-card">
+        <a href="{{ route('employees.create') }}" class="quick-action-card">
             <div class="quick-action-icon">
                 <i class="fas fa-user-plus"></i>
             </div>
@@ -315,7 +315,7 @@
             <p class="text-muted mb-0">Register a new team member</p>
         </a>
         
-        <a href="{{ route('admin.attendance.manual') }}" class="quick-action-card">
+        <a href="{{ route('attendance') }}" class="quick-action-card">
             <div class="quick-action-icon">
                 <i class="fas fa-edit"></i>
             </div>
@@ -323,7 +323,7 @@
             <p class="text-muted mb-0">Record attendance manually</p>
         </a>
         
-        <a href="{{ route('admin.reports.generate') }}" class="quick-action-card">
+        <a href="{{ route('attendance.export') }}" class="quick-action-card">
             <div class="quick-action-icon">
                 <i class="fas fa-file-download"></i>
             </div>
@@ -410,7 +410,7 @@
                     </div>
                     
                     <div class="text-center mt-4">
-                        <a href="{{ route('admin.activity.all') }}" class="btn-modern btn-outline">
+                        <a href="{{ route('attendance') }}" class="btn-modern btn-outline">
                             View All Activity
                         </a>
                     </div>
@@ -507,7 +507,7 @@
                     </div>
                     
                     <div class="text-center mt-4">
-                        <a href="{{ route('admin.departments') }}" class="btn-modern btn-outline">
+                        <a href="{{ route('departments.index') }}" class="btn-modern btn-outline">
                             Manage Departments
                         </a>
                     </div>

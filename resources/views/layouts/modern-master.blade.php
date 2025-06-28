@@ -164,42 +164,42 @@
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.attendances') }}" class="nav-link {{ request()->routeIs('admin.attendances') ? 'active' : '' }}">
+                            <a href="{{ route('attendance') }}" class="nav-link {{ request()->routeIs('attendance') ? 'active' : '' }}">
                                 <i class="fas fa-clock"></i>
                                 <span>Attendance</span>
                             </a>
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.departments') }}" class="nav-link {{ request()->routeIs('admin.departments') ? 'active' : '' }}">
+                            <a href="{{ route('departments.index') }}" class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}">
                                 <i class="fas fa-building"></i>
                                 <span>Departments</span>
                             </a>
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.positions') }}" class="nav-link {{ request()->routeIs('admin.positions') ? 'active' : '' }}">
+                            <a href="{{ route('positions.index') }}" class="nav-link {{ request()->routeIs('positions.*') ? 'active' : '' }}">
                                 <i class="fas fa-briefcase"></i>
                                 <span>Positions</span>
                             </a>
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.schedules') }}" class="nav-link {{ request()->routeIs('admin.schedules') ? 'active' : '' }}">
+                            <a href="{{ route('schedules.index') }}" class="nav-link {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Schedules</span>
                             </a>
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.holidays') }}" class="nav-link {{ request()->routeIs('admin.holidays') ? 'active' : '' }}">
+                            <a href="{{ route('holiday') }}" class="nav-link {{ request()->routeIs('holiday') ? 'active' : '' }}">
                                 <i class="fas fa-calendar-day"></i>
                                 <span>Holidays</span>
                             </a>
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.leaves') }}" class="nav-link {{ request()->routeIs('admin.leaves') ? 'active' : '' }}">
+                            <a href="{{ route('leave') }}" class="nav-link {{ request()->routeIs('leave') ? 'active' : '' }}">
                                 <i class="fas fa-plane-departure"></i>
                                 <span>Leave Management</span>
                             </a>
@@ -213,7 +213,7 @@
                         </div>
                         
                         <div class="nav-item">
-                            <a href="{{ route('admin.reports') }}" class="nav-link {{ request()->routeIs('admin.reports') ? 'active' : '' }}">
+                            <a href="{{ route('attendance.export') }}" class="nav-link {{ request()->routeIs('attendance.export') ? 'active' : '' }}">
                                 <i class="fas fa-chart-bar"></i>
                                 <span>Reports</span>
                             </a>
