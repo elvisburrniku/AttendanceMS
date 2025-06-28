@@ -35,6 +35,9 @@ Route::get('/modern-employees', function() { return view('admin.modern-employees
 Route::get('/api/dashboard-stats', '\App\Http\Controllers\ModernDashboardController@getDashboardStats')->name('api.dashboard.stats')->middleware('auth');
 Route::get('/api/activity-data', '\App\Http\Controllers\ModernDashboardController@getActivityData')->name('api.activity.data')->middleware('auth');
 
+// Test route for modern admin dashboard (no auth required)
+Route::get('/admin-demo', '\App\Http\Controllers\AdminController@index')->name('admin.demo');
+
 Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
     Route::resource('/employees', '\App\Http\Controllers\EmployeeController');
     Route::resource('/departments', '\App\Http\Controllers\DepartmentController');
@@ -130,15 +133,14 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::delete('finger_device/destroy', '\App\Http\Controllers\BiometricDeviceController@massDestroy')->name('finger_device.massDestroy');
     Route::get('finger_device/{fingerDevice}/employees/add', '\App\Http\Controllers\BiometricDeviceController@addEmployee')->name('finger_device.add.employee');
     Route::get('finger_device/{fingerDevice}/get/attendance', '\App\Http\Controllers\BiometricDeviceController@getAttendance')->name('finger_device.get.attendance');
-    // Temp Clear Attendance route
-    Route::get('finger_device/clear/attendance', function () {
-        $midnight = \Carbon\Carbon::createFromTime(23, 50, 00);
-        $diff = now()->diffInMinutes($midnight);
-        dispatch(new ClearAttendanceJob())->delay(now()->addMinutes($diff));
-        toast("Attendance Clearance Queue will run in 11:50 P.M}!", "success");
-
-        return back();
-    })->name('finger_device.clear.attendance');
+    // Temp Clear Attendance route (temporarily disabled due to missing dependencies)
+    // Route::get('finger_device/clear/attendance', function () {
+    //     $midnight = \Carbon\Carbon::createFromTime(23, 50, 00);
+    //     $diff = now()->diffInMinutes($midnight);
+    //     dispatch(new ClearAttendanceJob())->delay(now()->addMinutes($diff));
+    //     toast("Attendance Clearance Queue will run in 11:50 P.M}!", "success");
+    //     return back();
+    // })->name('finger_device.clear.attendance');
     
 
 });
