@@ -22,18 +22,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $user = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
         
         $role = Role::firstOrCreate([
             'slug' => 'admin',
             'name' => 'Administrator',
         ]);
         
-        $user->roles()->sync($role->id);
+        if ($user->roles()->count() === 0) {
+            $user->roles()->sync($role->id);
+        }
 
         $leaveTypes = [
             'LWOP',
@@ -81,5 +85,12 @@ class DatabaseSeeder extends Seeder
         foreach ($areas as $area) {
             Area::create($area);
         }
+
+        // Call additional seeders
+        $this->call([
+            EmployeeSeeder::class,
+            ScheduleSeeder::class,
+            AttendanceSeeder::class,
+        ]);
     }
 }
