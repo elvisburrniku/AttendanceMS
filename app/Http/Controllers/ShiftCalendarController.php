@@ -9,21 +9,23 @@ use App\Models\TimeInterval;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Carbon\CarbonTimeZone;
 
 class ShiftCalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $currentDate = $request->get('date', now()->format('Y-m-d'));
-        $startDate = Carbon::parse($currentDate)->startOfWeek();
-        $endDate = Carbon::parse($currentDate)->endOfWeek();
+        $timezone = config('app.timezone');
+        $currentDate = $request->get('date', now($timezone)->format('Y-m-d'));
+        $startDate = Carbon::parse($currentDate, $timezone)->startOfWeek();
+        $endDate = Carbon::parse($currentDate, $timezone)->endOfWeek();
 
         // Get all employees
         $employees = Employee::orderBy('first_name')->get();
-        
+
         // Get all shifts with time intervals
         $shifts = Shift::with('timeIntervals')->orderBy('alias')->get();
-        
+
         // Get schedules for the week
         $schedules = Schedule::with(['employee', 'shift.timeIntervals'])
             ->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -35,7 +37,7 @@ class ShiftCalendarController extends Controller
             ->get();
 
         // Build calendar data
-        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate);
+        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone);
 
         return view('admin.calendar.index', compact(
             'employees', 
@@ -59,20 +61,20 @@ class ShiftCalendarController extends Controller
         $schedule = Schedule::findOrFail($request->schedule_id);
         $newDate = Carbon::parse($request->new_date);
         $employee = Employee::findOrFail($request->employee_id);
-        
+
         // Calculate the duration of the original schedule (inclusive days)
         $originalStartDate = Carbon::parse($schedule->start_date);
         $originalEndDate = Carbon::parse($schedule->end_date);
-        
+
         // For single-day schedules (start_date = end_date), duration is 0 days difference
         // For multi-day schedules, we need the actual number of days between start and end
         $originalDuration = $originalStartDate->diffInDays($originalEndDate);
-        
+
         // Update the schedule maintaining the same duration
         // If it was a single day schedule (duration = 0), keep it single day
         // If it was multi-day, maintain the same duration
         $endDate = $originalDuration === 0 ? $newDate->copy() : $newDate->copy()->addDays($originalDuration);
-        
+
         // Debug logging to help identify drag-drop issues
         \Log::info('Schedule Update:', [
             'original_start' => $schedule->start_date,
@@ -82,7 +84,7 @@ class ShiftCalendarController extends Controller
             'calculated_end_date' => $endDate->format('Y-m-d'),
             'request_data' => $request->all()
         ]);
-        
+
         $schedule->update([
             'employee_id' => $request->employee_id,
             'start_date' => $newDate->format('Y-m-d'),
@@ -114,7 +116,7 @@ class ShiftCalendarController extends Controller
         $employee = Employee::findOrFail($request->employee_id);
         $shift = Shift::findOrFail($request->shift_id);
         $startDate = Carbon::parse($request->date);
-        
+
         // Calculate end date correctly (duration - 1 days for single day schedules)
         $duration = $request->duration ?? 1;
         $endDate = $duration === 1 ? $startDate->copy() : $startDate->copy()->addDays($duration - 1);
@@ -153,12 +155,13 @@ class ShiftCalendarController extends Controller
 
     public function getWeekData(Request $request)
     {
-        $currentDate = $request->get('date', now()->format('Y-m-d'));
-        $startDate = Carbon::parse($currentDate)->startOfWeek();
-        $endDate = Carbon::parse($currentDate)->endOfWeek();
+        $timezone = config('app.timezone');
+        $currentDate = $request->get('date', now($timezone)->format('Y-m-d'));
+        $startDate = Carbon::parse($currentDate, $timezone)->startOfWeek();
+        $endDate = Carbon::parse($currentDate, $timezone)->endOfWeek();
 
         $employees = Employee::orderBy('first_name')->get();
-        
+
         $schedules = Schedule::with(['employee', 'shift.timeIntervals'])
             ->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -168,7 +171,7 @@ class ShiftCalendarController extends Controller
             })
             ->get();
 
-        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate);
+        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone);
 
         return response()->json([
             'success' => true,
@@ -178,11 +181,11 @@ class ShiftCalendarController extends Controller
         ]);
     }
 
-    private function buildCalendarData($employees, $schedules, $startDate, $endDate)
+    private function buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone)
     {
         $calendarData = [];
         $weekDays = [];
-        
+
         // Build week days array
         for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
             $weekDays[] = [
@@ -197,14 +200,14 @@ class ShiftCalendarController extends Controller
         // Build employee schedule data
         foreach ($employees as $employee) {
             $employeeSchedules = [];
-            
+
             foreach ($weekDays as $day) {
                 $daySchedules = $schedules->filter(function($schedule) use ($employee, $day) {
                     return $schedule->employee_id == $employee->id &&
                            $schedule->start_date <= $day['date'] &&
                            $schedule->end_date >= $day['date'];
                 });
-                
+
                 $employeeSchedules[$day['date']] = $daySchedules->map(function($schedule) {
                     $timeIntervals = $schedule->shift && $schedule->shift->timeIntervals ? 
                         $schedule->shift->timeIntervals->map(function($interval) {
@@ -214,7 +217,7 @@ class ShiftCalendarController extends Controller
                                 'duration' => $interval->duration_in_hours ?? round($interval->duration / 60, 2)
                             ];
                         })->toArray() : [];
-                        
+
                     return [
                         'id' => $schedule->id,
                         'slug' => $schedule->slug,
@@ -229,7 +232,7 @@ class ShiftCalendarController extends Controller
                     ];
                 })->values()->toArray();
             }
-            
+
             $calendarData[] = [
                 'employee' => [
                     'id' => $employee->id,
