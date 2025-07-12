@@ -275,7 +275,7 @@
                         Today
                     </button>
                 </div>
-                
+
                 <div class="quick-actions">
                     <button type="button" class="add-schedule-btn" data-toggle="modal" data-target="#addScheduleModal">
                         <i class="fa fa-plus"></i> Add Schedule
@@ -392,14 +392,14 @@ $(document).ready(function() {
 function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     grid.innerHTML = '';
-    
+
     // Validate calendar data
     if (!calendarData || !calendarData.weekDays || !calendarData.employees) {
         console.error('Invalid calendar data:', calendarData);
         grid.innerHTML = '<div class="alert alert-danger">Invalid calendar data</div>';
         return;
     }
-    
+
     // Debug calendar structure for drag-drop analysis
     console.log('Calendar Week Structure:', {
         weekDays: calendarData.weekDays.map(day => ({
@@ -409,38 +409,38 @@ function renderCalendar() {
         })),
         totalEmployees: calendarData.employees.length
     });
-    
+
     // Create header row
     const headerRow = document.createElement('div');
     headerRow.className = 'calendar-row';
-    
+
     // Empty cell for employee column
     const employeeHeader = document.createElement('div');
     employeeHeader.className = 'calendar-cell employee-cell day-header';
     employeeHeader.textContent = 'Employee';
     headerRow.appendChild(employeeHeader);
-    
+
     // Day headers
     calendarData.weekDays.forEach(day => {
         const dayHeader = document.createElement('div');
         dayHeader.className = 'calendar-cell day-header';
         if (day.isWeekend) dayHeader.classList.add('weekend');
         if (day.isToday) dayHeader.classList.add('today');
-        
+
         dayHeader.innerHTML = `
             <div>${day.day}</div>
             <div style="font-size: 12px; font-weight: normal;">${day.dayNumber}</div>
         `;
         headerRow.appendChild(dayHeader);
     });
-    
+
     grid.appendChild(headerRow);
-    
+
     // Create employee rows
     calendarData.employees.forEach(employeeData => {
         const employeeRow = document.createElement('div');
         employeeRow.className = 'calendar-row';
-        
+
         // Employee cell
         const employeeCell = document.createElement('div');
         employeeCell.className = 'calendar-cell employee-cell';
@@ -449,16 +449,16 @@ function renderCalendar() {
             <div class="employee-info">${employeeData.employee.emp_code}</div>
         `;
         employeeRow.appendChild(employeeCell);
-        
+
         // Day cells
         calendarData.weekDays.forEach(day => {
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-cell day-cell';
             dayCell.dataset.date = day.date;
             dayCell.dataset.employeeId = employeeData.employee.id;
-            
+
             const schedules = employeeData.schedules[day.date] || [];
-            
+
             if (!Array.isArray(schedules) || schedules.length === 0) {
                 dayCell.innerHTML = '<div class="empty-day">No shifts</div>';
             } else {
@@ -467,12 +467,12 @@ function renderCalendar() {
                     dayCell.appendChild(shiftBlock);
                 });
             }
-            
+
             // Make droppable
             makeDroppable(dayCell);
             employeeRow.appendChild(dayCell);
         });
-        
+
         grid.appendChild(employeeRow);
     });
 }
@@ -483,27 +483,27 @@ function createShiftBlock(schedule) {
     shiftBlock.style.background = schedule.shift.color;
     shiftBlock.dataset.scheduleId = schedule.id;
     shiftBlock.draggable = true;
-    
+
     const timeIntervals = Array.isArray(schedule.shift.time_intervals) ? 
         schedule.shift.time_intervals.map(interval => 
             `${interval.in_time} (${interval.duration}h)`
         ).join(', ') : 'No time info';
-    
+
     shiftBlock.innerHTML = `
         <div>${schedule.shift.alias}</div>
         <div class="shift-time">${timeIntervals}</div>
     `;
-    
+
     // Add drag events
     shiftBlock.addEventListener('dragstart', handleDragStart);
     shiftBlock.addEventListener('dragend', handleDragEnd);
-    
+
     // Add context menu
     shiftBlock.addEventListener('contextmenu', function(e) {
         e.preventDefault();
         showContextMenu(e, schedule);
     });
-    
+
     return shiftBlock;
 }
 
@@ -523,7 +523,25 @@ function handleDragStart(e) {
 
 function handleDragEnd(e) {
     e.target.classList.remove('dragging');
+
+    // Reset element display if it was hidden during drag
+    if (e.target.style.display === 'none') {
+        e.target.style.display = '';
+    }
+
     draggedElement = null;
+
+    // Clean up any temporary visual indicators
+    document.querySelectorAll('.day-cell').forEach(cell => {
+        cell.classList.remove('drag-over');
+    });
+
+    // Remove any temporary clones that might have been created
+    document.querySelectorAll('.shift-block[style*="dashed"]').forEach(clone => {
+        if (clone.style.border.includes('dashed')) {
+            clone.remove();
+        }
+    });
 }
 
 function handleDragOver(e) {
@@ -555,17 +573,17 @@ function handleDragLeave(e) {
 
 function handleDrop(e) {
     e.preventDefault();
-    
+
     // Find the actual day cell (might be nested)
     let targetCell = e.target;
     while (targetCell && !targetCell.classList.contains('day-cell')) {
         targetCell = targetCell.parentElement;
     }
-    
+
     if (targetCell) {
         targetCell.classList.remove('drag-over');
     }
-    
+
     if (!draggedElement || !targetCell) {
         console.warn('Drop failed: missing draggedElement or targetCell', {
             draggedElement: !!draggedElement,
@@ -573,11 +591,11 @@ function handleDrop(e) {
         });
         return;
     }
-    
+
     const scheduleId = draggedElement.dataset.scheduleId;
     const newDate = targetCell.dataset.date;
     const newEmployeeId = targetCell.dataset.employeeId;
-    
+
     // Enhanced debugging for drag-drop issues
     console.log('Drag and Drop Debug:', {
         scheduleId: scheduleId,
@@ -592,13 +610,13 @@ function handleDrop(e) {
             target: e.target
         }
     });
-    
+
     // Get original date from parent cell for comparison
     const originalCell = draggedElement.closest('.day-cell');
     const originalDate = originalCell ? originalCell.dataset.date : 'unknown';
-    
+
     console.log('Moving from', originalDate, 'to', newDate);
-    
+
     // Visual feedback - temporarily move the element
     if (draggedElement && targetCell) {
         const clone = draggedElement.cloneNode(true);
@@ -607,13 +625,13 @@ function handleDrop(e) {
         targetCell.appendChild(clone);
         draggedElement.style.display = 'none';
     }
-    
-    updateSchedule(scheduleId, newDate, newEmployeeId);
+
+    updateSchedule(scheduleId, newDate, newEmployeeId, draggedElement);
 }
 
-function updateSchedule(scheduleId, newDate, employeeId) {
+function updateSchedule(scheduleId, newDate, newEmployeeId, originalElement = null) {
     showLoading();
-    
+
     $.ajax({
         url: '{{ route("calendar.update") }}',
         method: 'POST',
@@ -624,21 +642,32 @@ function updateSchedule(scheduleId, newDate, employeeId) {
             employee_id: employeeId
         },
         success: function(response) {
+            hideLoading();
             if (response.success) {
                 showAlert('success', response.message);
+
+                // Remove the original element immediately to prevent duplication
+                if (originalElement && originalElement.parentNode) {
+                    originalElement.remove();
+                }
+
+                // Refresh the calendar to reflect changes
                 refreshCalendar();
             } else {
                 showAlert('error', 'Failed to update schedule');
-                refreshCalendar(); // Refresh to reset any visual changes
+                refreshCalendar();
             }
         },
-        error: function(xhr, status, error) {
-            console.error('Update error:', error);
-            showAlert('error', 'Error updating schedule: ' + error);
-            refreshCalendar(); // Refresh to reset any visual changes
-        },
-        complete: function() {
+        error: function(xhr) {
             hideLoading();
+            console.error('Update failed:', xhr.responseText);
+            showAlert('error', 'Error updating schedule');
+
+            // Remove any temporary elements and refresh
+            if (originalElement && originalElement.parentNode) {
+                originalElement.style.display = '';
+            }
+            refreshCalendar();
         }
     });
 }
@@ -648,21 +677,21 @@ function initializeEventListeners() {
     $('#prevWeek').click(function() {
         changeWeek(-7);
     });
-    
+
     $('#nextWeek').click(function() {
         changeWeek(7);
     });
-    
+
     $('#todayBtn').click(function() {
         currentDate = new Date().toISOString().split('T')[0];
         loadWeekData();
     });
-    
+
     // Add schedule form
     $('#addScheduleForm').submit(function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        
+
         $.ajax({
             url: '{{ route("calendar.create") }}',
             method: 'POST',
@@ -686,7 +715,7 @@ function initializeEventListeners() {
             }
         });
     });
-    
+
     // Hide context menu on click
     $(document).click(function() {
         $('#contextMenu').hide();
@@ -702,7 +731,7 @@ function changeWeek(days) {
 
 function loadWeekData() {
     showLoading();
-    
+
     $.ajax({
         url: '{{ route("calendar.week-data") }}',
         method: 'GET',
@@ -730,7 +759,7 @@ function updateWeekDisplay(startDate, endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const options = { month: 'short', day: 'numeric' };
-    
+
     $('#currentWeek').text(
         start.toLocaleDateString('en-US', options) + ' - ' + 
         end.toLocaleDateString('en-US', { ...options, year: 'numeric' })
@@ -792,16 +821,16 @@ function hideLoading() {
 function showAlert(type, message) {
     const alertClass = type === 'success' ? 'alert-success' : 
                      type === 'error' ? 'alert-danger' : 'alert-info';
-    
+
     const alert = `
         <div class="alert ${alertClass} alert-dismissible fade show" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
             ${message}
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
     `;
-    
+
     $('body').append(alert);
-    
+
     setTimeout(function() {
         $('.alert').fadeOut();
     }, 3000);

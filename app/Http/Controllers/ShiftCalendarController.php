@@ -62,6 +62,21 @@ class ShiftCalendarController extends Controller
         $newDate = Carbon::parse($request->new_date);
         $employee = Employee::findOrFail($request->employee_id);
 
+        // Check if this would create a duplicate schedule
+        $existingSchedule = Schedule::where('employee_id', $request->employee_id)
+            ->where('shift_id', $schedule->shift_id)
+            ->where('start_date', '<=', $newDate->format('Y-m-d'))
+            ->where('end_date', '>=', $newDate->format('Y-m-d'))
+            ->where('id', '!=', $schedule->id)
+            ->first();
+
+        if ($existingSchedule) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee already has a schedule for this date and shift'
+            ], 422);
+        }
+
         // Calculate the duration of the original schedule (inclusive days)
         $originalStartDate = Carbon::parse($schedule->start_date);
         $originalEndDate = Carbon::parse($schedule->end_date);
@@ -77,11 +92,13 @@ class ShiftCalendarController extends Controller
 
         // Debug logging to help identify drag-drop issues
         \Log::info('Schedule Update:', [
+            'schedule_id' => $schedule->id,
             'original_start' => $schedule->start_date,
             'original_end' => $schedule->end_date,
             'original_duration' => $originalDuration,
             'new_date' => $newDate->format('Y-m-d'),
             'calculated_end_date' => $endDate->format('Y-m-d'),
+            'employee_change' => $schedule->employee_id !== (int)$request->employee_id,
             'request_data' => $request->all()
         ]);
 
@@ -97,6 +114,7 @@ class ShiftCalendarController extends Controller
             'message' => 'Schedule updated successfully',
             'schedule' => $schedule->load(['employee', 'shift.timeIntervals']),
             'debug' => [
+                'schedule_id' => $schedule->id,
                 'original_duration' => $originalDuration,
                 'new_start' => $newDate->format('Y-m-d'),
                 'new_end' => $endDate->format('Y-m-d')
