@@ -133,7 +133,7 @@ $(document).ready(function() {
 });
 
 function deleteSchedule(id) {
-    $('#deleteForm').attr('action', '/schedules/' + id);
+    $('#deleteForm').attr('action', '{{ url("schedules") }}/' + id);
     $('#deleteModal').modal('show');
 }
 </script>

@@ -94,8 +94,9 @@ class ScheduleController extends Controller
                         ->with('success', 'Schedule updated successfully!');
     }
 
-    public function destroy(Schedule $schedule)
+    public function destroy($id)
     {
+        $schedule = Schedule::findOrFail($id);
         $schedule->delete();
 
         return redirect()->route('schedules.index')

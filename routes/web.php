@@ -47,6 +47,7 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::get('schedules/bulk/assign', '\App\Http\Controllers\ScheduleController@bulk')->name('schedules.bulk');
     Route::post('schedules/bulk/assign', '\App\Http\Controllers\ScheduleController@bulkStore')->name('schedules.bulk.store');
     Route::get('employees/{employee}/schedules', '\App\Http\Controllers\ScheduleController@employeeSchedules')->name('employees.schedules');
+    Route::delete('schedules/{schedule}', '\App\Http\Controllers\ScheduleController@destroy')->name('schedules.destroy');
 
     // NFC Attendance System Routes
     Route::prefix('nfc')->name('nfc.')->group(function () {
