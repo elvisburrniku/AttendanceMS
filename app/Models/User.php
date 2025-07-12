@@ -60,6 +60,17 @@ class User extends Authenticatable
 
     public function hasRole($role)
     {
+        // Check if user has direct role column value
+        if ($this->role && $this->role === $role) {
+            return true;
+        }
+        
+        // Also check for super_admin role
+        if ($this->role === 'super_admin' && $role === 'admin') {
+            return true;
+        }
+        
+        // Check roles table relationship
         $userRole = $this->roles()->first();
         if ($userRole && $userRole->slug === $role) {
             return true;
