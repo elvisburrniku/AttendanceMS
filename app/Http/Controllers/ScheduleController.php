@@ -106,6 +106,7 @@ class ScheduleController extends Controller
     public function bulk()
     {
         $employees = Employee::orderBy('first_name')->get();
+        dd($employees);
         $shifts = Shift::orderBy('alias')->get();
 
         return view('admin.schedules.bulk', compact('employees', 'shifts'));
