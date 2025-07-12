@@ -1,0 +1,1941 @@
+<?php
+
+namespace App\Http\Controllers\Attendance;
+
+use App\Schedule;
+use App\Employee;
+use App\Http\Controllers\Controller;
+use App\Shift;
+use App\TimeInterval;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Carbon\CarbonTimeZone;
+
+class ShiftCalendarController extends Controller
+{
+    public function index(Request $request)
+    {
+        $timezone = config('app.timezone');
+        $currentDate = $request->get('date', now($timezone)->format('Y-m-d'));
+        $startDate = Carbon::parse($currentDate, $timezone)->startOfWeek();
+        $endDate = Carbon::parse($currentDate, $timezone)->endOfWeek();
+
+        // Get all employees
+        $employees = Employee::orderBy('first_name')->get();
+
+        // Get all shifts with time intervals
+        $shifts = Shift::with('timeIntervals')->orderBy('alias')->get();
+
+        // Get schedules for the week
+        $schedules = Schedule::with(['employee', 'shift.timeIntervals'])
+            ->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->orWhere(function($query) use ($startDate, $endDate) {
+                $query->where('start_date', '<=', $startDate->format('Y-m-d'))
+                      ->where('end_date', '>=', $endDate->format('Y-m-d'));
+            })
+            ->get();
+
+        // Build calendar data
+        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone);
+
+        return view('attendance.admin.calendar.index', compact(
+            'employees', 
+            'shifts', 
+            'schedules', 
+            'calendarData', 
+            'startDate', 
+            'endDate',
+            'currentDate'
+        ));
+    }
+
+    public function updateSchedule(Request $request)
+    {
+        $request->validate([
+            'schedule_id' => 'required|exists:att_attschedule,id',
+            'new_date' => 'required|date',
+            'employee_id' => 'required|exists:personnel_employee,id'
+        ]);
+
+        $schedule = Schedule::findOrFail($request->schedule_id);
+        $newDate = Carbon::parse($request->new_date);
+        $employee = Employee::findOrFail($request->employee_id);
+
+        // Check if this would create a duplicate schedule
+        $existingSchedule = Schedule::where('employee_id', $request->employee_id)
+            ->where('shift_id', $schedule->shift_id)
+            ->where('start_date', '<=', $newDate->format('Y-m-d'))
+            ->where('end_date', '>=', $newDate->format('Y-m-d'))
+            ->where('id', '!=', $schedule->id)
+            ->first();
+
+        if ($existingSchedule) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Employee already has a schedule for this date and shift'
+            ], 422);
+        }
+
+        // Calculate the duration of the original schedule (inclusive days)
+        $originalStartDate = Carbon::parse($schedule->start_date);
+        $originalEndDate = Carbon::parse($schedule->end_date);
+
+        // For single-day schedules (start_date = end_date), duration is 0 days difference
+        // For multi-day schedules, we need the actual number of days between start and end
+        $originalDuration = $originalStartDate->diffInDays($originalEndDate);
+
+        // Update the schedule maintaining the same duration
+        // If it was a single day schedule (duration = 0), keep it single day
+        // If it was multi-day, maintain the same duration
+        $endDate = $originalDuration === 0 ? $newDate->copy() : $newDate->copy()->addDays($originalDuration);
+
+        // Debug logging to help identify drag-drop issues
+        \Log::info('Schedule Update:', [
+            'schedule_id' => $schedule->id,
+            'original_start' => $schedule->start_date,
+            'original_end' => $schedule->end_date,
+            'original_duration' => $originalDuration,
+            'new_date' => $newDate->format('Y-m-d'),
+            'calculated_end_date' => $endDate->format('Y-m-d'),
+            'employee_change' => $schedule->employee_id !== (int)$request->employee_id,
+            'request_data' => $request->all()
+        ]);
+
+        $schedule->update([
+            'employee_id' => $request->employee_id,
+            'start_date' => $newDate->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
+            'slug' => Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $schedule->shift->alias . '-' . $newDate->format('Y-m-d'))
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule updated successfully',
+            'schedule' => $schedule->load(['employee', 'shift.timeIntervals']),
+            'debug' => [
+                'schedule_id' => $schedule->id,
+                'original_duration' => $originalDuration,
+                'new_start' => $newDate->format('Y-m-d'),
+                'new_end' => $endDate->format('Y-m-d')
+            ]
+        ]);
+    }
+
+    public function createSchedule(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:personnel_employee,id',
+            'shift_id' => 'required|exists:att_attshift,id',
+            'date' => 'required|date',
+            'duration' => 'integer|min:1|max:365'
+        ]);
+
+        $employee = Employee::findOrFail($request->employee_id);
+        $shift = Shift::findOrFail($request->shift_id);
+        $startDate = Carbon::parse($request->date);
+
+        // Calculate end date correctly (duration - 1 days for single day schedules)
+        $duration = $request->duration ?? 1;
+        $endDate = $duration === 1 ? $startDate->copy() : $startDate->copy()->addDays($duration - 1);
+
+        $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $startDate->format('Y-m-d'));
+
+        $schedule = Schedule::create([
+            'slug' => $slug,
+            'employee_id' => $request->employee_id,
+            'shift_id' => $request->shift_id,
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule created successfully',
+            'schedule' => $schedule->load(['employee', 'shift.timeIntervals'])
+        ]);
+    }
+
+    public function deleteSchedule(Request $request)
+    {
+        $request->validate([
+            'schedule_id' => 'required|exists:att_attschedule,id'
+        ]);
+
+        $schedule = Schedule::findOrFail($request->schedule_id);
+        $schedule->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Schedule deleted successfully'
+        ]);
+    }
+
+    public function getWeekData(Request $request)
+    {
+        $timezone = config('app.timezone');
+        $currentDate = $request->get('date', now($timezone)->format('Y-m-d'));
+        $startDate = Carbon::parse($currentDate, $timezone)->startOfWeek();
+        $endDate = Carbon::parse($currentDate, $timezone)->endOfWeek();
+
+        $employees = Employee::orderBy('first_name')->get();
+
+        $schedules = Schedule::with(['employee', 'shift.timeIntervals'])
+            ->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->orWhere(function($query) use ($startDate, $endDate) {
+                $query->where('start_date', '<=', $startDate->format('Y-m-d'))
+                      ->where('end_date', '>=', $endDate->format('Y-m-d'));
+            })
+            ->get();
+
+        $calendarData = $this->buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone);
+
+        return response()->json([
+            'success' => true,
+            'calendarData' => $calendarData,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d')
+        ]);
+    }
+
+    private function buildCalendarData($employees, $schedules, $startDate, $endDate, $timezone)
+    {
+        $calendarData = [];
+        $weekDays = [];
+
+        // Build week days array
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $weekDays[] = [
+                'date' => $date->format('Y-m-d'),
+                'day' => $date->format('D'),
+                'dayNumber' => $date->format('j'),
+                'isToday' => $date->isToday(),
+                'isWeekend' => $date->isWeekend()
+            ];
+        }
+
+        // Build employee schedule data
+        foreach ($employees as $employee) {
+            $employeeSchedules = [];
+
+            foreach ($weekDays as $day) {
+                $employeeSchedules[$day['date']] = $schedules->filter(function ($schedule) use ($employee, $day) {
+                    $startDate = \Carbon\Carbon::parse($schedule->start_date)->toDateString();
+                    $endDate = \Carbon\Carbon::parse($schedule->end_date)->toDateString();
+                    $targetDate = $day['date'];
+            
+                    return $schedule->employee_id == $employee->id &&
+                           $startDate <= $targetDate &&
+                           $endDate >= $targetDate;
+                })->map(function ($schedule) {
+                    $timeIntervals = $schedule->shift && $schedule->shift->timeIntervals ? 
+                        $schedule->shift->timeIntervals->map(function ($interval) {
+                            return [
+                                'alias' => $interval->alias,
+                                'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+                                'duration' => $interval->duration_in_hours ?? round($interval->duration / 60, 2)
+                            ];
+                        })->toArray() : [];
+            
+                    return [
+                        'id' => $schedule->id,
+                        'slug' => $schedule->slug,
+                        'shift' => [
+                            'id' => $schedule->shift->id,
+                            'alias' => $schedule->shift->alias,
+                            'color' => $this->getShiftColor($schedule->shift->id),
+                            'time_intervals' => $timeIntervals
+                        ],
+                        'start_date' => $schedule->start_date,
+                        'end_date' => $schedule->end_date
+                    ];
+                })->values()->toArray();
+            }
+
+            $calendarData[] = [
+                'employee' => [
+                    'id' => $employee->id,
+                    'name' => $employee->first_name . ' ' . $employee->last_name,
+                    'emp_code' => $employee->emp_code ?? 'N/A'
+                ],
+                'schedules' => $employeeSchedules
+            ];
+        }
+
+        return [
+            'weekDays' => $weekDays,
+            'employees' => $calendarData
+        ];
+    }
+
+    private function getShiftColor($shiftId)
+    {
+        $colors = [
+            '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+            '#9b59b6', '#1abc9c', '#34495e', '#e67e22'
+        ];
+        return $colors[$shiftId % count($colors)];
+    }
+}
+
+Based on this logic fix this:
+
+    private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+    {
+        return DB::table('att_shiftdetail')
+            ->join('att_timeinterval', 'att_shiftdetail.time_interval_id', '=', 'att_timeinterval.id')
+            ->where('att_shiftdetail.shift_id', $shiftId)
+            ->where('att_shiftdetail.day_of_week', $dayOfWeek)
+            ->select('att_timeinterval.*', 'att_shiftdetail.work_type', 'att_shiftdetail.day_of_week')
+            ->get();
+    }
+
+ChatGPT said:
+To "fix" the function getShiftTimeIntervals, we need to ensure:
+
+It respects Eloquent conventions, consistent with how the rest of your code uses models.
+
+It uses models instead of raw DB::table when possible (for readability and maintainability).
+
+It safely handles nulls or missing relations.
+
+It returns structured data similar to how your other functions handle shift time intervals.
+
+Assuming:
+
+You have Eloquent models: ShiftDetail (for att_shiftdetail) and TimeInterval (for att_timeinterval)
+
+The relationship is: ShiftDetail belongs to TimeInterval
+
+✅ Suggested fixed version using Eloquent:
+php
+Copy
+Edit
+use App\ShiftDetail; // assuming you have this model
+use App\TimeInterval;
+
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    $shiftDetails = \App\ShiftDetail::with('timeInterval')
+        ->where('shift_id', $shiftId)
+        ->where('day_of_week', $dayOfWeek)
+        ->get();
+
+    return $shiftDetails->map(function ($detail) {
+        return [
+            'id' => $detail->timeInterval->id ?? null,
+            'alias' => $detail->timeInterval->alias ?? 'N/A',
+            'in_time' => $detail->timeInterval->formatted_in_time ?? $detail->timeInterval->in_time,
+            'duration' => $detail->timeInterval->duration_in_hours ?? round($detail->timeInterval->duration / 60, 2),
+            'work_type' => $detail->work_type,
+            'day_of_week' => $detail->day_of_week
+        ];
+    });
+}
+🔁 If you must use DB::table (raw query approach), here's a corrected and cleaned version:
+php
+Copy
+Edit
+use Illuminate\Support\Facades\DB;
+
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    return DB::table('att_shiftdetail')
+        ->join('att_timeinterval', 'att_shiftdetail.time_interval_id', '=', 'att_timeinterval.id')
+        ->where('att_shiftdetail.shift_id', $shiftId)
+        ->where('att_shiftdetail.day_of_week', $dayOfWeek)
+        ->select(
+            'att_timeinterval.id',
+            'att_timeinterval.alias',
+            'att_timeinterval.in_time',
+            'att_timeinterval.duration',
+            'att_shiftdetail.work_type',
+            'att_shiftdetail.day_of_week'
+        )
+        ->get()
+        ->map(function ($row) {
+            return [
+                'id' => $row->id,
+                'alias' => $row->alias,
+                'in_time' => $row->in_time,
+                'duration' => round($row->duration / 60, 2),
+                'work_type' => $
+Error in message stream
+
+
+Retry
+
+
+You said:
+    /**
+     * Get shift time intervals for a specific day of week
+     */
+    private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+    {
+        $shiftDetails = \App\Schedule::with('shift.timeIntervals')->where('shift_id', $shiftId)
+        ->get();
+
+        dd($shiftDetails);
+
+        return $shiftDetails->map(function ($detail) {
+            return [
+                'id' => $detail->timeInterval->id ?? null,
+                'alias' => $detail->timeInterval->alias ?? 'N/A',
+                'in_time' => $detail->timeInterval->formatted_in_time ?? $detail->timeInterval->in_time,
+                'duration' => $detail->timeInterval->duration_in_hours ?? round($detail->timeInterval->duration / 60, 2),
+                'work_type' => $detail->work_type,
+                'day_of_week' => $detail->day_of_week
+            ];
+        });
+    }
+
+^ Illuminate\Database\Eloquent\Collection {#13048
+  #items: array:1 [
+    0 => App\Schedule {#13049
+      #connection: "tenant"
+      #table: "att_attschedule"
+      #primaryKey: "id"
+      #keyType: "int"
+      +incrementing: true
+      #with: []
+      #withCount: []
+      +preventsLazyLoading: false
+      #perPage: 15
+      +exists: true
+      +wasRecentlyCreated: false
+      #escapeWhenCastingToString: false
+      #attributes: array:8 [
+        "id" => 1
+        "slug" => "shaip-gerguri-day-shift-2025-07-12"
+        "start_date" => "2025-07-12"
+        "end_date" => "2025-07-31"
+        "employee_id" => 1
+        "shift_id" => 1
+        "created_at" => "2025-07-12 16:37:22"
+        "updated_at" => "2025-07-12 17:35:52"
+      ]
+      #original: array:8 [
+        "id" => 1
+        "slug" => "shaip-gerguri-day-shift-2025-07-12"
+        "start_date" => "2025-07-12"
+        "end_date" => "2025-07-31"
+        "employee_id" => 1
+        "shift_id" => 1
+        "created_at" => "2025-07-12 16:37:22"
+        "updated_at" => "2025-07-12 17:35:52"
+      ]
+      #changes: []
+      #casts: array:2 [
+        "start_date" => "date"
+        "end_date" => "date"
+      ]
+      #classCastCache: []
+      #attributeCastCache: []
+      #dates: []
+      #dateFormat: null
+      #appends: []
+      #dispatchesEvents: []
+      #observables: []
+      #relations: array:1 [
+        "shift" => App\Shift {#13055
+          #connection: "tenant"
+          #table: "att_attshift"
+          #primaryKey: "id"
+          #keyType: "int"
+          +incrementing: true
+          #with: []
+          #withCount: []
+          +preventsLazyLoading: false
+          #perPage: 15
+          +exists: true
+          +wasRecentlyCreated: false
+          #escapeWhenCastingToString: false
+          #attributes: array:15 [
+            "id" => 1
+            "alias" => "Day Shift"
+            "cycle_unit" => 7
+            "shift_cycle" => 1
+            "work_weekend" => 0
+            "weekend_type" => 0
+            "work_day_off" => 0
+            "day_off_type" => 0
+            "auto_shift" => 0
+            "enable_ot_rule" => 0
+            "frequency" => 1
+            "ot_rule" => null
+            "company_id" => 1
+            "created_at" => "2025-07-12 16:35:35"
+            "updated_at" => "2025-07-12 16:35:35"
+          ]
+          #original: array:15 [
+            "id" => 1
+            "alias" => "Day Shift"
+            "cycle_unit" => 7
+            "shift_cycle" => 1
+            "work_weekend" => 0
+            "weekend_type" => 0
+            "work_day_off" => 0
+            "day_off_type" => 0
+            "auto_shift" => 0
+            "enable_ot_rule" => 0
+            "frequency" => 1
+            "ot_rule" => null
+            "company_id" => 1
+            "created_at" => "2025-07-12 16:35:35"
+            "updated_at" => "2025-07-12 16:35:35"
+          ]
+          #changes: []
+          #casts: array:3 [
+            "work_weekend" => "boolean"
+            "work_day_off" => "boolean"
+            "enable_ot_rule" => "boolean"
+          ]
+          #classCastCache: []
+          #attributeCastCache: []
+          #dates: []
+          #dateFormat: null
+          #appends: []
+          #dispatchesEvents: []
+          #observables: []
+          #relations: array:1 [
+            "timeIntervals" => Illuminate\Database\Eloquent\Collection {#13039
+              #items: array:1 [
+                0 => App\TimeInterval {#13064
+                  #connection: "tenant"
+                  #table: "att_timeinterval"
+                  #primaryKey: "id"
+                  #keyType: "int"
+                  +incrementing: true
+                  #with: []
+                  #withCount: []
+                  +preventsLazyLoading: false
+                  #perPage: 15
+                  +exists: true
+                  +wasRecentlyCreated: false
+                  #escapeWhenCastingToString: false
+                  #attributes: array:43 [
+                    "id" => 1
+                    "alias" => "Day Shift"
+                    "use_mode" => 1
+                    "in_time" => "16:00:00"
+                    "in_ahead_margin" => 15
+                    "in_above_margin" => 10
+                    "out_ahead_margin" => 10
+                    "out_above_margin" => 30
+                    "duration" => 480
+                    "in_required" => 1
+                    "out_required" => 1
+                    "allow_late" => 15
+                    "allow_leave_early" => 10
+                    "work_day" => 1.0
+                    "early_in" => 0
+                    "min_early_in" => 0
+                    "late_out" => 0
+                    "min_late_out" => 0
+                    "overtime_lv" => 0
+                    "overtime_lv1" => 0
+                    "overtime_lv2" => 0
+                    "overtime_lv3" => 0
+                    "multiple_punch" => 0
+                    "available_interval_type" => 0
+                    "available_interval" => 0
+                    "work_time_duration" => 480
+                    "func_key" => 0
+                    "work_type" => 0
+                    "day_change" => "00:00:00"
+                    "enable_early_in" => 0
+                    "enable_late_out" => 0
+                    "enable_overtime" => 0
+                    "ot_rule" => null
+                    "color_setting" => "#3498db"
+                    "enable_max_ot_limit" => 0
+                    "max_ot_limit" => 0
+                    "count_early_in_interval" => 0
+                    "count_late_out_interval" => 0
+                    "ot_pay_code_id" => null
+                    "overtime_policy" => 0
+                    "company_id" => 1
+                    "created_at" => "2025-07-12 16:23:02"
+                    "updated_at" => "2025-07-12 17:37:48"
+                  ]
+                  #original: array:49 [
+                    "id" => 1
+                    "alias" => "Day Shift"
+                    "use_mode" => 1
+                    "in_time" => "16:00:00"
+                    "in_ahead_margin" => 15
+                    "in_above_margin" => 10
+                    "out_ahead_margin" => 10
+                    "out_above_margin" => 30
+                    "duration" => 480
+                    "in_required" => 1
+                    "out_required" => 1
+                    "allow_late" => 15
+                    "allow_leave_early" => 10
+                    "work_day" => 1.0
+                    "early_in" => 0
+                    "min_early_in" => 0
+                    "late_out" => 0
+                    "min_late_out" => 0
+                    "overtime_lv" => 0
+                    "overtime_lv1" => 0
+                    "overtime_lv2" => 0
+                    "overtime_lv3" => 0
+                    "multiple_punch" => 0
+                    "available_interval_type" => 0
+                    "available_interval" => 0
+                    "work_time_duration" => 480
+                    "func_key" => 0
+                    "work_type" => 0
+                    "day_change" => "00:00:00"
+                    "enable_early_in" => 0
+                    "enable_late_out" => 0
+                    "enable_overtime" => 0
+                    "ot_rule" => null
+                    "color_setting" => "#3498db"
+                    "enable_max_ot_limit" => 0
+                    "max_ot_limit" => 0
+                    "count_early_in_interval" => 0
+                    "count_late_out_interval" => 0
+                    "ot_pay_code_id" => null
+                    "overtime_policy" => 0
+                    "company_id" => 1
+                    "created_at" => "2025-07-12 16:23:02"
+                    "updated_at" => "2025-07-12 17:37:48"
+                    "pivot_shift_id" => 1
+                    "pivot_time_interval_id" => 1
+                    "pivot_work_type" => 0
+                    "pivot_day_of_week" => 0
+                    "pivot_created_at" => "2025-07-12 16:35:35"
+                    "pivot_updated_at" => "2025-07-12 16:35:35"
+                  ]
+                  #changes: []
+                  #casts: array:8 [
+                    "in_time" => "datetime:H:i"
+                    "day_change" => "datetime:H:i"
+                    "enable_early_in" => "boolean"
+                    "enable_late_out" => "boolean"
+                    "enable_overtime" => "boolean"
+                    "enable_max_ot_limit" => "boolean"
+                    "count_early_in_interval" => "boolean"
+                    "count_late_out_interval" => "boolean"
+                  ]
+                  #classCastCache: []
+                  #attributeCastCache: []
+                  #dates: []
+                  #dateFormat: null
+                  #appends: []
+                  #dispatchesEvents: []
+                  #observables: []
+                  #relations: array:1 [
+                    "pivot" => Illuminate\Database\Eloquent\Relations\Pivot {#13065
+                      #connection: null
+                      #table: "att_shiftdetail"
+                      #primaryKey: "id"
+                      #keyType: "int"
+                      +incrementing: false
+                      #with: []
+                      #withCount: []
+                      +preventsLazyLoading: false
+                      #perPage: 15
+                      +exists: true
+                      +wasRecentlyCreated: false
+                      #escapeWhenCastingToString: false
+                      #attributes: array:6 [
+                        "shift_id" => 1
+                        "time_interval_id" => 1
+                        "work_type" => 0
+                        "day_of_week" => 0
+                        "created_at" => "2025-07-12 16:35:35"
+                        "updated_at" => "2025-07-12 16:35:35"
+                      ]
+                      #original: array:6 [
+                        "shift_id" => 1
+                        "time_interval_id" => 1
+                        "work_type" => 0
+                        "day_of_week" => 0
+                        "created_at" => "2025-07-12 16:35:35"
+                        "updated_at" => "2025-07-12 16:35:35"
+                      ]
+                      #changes: []
+                      #casts: []
+                      #classCastCache: []
+                      #attributeCastCache: []
+                      #dates: []
+                      #dateFormat: null
+                      #appends: []
+                      #dispatchesEvents: []
+                      #observables: []
+                      #relations: []
+                      #touches: []
+                      +timestamps: true
+                      #hidden: []
+                      #visible: []
+                      #fillable: []
+                      #guarded: []
+                      +pivotParent: App\Shift {#13045
+                        #connection: null
+                        #table: "att_attshift"
+                        #primaryKey: "id"
+                        #keyType: "int"
+                        +incrementing: true
+                        #with: []
+                        #withCount: []
+                        +preventsLazyLoading: false
+                        #perPage: 15
+                        +exists: false
+                        +wasRecentlyCreated: false
+                        #escapeWhenCastingToString: false
+                        #attributes: []
+                        #original: []
+                        #changes: []
+                        #casts: array:3 [
+                          "work_weekend" => "boolean"
+                          "work_day_off" => "boolean"
+                          "enable_ot_rule" => "boolean"
+                        ]
+                        #classCastCache: []
+                        #attributeCastCache: []
+                        #dates: []
+                        #dateFormat: null
+                        #appends: []
+                        #dispatchesEvents: []
+                        #observables: []
+                        #relations: []
+                        #touches: []
+                        +timestamps: true
+                        #hidden: []
+                        #visible: []
+                        #fillable: array:12 [
+                          0 => "alias"
+                          1 => "cycle_unit"
+                          2 => "shift_cycle"
+                          3 => "work_weekend"
+                          4 => "weekend_type"
+                          5 => "work_day_off"
+                          6 => "day_off_type"
+                          7 => "auto_shift"
+                          8 => "enable_ot_rule"
+                          9 => "frequency"
+                          10 => "ot_rule"
+                          11 => "company_id"
+                        ]
+                        #guarded: array:1 [
+                          0 => "*"
+                        ]
+                      }
+                      #foreignKey: "shift_id"
+                      #relatedKey: "time_interval_id"
+                    }
+                  ]
+                  #touches: []
+                  +timestamps: true
+                  #hidden: []
+                  #visible: []
+                  #fillable: array:40 [
+                    0 => "alias"
+                    1 => "use_mode"
+                    2 => "in_time"
+                    3 => "in_ahead_margin"
+                    4 => "in_above_margin"
+                    5 => "out_ahead_margin"
+                    6 => "out_above_margin"
+                    7 => "duration"
+                    8 => "in_required"
+                    9 => "out_required"
+                    10 => "allow_late"
+                    11 => "allow_leave_early"
+                    12 => "work_day"
+                    13 => "early_in"
+                    14 => "min_early_in"
+                    15 => "late_out"
+                    16 => "min_late_out"
+                    17 => "overtime_lv"
+                    18 => "overtime_lv1"
+                    19 => "overtime_lv2"
+                    20 => "overtime_lv3"
+                    21 => "multiple_punch"
+                    22 => "available_interval_type"
+                    23 => "available_interval"
+                    24 => "work_time_duration"
+                    25 => "func_key"
+                    26 => "work_type"
+                    27 => "day_change"
+                    28 => "enable_early_in"
+                    29 => "enable_late_out"
+                    30 => "enable_overtime"
+                    31 => "ot_rule"
+                    32 => "color_setting"
+                    33 => "enable_max_ot_limit"
+                    34 => "max_ot_limit"
+                    35 => "count_early_in_interval"
+                    36 => "count_late_out_interval"
+                    37 => "ot_pay_code_id"
+                    38 => "overtime_policy"
+                    39 => "company_id"
+                  ]
+                  #guarded: array:1 [
+                    0 => "*"
+                  ]
+                }
+              ]
+              #escapeWhenCastingToString: false
+            }
+          ]
+          #touches: []
+          +timestamps: true
+          #hidden: []
+          #visible: []
+          #fillable: array:12 [
+            0 => "alias"
+            1 => "cycle_unit"
+            2 => "shift_cycle"
+            3 => "work_weekend"
+            4 => "weekend_type"
+            5 => "work_day_off"
+            6 => "day_off_type"
+            7 => "auto_shift"
+            8 => "enable_ot_rule"
+            9 => "frequency"
+            10 => "ot_rule"
+            11 => "company_id"
+          ]
+          #guarded: array:1 [
+            0 => "*"
+          ]
+        }
+      ]
+      #touches: []
+      +timestamps: true
+      #hidden: []
+      #visible: []
+      #fillable: array:5 [
+        0 => "slug"
+        1 => "start_date"
+        2 => "end_date"
+        3 => "employee_id"
+        4 => "shift_id"
+      ]
+      #guarded: array:1 [
+        0 => "*"
+      ]
+    }
+  ]
+  #escapeWhenCastingToString: false
+}
+
+Check the current time
+
+ChatGPT said:
+Thanks for sharing that detailed debug output.
+
+🔍 Here's what you're seeing:
+Your current implementation:
+
+php
+Copy
+Edit
+$shiftDetails = \App\Schedule::with('shift.timeIntervals')->where('shift_id', $shiftId)->get();
+...loads Schedule records, which contain a related Shift, and that Shift has related timeIntervals.
+
+This gives you Schedule → Shift → timeIntervals.
+
+However, you're trying to get time intervals for a given shift ID and specific day of the week — and that filtering is not happening. You're pulling all schedules, which is both redundant and inefficient, and it doesn’t let you filter by day_of_week.
+
+✅ Solution
+You already have the correct data via pivot_day_of_week on the timeIntervals relationship.
+
+So, the correct and optimized way is to query the Shift → timeIntervals pivot with filtering on pivot.day_of_week.
+
+Here’s how you can fix and write your method properly:
+
+✅ Fixed getShiftTimeIntervals using Eloquent (recommended):
+php
+Copy
+Edit
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    $shift = \App\Shift::with(['timeIntervals' => function ($query) use ($dayOfWeek) {
+        $query->wherePivot('day_of_week', $dayOfWeek);
+    }])->find($shiftId);
+
+    if (!$shift) {
+        return collect(); // or return []; based on your use case
+    }
+
+    return $shift->timeIntervals->map(function ($interval) {
+        return [
+            'id' => $interval->id,
+            'alias' => $interval->alias,
+            'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+            'duration' => $interval->duration_in_hours ?? round($interval->duration / 60, 2),
+            'work_type' => $interval->pivot->work_type ?? null,
+            'day_of_week' => $interval->pivot->day_of_week ?? null,
+        ];
+    });
+}
+🔧 Requirements:
+Make sure your Shift model defines the correct belongsToMany with the pivot:
+
+php
+Copy
+Edit
+// Shift.php
+public function timeIntervals()
+{
+    return $this->belongsToMany(TimeInterval::class, 'att_shiftdetail', 'shift_id', 'time_interval_id')
+                ->withPivot('day_of_week', 'work_type')
+                ->withTimestamps();
+}
+⏰ Current Server Time (Laravel style):
+If you want to check the current time, here’s how you can do it:
+
+php
+Copy
+Edit
+echo now()->toDateTimeString(); // default timezone from config/app.php
+Or with timezone:
+
+php
+Copy
+Edit
+echo now('UTC')->toDateTimeString(); // or use your desired timezone
+Let me know if you want this returned as part of your getWeekData() or another endpoint.
+
+
+
+You said:
+but this always returns now data even if i put 8 to day of the week:
+    $shift = \App\Shift::with(['timeIntervals' => function ($query) use ($dayOfWeek) {
+        $query->wherePivot('day_of_week', $dayOfWeek);
+    }])->find($shiftId);
+
+ChatGPT said:
+Great observation — you're right to be skeptical.
+
+❗ Problem
+Even when you pass an invalid day (like 8), the query still returns results. Why?
+
+Because Eloquent eager loads all related timeIntervals, and the wherePivot clause in with() only filters the pivot data that gets attached, not the related models themselves.
+
+So, with(['timeIntervals' => ...]) does not apply a real SQL WHERE on the relationship — it's just a filter on what Laravel attaches to the model after loading.
+
+✅ Correct Approach (Using whereHas to actually filter)
+If you want to strictly filter by day of week at the SQL level, you must use a separate query like this:
+
+php
+Copy
+Edit
+use App\TimeInterval;
+
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    return TimeInterval::whereHas('shifts', function ($query) use ($shiftId, $dayOfWeek) {
+        $query->where('shift_id', $shiftId)
+              ->where('day_of_week', $dayOfWeek);
+    })
+    ->with(['shifts' => function ($query) use ($shiftId, $dayOfWeek) {
+        $query->where('shift_id', $shiftId)
+              ->wherePivot('day_of_week', $dayOfWeek)
+              ->withPivot('work_type', 'day_of_week');
+    }])
+    ->get()
+    ->map(function ($interval) {
+        $pivot = $interval->shifts->first()?->pivot;
+
+        return [
+            'id' => $interval->id,
+            'alias' => $interval->alias,
+            'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+            'duration' => $interval->duration_in_hours ?? round($interval->duration / 60, 2),
+            'work_type' => $pivot->work_type ?? null,
+            'day_of_week' => $pivot->day_of_week ?? null
+        ];
+    });
+}
+🧠 Recap: Why with() Doesn’t Work for Filtering
+Method	Filters SQL?	Filters results?	Use case
+with()	❌ No	✅ After load	Load all, filter after
+whereHas()	✅ Yes	✅ Before load	Load only those matching pivot filters
+
+Let me know if you want to refactor this to raw query builder or join-based logic instead.
+
+
+
+You said:
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Shift extends Model
+{
+    use HasFactory;
+
+    protected $table = 'att_attshift';
+
+    protected $fillable = [
+        'alias',
+        'cycle_unit',
+        'shift_cycle',
+        'work_weekend',
+        'weekend_type',
+        'work_day_off',
+        'day_off_type',
+        'auto_shift',
+        'enable_ot_rule',
+        'frequency',
+        'ot_rule',
+        'company_id'
+    ];
+
+    protected $casts = [
+        'work_weekend' => 'boolean',
+        'work_day_off' => 'boolean',
+        'enable_ot_rule' => 'boolean'
+    ];
+
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class, 'shift_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'shift_id');
+    }
+
+    public function employees()
+    {
+        return $this->hasManyThrough(Employee::class, Schedule::class, 'shift_id', 'id', 'id', 'employee_id');
+    }
+
+    public function timeIntervals()
+    {
+        return $this->belongsToMany(TimeInterval::class, 'att_shiftdetail', 'shift_id', 'time_interval_id')
+                    ->withPivot('work_type', 'day_of_week')
+                    ->withTimestamps();
+    }
+
+    public function getWorkingHoursAttribute()
+    {
+        return $this->timeIntervals->sum(function($interval) {
+            return $interval->duration / 60; // Convert minutes to hours
+        });
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereHas('schedules', function($q) {
+            $q->where('end_date', '>=', now()->format('Y-m-d'));
+        });
+    }
+}
+
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class TimeInterval extends Model
+{
+    use HasFactory;
+
+    protected $table = 'att_timeinterval';
+
+    protected $fillable = [
+        'alias',
+        'use_mode',
+        'in_time',
+        'in_ahead_margin',
+        'in_above_margin',
+        'out_ahead_margin',
+        'out_above_margin',
+        'duration',
+        'in_required',
+        'out_required',
+        'allow_late',
+        'allow_leave_early',
+        'work_day',
+        'early_in',
+        'min_early_in',
+        'late_out',
+        'min_late_out',
+        'overtime_lv',
+        'overtime_lv1',
+        'overtime_lv2',
+        'overtime_lv3',
+        'multiple_punch',
+        'available_interval_type',
+        'available_interval',
+        'work_time_duration',
+        'func_key',
+        'work_type',
+        'day_change',
+        'enable_early_in',
+        'enable_late_out',
+        'enable_overtime',
+        'ot_rule',
+        'color_setting',
+        'enable_max_ot_limit',
+        'max_ot_limit',
+        'count_early_in_interval',
+        'count_late_out_interval',
+        'ot_pay_code_id',
+        'overtime_policy',
+        'company_id'
+    ];
+
+    protected $casts = [
+        'in_time' => 'datetime:H:i',
+        'day_change' => 'datetime:H:i',
+        'enable_early_in' => 'boolean',
+        'enable_late_out' => 'boolean',
+        'enable_overtime' => 'boolean',
+        'enable_max_ot_limit' => 'boolean',
+        'count_early_in_interval' => 'boolean',
+        'count_late_out_interval' => 'boolean'
+    ];
+
+    public function timetables()
+    {
+        return $this->hasMany(Timetable::class, 'time_interval_id');
+    }
+
+    public function shifts()
+    {
+        return $this->belongsToMany(Shift::class, 'att_shiftdetail', 'time_interval_id', 'shift_id')
+                    ->withPivot('work_type', 'day_of_week')
+                    ->withTimestamps();
+    }
+
+    public function getFormattedInTimeAttribute()
+    {
+        return $this->in_time ? $this->in_time->format('H:i') : null;
+    }
+
+    public function getDurationInHoursAttribute()
+    {
+        return round($this->duration / 60, 2);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('use_mode', '>', 0);
+    }
+
+    public function scopeByWorkType($query, $workType)
+    {
+        return $query->where('work_type', $workType);
+    }
+}
+
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Schedule extends Model
+{
+    use HasFactory;
+    
+    protected $table = 'att_attschedule';
+    
+    protected $fillable = [
+        'slug',
+        'start_date',
+        'end_date',
+        'employee_id',
+        'shift_id'
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date'
+    ];
+    
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class, 'shift_id');
+    }
+
+    // Legacy schedules table relationship
+    public function employees()
+    {
+        return $this->belongsToMany('App\Models\Employee', 'schedule_employees', 'schedule_id', 'emp_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('end_date', '>=', now()->format('Y-m-d'));
+    }
+
+    public function scopeForEmployee($query, $employeeId)
+    {
+        return $query->where('employee_id', $employeeId);
+    }
+
+    public function isActive()
+    {
+        $today = now()->format('Y-m-d');
+        return $this->start_date <= $today && $this->end_date >= $today;
+    }
+}
+
+This is my code please help me make it right
+
+ChatGPT said:
+Thanks for sharing your models! You’ve already got a good setup — now let’s fix your getShiftTimeIntervals() logic so that it properly filters by day_of_week using the pivot data between Shift and TimeInterval.
+
+✅ Problem Recap
+You want to fetch only those TimeIntervals that are assigned to a given Shift on a specific day_of_week, but using this:
+
+php
+Copy
+Edit
+\App\Shift::with(['timeIntervals' => function ($query) use ($dayOfWeek) {
+    $query->wherePivot('day_of_week', $dayOfWeek);
+}])->find($shiftId);
+… does not filter results correctly, because with() doesn't apply a SQL-level filter — it just filters the loaded relationship, not the base query.
+
+✅ Correct Solution (via TimeInterval::whereHas(...))
+Here’s the fully working version of your getShiftTimeIntervals() method, using SQL-level filtering with whereHas and accessing pivot data:
+
+php
+Copy
+Edit
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    return \App\TimeInterval::whereHas('shifts', function ($query) use ($shiftId, $dayOfWeek) {
+            $query->where('shift_id', $shiftId)
+                  ->wherePivot('day_of_week', $dayOfWeek);
+        })
+        ->with(['shifts' => function ($query) use ($shiftId, $dayOfWeek) {
+            $query->where('shift_id', $shiftId)
+                  ->wherePivot('day_of_week', $dayOfWeek)
+                  ->withPivot('work_type', 'day_of_week');
+        }])
+        ->get()
+        ->map(function ($interval) {
+            $pivot = $interval->shifts->first()?->pivot;
+
+            return [
+                'id' => $interval->id,
+                'alias' => $interval->alias,
+                'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+                'duration' => $interval->duration_in_hours,
+                'work_type' => $pivot->work_type ?? null,
+                'day_of_week' => $pivot->day_of_week ?? null,
+            ];
+        });
+}
+✅ Example Usage
+php
+Copy
+Edit
+$intervals = $this->getShiftTimeIntervals(1, 2); // shift_id = 1, day_of_week = Tuesday
+dd($intervals);
+✅ Explanation
+whereHas('shifts'): makes sure we only get intervals that exist for that shift and day.
+
+with('shifts'): eager-loads the pivot info so you can access work_type, day_of_week, etc.
+
+->map(...): cleanly formats the result for return.
+
+Optional: Add a Named Scope for Reusability
+In TimeInterval.php:
+
+php
+Copy
+Edit
+public function scopeForShiftAndDay($query, $shiftId, $dayOfWeek)
+{
+    return $query->whereHas('shifts', function ($q) use ($shiftId, $dayOfWeek) {
+        $q->where('shift_id', $shiftId)
+          ->wherePivot('day_of_week', $dayOfWeek);
+    });
+}
+Then you can clean up your method:
+
+php
+Copy
+Edit
+\App\TimeInterval::forShiftAndDay($shiftId, $dayOfWeek)
+    ->with(['shifts' => fn ($q) => $q->wherePivot('day_of_week', $dayOfWeek)])
+    ->get();
+Let me know if you want this result grouped by day or converted to JSON/API-friendly format too.
+
+
+
+You said:
+"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pivot' in 'where clause' (SQL: select * from att_timeinterval where exists (select * from att_attshift inner join att_shiftdetail on att_attshift.id = att_shiftdetail.shift_id where att_timeinterval.id = att_shiftdetail.time_interval_id and shift_id = 1 and pivot = day_of_week))"
+
+ChatGPT said:
+Thanks — that error is crystal clear: it's trying to use wherePivot() inside a whereHas(), but that's not valid SQL, since pivot is a Laravel concept, not a real column.
+
+✅ TL;DR Fix
+You cannot use wherePivot() inside whereHas().
+
+Instead, you need to manually join on the pivot table (att_shiftdetail) or use raw conditions on it like this:
+
+✅ Updated Working Version:
+php
+Copy
+Edit
+private function getShiftTimeIntervals($shiftId, $dayOfWeek)
+{
+    return \App\TimeInterval::whereHas('shifts', function ($query) use ($shiftId, $dayOfWeek) {
+            $query->where('att_shiftdetail.shift_id', $shiftId)
+                  ->where('att_shiftdetail.day_of_week', $dayOfWeek);
+        })
+        ->with(['shifts' => function ($query) use ($shiftId, $dayOfWeek) {
+            $query->where('att_shiftdetail.shift_id', $shiftId)
+                  ->where('att_shiftdetail.day_of_week', $dayOfWeek)
+                  ->withPivot('work_type', 'day_of_week');
+        }])
+        ->get()
+        ->map(function ($interval) {
+            $pivot = $interval->shifts->first()?->pivot;
+
+            return [
+                'id' => $interval->id,
+                'alias' => $interval->alias,
+                'in_time' => $interval->formatted_in_time ?? $interval->in_time,
+                'duration' => $interval->duration_in_hours,
+                'work_type' => $pivot->work_type ?? null,
+                'day_of_week' => $pivot->day_of_week ?? null,
+            ];
+        });
+}
+✅ Explanation of Fixes
+att_shiftdetail is your pivot table (shift_id, time_interval_id, day_of_week, etc.).
+
+We’re telling Laravel exactly which column from which table to filter on inside the whereHas().
+
+💡 Optional Improvements
+You can move the filtering logic into a custom scope inside the TimeInterval model:
+
+php
+Copy
+Edit
+public function scopeForShiftAndDay($query, $shiftId, $dayOfWeek)
+{
+    return $query->whereHas('shifts', function ($q) use ($shiftId, $dayOfWeek) {
+        $q->where('att_shiftdetail.shift_id', $shiftId)
+          ->where('att_shiftdetail.day_of_week', $dayOfWeek);
+    });
+}
+Then call it like:
+
+php
+Copy
+Edit
+TimeInterval::forShiftAndDay($shiftId, $dayOfWeek)
+    ->with(['shifts' => fn ($q) => $q
+        ->where('att_shiftdetail.shift_id', $shiftId)
+        ->where('att_shiftdetail.day_of_week', $dayOfWeek)
+        ->withPivot('work_type', 'day_of_week')])
+    ->get();
+Let me know if you want to filter by date range, employee, or group by weekdays too.
+
+
+
+You said:
+^ Illuminate\Support\Collection {#13017
+  #items: array:2 [
+    0 => {#13034
+      +"id": 1
+      +"shift_id": 1
+      +"time_interval_id": 1
+      +"work_type": 0
+      +"day_of_week": 0
+      +"created_at": "2025-07-12 16:35:35"
+      +"updated_at": "2025-07-12 16:35:35"
+    }
+    1 => {#13021
+      +"id": 2
+      +"shift_id": 2
+      +"time_interval_id": 2
+      +"work_type": 0
+      +"day_of_week": 0
+      +"created_at": "2025-07-12 16:38:50"
+      +"updated_at": "2025-07-12 16:38:50"
+    }
+  ]
+  #escapeWhenCastingToString: false
+}
+
+This is what i have in att_shiftdetail
+
+ChatGPT said:
+Thanks! This confirms that your att_shiftdetail table does not have a column named id, yet your query results include it. So let’s clarify and fix things properly.
+
+🔎 What’s going on?
+Your current pivot table (att_shiftdetail) appears to be working fine and returning results. However, your earlier error:
+
+sql
+Copy
+Edit
+Unknown column 'pivot' in 'where clause'
+came from this incorrect usage:
+
+php
+Copy
+Edit
+$shift = \App\Shift::with(['timeIntervals' => function ($query) use ($dayOfWeek) {
+    $query->wherePivot('day_of_week', $dayOfWeek); // ❌ doesn't work in this context
+}])->find($shiftId);
+❌ wherePivot only works inside the with() relation when eager loading, not inside whereHas, and not for filtering directly in SQL.
+
+✅ Correct way: Use whereHas() with actual table names
+If you want to get TimeIntervals for a given shift_id and day_of_week, here's the clean way using your existing pivot data:
+
+✅ Working method:
+php
+Copy
+Edit
+use App\TimeInterval;
+
+$intervals = TimeInterval::whereHas('shifts', function ($q) use ($shiftId, $dayOfWeek) {
+    $q->where('att_shiftdetail.shift_id', $shiftId)
+      ->where('att_shiftdetail.day_of_week', $dayOfWeek);
+})
+->with(['shifts' => function ($q) use ($shiftId, $dayOfWeek) {
+    $q->where('att_shiftdetail.shift_id', $shiftId)
+      ->where('att_shiftdetail.day_of_week', $dayOfWeek)
+      ->withPivot('work_type', 'day_of_week');
+}])
+->get();
+🧪 Optional: Dump results to verify
+After retrieving them:
+
+php
+Copy
+Edit
+dd($intervals->toArray());
+Each TimeInterval should include:
+
+ID, alias, in_time, etc.
+
+And a shifts relation containing pivot data (e.g. day_of_week, work_type)
+
+🧼 Optional cleanup — define pivot model (if needed)
+If you're using additional columns like id, work_type, and timestamps in your pivot table (att_shiftdetail), you can define a pivot model to access that cleanly.
+
+bash
+Copy
+Edit
+php artisan make:model ShiftDetail
+Then in Shift.php:
+
+php
+Copy
+Edit
+public function timeIntervals()
+{
+    return $this->belongsToMany(TimeInterval::class, 'att_shiftdetail', 'shift_id', 'time_interval_id')
+                ->using(\App\ShiftDetail::class) // Optional, for custom pivot behavior
+                ->withPivot('id', 'work_type', 'day_of_week')
+                ->withTimestamps();
+}
+Let me know if you want the reverse: get shifts for a given day and interval, or build a full weekly timetable.
+
+
+
+You said:
+^ array:10 [▼
+  "_token" => "CuDDiObHReB74P2E9YpA1PZdLL27FjVGWenKPFGJ"
+  "_method" => "PUT"
+  "alias" => "Day Shift"
+  "cycle_unit" => "7"
+  "shift_cycle" => "7"
+  "weekend_type" => "0"
+  "day_off_type" => "0"
+  "auto_shift" => "0"
+  "frequency" => "1"
+  "time_intervals" => array:1 [▶
+    0 => "1"
+  ]
+]
+
+   public function update(Request $request, Shift $shift)
+    {
+        dd($request->all());
+        $request->validate([
+            'alias' => 'required|string|max:50|unique:att_attshift,alias,' . $shift->id,
+            'cycle_unit' => 'required|integer|min:1|max:7',
+            'shift_cycle' => 'required|integer|min:1',
+            'work_weekend' => 'boolean',
+            'weekend_type' => 'integer|min:0|max:2',
+            'work_day_off' => 'boolean',
+            'day_off_type' => 'integer|min:0|max:2',
+            'auto_shift' => 'integer|min:0|max:2',
+            'enable_ot_rule' => 'boolean',
+            'frequency' => 'integer|min:0|max:7',
+            'time_intervals' => 'array',
+            'time_intervals.*' => 'exists:att_timeinterval,id'
+        ]);
+
+        $shift->update([
+            'alias' => $request->alias,
+            'cycle_unit' => $request->cycle_unit,
+            'shift_cycle' => $request->shift_cycle,
+            'work_weekend' => $request->boolean('work_weekend'),
+            'weekend_type' => $request->weekend_type ?? 0,
+            'work_day_off' => $request->boolean('work_day_off'),
+            'day_off_type' => $request->day_off_type ?? 0,
+            'auto_shift' => $request->auto_shift ?? 0,
+            'enable_ot_rule' => $request->boolean('enable_ot_rule'),
+            'frequency' => $request->frequency ?? 1,
+            'ot_rule' => $request->ot_rule,
+        ]);
+
+        // Sync time intervals
+        $shift->timeIntervals()->detach();
+        if ($request->has('time_intervals')) {
+            foreach ($request->time_intervals as $index => $timeIntervalId) {
+                $shift->timeIntervals()->attach($timeIntervalId, [
+                    'work_type' => 0,
+                    'day_of_week' => $index % 7,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+        }
+
+        return redirect()->route('attendance.shifts.index')
+                        ->with('success', 'Shift updated successfully!');
+    }
+
+How this should work
+
+ChatGPT said:
+Your update method is mostly correct, but there’s a key logic flaw in how you’re assigning day_of_week and handling multiple time intervals. Let's break this down and fix it:
+
+🔍 What’s the issue?
+php
+Copy
+Edit
+foreach ($request->time_intervals as $index => $timeIntervalId) {
+    $shift->timeIntervals()->attach($timeIntervalId, [
+        'work_type' => 0,
+        'day_of_week' => $index % 7, // ❌ this will assign 0,1,2,... arbitrarily
+    ]);
+}
+This line:
+
+php
+Copy
+Edit
+'day_of_week' => $index % 7
+blindly assigns day numbers based on the order in the array, not the actual day of week from the form.
+
+✅ What you probably want
+Your form should be sending something like this if you want to map day_of_week correctly:
+
+php
+Copy
+Edit
+"time_intervals" => [
+    0 => 1, // Sunday → TimeInterval ID 1
+    1 => 2, // Monday → TimeInterval ID 2
+    2 => null, // Tuesday → no shift
+    ...
+]
+So you'd expect time_intervals to be a map of:
+
+php
+Copy
+Edit
+[day_of_week => time_interval_id]
+✅ Fix the controller logic
+Update your controller to reflect this intent:
+
+php
+Copy
+Edit
+// Detach old records
+$shift->timeIntervals()->detach();
+
+if ($request->has('time_intervals')) {
+    foreach ($request->time_intervals as $dayOfWeek => $timeIntervalId) {
+        if (!empty($timeIntervalId)) {
+            $shift->timeIntervals()->attach($timeIntervalId, [
+                'work_type' => 0,
+                'day_of_week' => $dayOfWeek,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+    }
+}
+🧪 Validation (Optional but good)
+Ensure that keys are valid days of the week (0–6) and values are real time intervals:
+
+php
+Copy
+Edit
+$request->validate([
+    'time_intervals' => 'array',
+    'time_intervals.*' => 'nullable|exists:att_timeinterval,id'
+]);
+🛠 Frontend (make sure it's sending data properly)
+In your HTML form, ensure the time intervals are sent like this:
+
+html
+Copy
+Edit
+<select name="time_intervals[0]"> <!-- Sunday -->
+    <option value="1">Day Shift</option>
+</select>
+
+<select name="time_intervals[1]"> <!-- Monday -->
+    <option value="2">Evening Shift</option>
+</select>
+That way, Laravel will receive:
+
+php
+Copy
+Edit
+[
+  "time_intervals" => [
+    0 => "1",
+    1 => "2",
+    // etc...
+  ]
+]
+✅ Summary
+Part	Status
+Validation	✅ Good (just refine for nullable/array structure)
+Update logic	❌ Fix day_of_week mapping
+Attach logic	✅ Correct once above fixed
+Frontend	🟡 Make sure it's sending structured keys (e.g., [0], [1], etc.)
+
+Let me know if you’d like help building the form structure for the frontend too!
+
+
+
+You said:
+@extends('attendance.layouts.master')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Edit Shift: {{ $shift->alias }}</h4>
+                        <a href="{{ route('attendance.shifts.index') }}" class="btn btn-secondary btn-sm">
+                            <i class="fa fa-arrow-left"></i> Back to Shifts
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('attendance.shifts.update', $shift) }}">
+                        @csrf
+                        @method('PUT')
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="alias">Shift Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="alias" id="alias" class="form-control" 
+                                           value="{{ old('alias', $shift->alias) }}" required placeholder="e.g., Day Shift">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="cycle_unit">Cycle Unit (Days) <span class="text-danger">*</span></label>
+                                    <select name="cycle_unit" id="cycle_unit" class="form-control" required>
+                                        <option value="1" {{ old('cycle_unit', $shift->cycle_unit) == 1 ? 'selected' : '' }}>Daily</option>
+                                        <option value="7" {{ old('cycle_unit', $shift->cycle_unit) == 7 ? 'selected' : '' }}>Weekly</option>
+                                        <option value="14" {{ old('cycle_unit', $shift->cycle_unit) == 14 ? 'selected' : '' }}>Bi-weekly</option>
+                                        <option value="30" {{ old('cycle_unit', $shift->cycle_unit) == 30 ? 'selected' : '' }}>Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="shift_cycle">Shift Cycle <span class="text-danger">*</span></label>
+                                    <input type="number" name="shift_cycle" id="shift_cycle" class="form-control" 
+                                           value="{{ old('shift_cycle', $shift->shift_cycle) }}" required min="1" max="365">
+                                    <small class="form-text text-muted">Number of cycles</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="work_weekend" 
+                                           id="work_weekend" {{ old('work_weekend', $shift->work_weekend) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="work_weekend">
+                                        Work on Weekends
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="weekend_type">Weekend Type</label>
+                                    <select name="weekend_type" id="weekend_type" class="form-control">
+                                        <option value="0" {{ old('weekend_type', $shift->weekend_type) == 0 ? 'selected' : '' }}>No weekend work</option>
+                                        <option value="1" {{ old('weekend_type', $shift->weekend_type) == 1 ? 'selected' : '' }}>Saturday only</option>
+                                        <option value="2" {{ old('weekend_type', $shift->weekend_type) == 2 ? 'selected' : '' }}>Both Saturday and Sunday</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="work_day_off" 
+                                           id="work_day_off" {{ old('work_day_off', $shift->work_day_off) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="work_day_off">
+                                        Work on Day Off
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="day_off_type">Day Off Type</label>
+                                    <select name="day_off_type" id="day_off_type" class="form-control">
+                                        <option value="0" {{ old('day_off_type', $shift->day_off_type) == 0 ? 'selected' : '' }}>No day off work</option>
+                                        <option value="1" {{ old('day_off_type', $shift->day_off_type) == 1 ? 'selected' : '' }}>Compensatory day off</option>
+                                        <option value="2" {{ old('day_off_type', $shift->day_off_type) == 2 ? 'selected' : '' }}>Overtime pay</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="auto_shift">Auto Shift</label>
+                                    <select name="auto_shift" id="auto_shift" class="form-control">
+                                        <option value="0" {{ old('auto_shift', $shift->auto_shift) == 0 ? 'selected' : '' }}>Manual</option>
+                                        <option value="1" {{ old('auto_shift', $shift->auto_shift) == 1 ? 'selected' : '' }}>Auto by time</option>
+                                        <option value="2" {{ old('auto_shift', $shift->auto_shift) == 2 ? 'selected' : '' }}>Auto by schedule</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="frequency">Frequency</label>
+                                    <select name="frequency" id="frequency" class="form-control">
+                                        <option value="1" {{ old('frequency', $shift->frequency) == 1 ? 'selected' : '' }}>Daily</option>
+                                        <option value="2" {{ old('frequency', $shift->frequency) == 2 ? 'selected' : '' }}>Every 2 days</option>
+                                        <option value="3" {{ old('frequency', $shift->frequency) == 3 ? 'selected' : '' }}>Every 3 days</option>
+                                        <option value="7" {{ old('frequency', $shift->frequency) == 7 ? 'selected' : '' }}>Weekly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" name="enable_ot_rule" 
+                                           id="enable_ot_rule" {{ old('enable_ot_rule', $shift->enable_ot_rule) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="enable_ot_rule">
+                                        Enable Overtime Rules
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="ot_rule" id="ot_rule" class="form-control" 
+                                           value="{{ old('ot_rule', $shift->ot_rule) }}" placeholder="Overtime rule code">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Assign Time Intervals</label>
+                            <div class="row">
+                                @foreach($timeIntervals as $interval)
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="time_intervals[]" 
+                                                   value="{{ $interval->id }}" id="interval_{{ $interval->id }}"
+                                                   {{ $shift->timeIntervals->contains($interval->id) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="interval_{{ $interval->id }}">
+                                                <strong>{{ $interval->alias }}</strong>
+                                                <br><small class="text-muted">
+                                                    {{ $interval->formatted_in_time }} - {{ $interval->duration_in_hours }}h
+                                                </small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            @if($timeIntervals->isEmpty())
+                                <div class="alert alert-info">
+                                    No time intervals available. <a href="{{ route('attendance.time-intervals.create') }}">Create one first</a>.
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save"></i> Update Shift
+                            </button>
+                            <a href="{{ route('attendance.shifts.index') }}" class="btn btn-secondary">
+                                <i class="fa fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('script')
+<script>
+$(document).ready(function() {
+    // Enable/disable overtime rule input
+    $('#enable_ot_rule').on('change', function() {
+        $('#ot_rule').prop('disabled', !$(this).is(':checked'));
+    });
+    
+    // Initialize overtime rule state
+    $('#ot_rule').prop('disabled', !$('#enable_ot_rule').is(':checked'));
+});
+</script>
+@endsection
+
+ChatGPT said:
+Thanks for sharing your Blade view. Based on your form structure, here's what's missing and how to fix the day_of_week assignment logic:
+
+🔧 Problem
+You're currently using checkboxes like:
+
+blade
+Copy
+Edit
+<input class="form-check-input" type="checkbox" name="time_intervals[]" value="{{ $interval->id }}">
+This doesn't associate a day_of_week (0 = Sunday, 1 = Monday, etc.) with the selected time interval. So in your controller, when you loop through time_intervals[], there's no way to know which day that interval is for.
+
+This is why in your controller, you were forced to do:
+
+php
+Copy
+Edit
+'day_of_week' => $index % 7
+—which is just guessing.
+
+✅ Solution: Replace with day-specific select inputs
+Instead of showing checkboxes, you should show a select input for each day of the week.
+
+✅ 1. Update Blade to map time intervals per weekday:
+Replace this section:
+
+blade
+Copy
+Edit
+<label>Assign Time Intervals</label>
+<div class="row">
+    @foreach($timeIntervals as $interval)
+        ...
+    @endforeach
+</div>
+with this:
+
+blade
+Copy
+Edit
+@php
+    $days = [
+        0 => 'Sunday',
+        1 => 'Monday',
+        2 => 'Tuesday',
+        3 => 'Wednesday',
+        4 => 'Thursday',
+        5 => 'Friday',
+        6 => 'Saturday',
+    ];
+
+    $intervalsByDay = $shift->timeIntervals->keyBy(function ($item) {
+        return $item->pivot->day_of_week;
+    });
+@endphp
+
+<div class="form-group">
+    <label>Assign Time Intervals for Each Day</label>
+    <div class="row">
+        @foreach ($days as $dayNumber => $dayName)
+            <div class="col-md-4 mb-3">
+                <label for="time_intervals[{{ $dayNumber }}]">{{ $dayName }}</label>
+                <select name="time_intervals[{{ $dayNumber }}]" class="form-control">
+                    <option value="">-- None --</option>
+                    @foreach($timeIntervals as $interval)
+                        <option value="{{ $interval->id }}"
+                            {{ isset($intervalsByDay[$dayNumber]) && $intervalsByDay[$dayNumber]->id == $interval->id ? 'selected' : '' }}>
+                            {{ $interval->alias }} ({{ $interval->formatted_in_time }} - {{ $interval->duration_in_hours }}h)
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        @endforeach
+    </div>
+</div>
+✅ 2. Update Controller Logic
+You've mostly done this right already, but make sure you keep:
+
+php
+Copy
+Edit
+// Detach old records
+$shift->timeIntervals()->detach();
+
+if ($request->has('time_intervals')) {
+    foreach ($request->time_intervals as $dayOfWeek => $timeIntervalId) {
+        if (!empty($timeIntervalId)) {
+            $shift->timeIntervals()->attach($timeIntervalId, [
+                'work_type' => 0,
+                'day_of_week' => $dayOfWeek,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+    }
+}
+And in your validation:
+
+php
+Copy
+Edit
+$request->validate([
+    // ...
+    'time_intervals' => 'array',
+    'time_intervals.*' => 'nullable|exists:att_timeinterval,id'
+]);
+✅ Result
+You now:
+
+Show one dropdown per weekday.
+
+Assign the correct day_of_week value to each time_interval.
+
+Store it cleanly in the pivot table att_shiftdetail.
+
+Let me know if you want checkboxes instead of dropdowns per day (multi-select), or want to allow multiple intervals per day—this would require a bit more adjustment.
