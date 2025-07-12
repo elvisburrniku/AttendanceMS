@@ -18,6 +18,19 @@ class User extends Authenticatable
         return $this->hasOne('App\Models\Employee', 'nickname', 'email');
     }
 
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function tenants()
+    {
+        if ($this->is_super_admin) {
+            return Tenant::query();
+        }
+        return $this->tenant ? collect([$this->tenant]) : collect([]);
+    }
+
     public function getRouteKeyName()
     {
         return 'name';
@@ -56,7 +69,9 @@ class User extends Authenticatable
 
 
     protected $fillable = [
-        'name', 'email', 'password', 'pin_code',
+        'name', 'email', 'password', 'pin_code', 'email_verified_at', 
+        'trial_ends_at', 'subscription_status', 'subscription_ends_at', 
+        'stripe_customer_id', 'role', 'tenant_id', 'is_super_admin'
     ];
 
   
@@ -67,5 +82,7 @@ class User extends Authenticatable
   
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'subscription_ends_at' => 'datetime',
     ];
 }

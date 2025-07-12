@@ -1,20 +1,42 @@
 <?php
 
-
-
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\FingerDevicesControlller;
 use App\Providers\RouteServiceProvider;
 
 Route::get('/', function () {
-    if(auth()->check() && auth()->user()->hasRole('employee')){
-        return redirect(RouteServiceProvider::HOME_EMPLOYEE);
-    }
+    return view('landing');
+})->name('landing');
+
+Route::get('/dashboard', function () {
     return view('welcome');
 })->name('welcome');
+// Trial signup and payment routes
+Route::post('/trial-signup', '\App\Http\Controllers\PaymentController@trialSignup')->name('trial-signup');
+Route::post('/create-checkout-session', '\App\Http\Controllers\PaymentController@createCheckoutSession')->name('create-checkout-session');
+Route::get('/success', '\App\Http\Controllers\PaymentController@success')->name('payment.success');
+Route::get('/cancel', '\App\Http\Controllers\PaymentController@cancel')->name('payment.cancel');
+
+// Tenant management routes
+Route::middleware(['auth'])->group(function () {
+    Route::resource('tenants', \App\Http\Controllers\TenantController::class);
+    Route::get('/tenants/{tenant}/switch', '\App\Http\Controllers\TenantController@switch')->name('tenants.switch');
+});
+
 Route::get('attended/{user_id}', '\App\Http\Controllers\AttendanceController@attended' )->name('attended');
 Route::get('attended-before/{user_id}', '\App\Http\Controllers\AttendanceController@attendedBefore' )->name('attendedBefore');
 Auth::routes(['register' => false, 'reset' => false]);
+
+// Modern UI Routes
+Route::get('/modern-login', '\App\Http\Controllers\ModernDashboardController@showLogin')->name('modern.login');
+Route::get('/modern-dashboard', '\App\Http\Controllers\ModernDashboardController@index')->name('modern.dashboard')->middleware('auth');
+Route::get('/modern-employees', function() { return view('admin.modern-employees'); })->name('modern.employees')->middleware('auth');
+Route::get('/api/dashboard-stats', '\App\Http\Controllers\ModernDashboardController@getDashboardStats')->name('api.dashboard.stats')->middleware('auth');
+Route::get('/api/activity-data', '\App\Http\Controllers\ModernDashboardController@getActivityData')->name('api.activity.data')->middleware('auth');
+
+// Test route for modern admin dashboard (no auth required)
+Route::get('/admin-demo', '\App\Http\Controllers\AdminController@index')->name('admin.demo');
 
 Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function () {
     Route::resource('/employees', '\App\Http\Controllers\EmployeeController');
@@ -112,15 +134,14 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::delete('finger_device/destroy', '\App\Http\Controllers\BiometricDeviceController@massDestroy')->name('finger_device.massDestroy');
     Route::get('finger_device/{fingerDevice}/employees/add', '\App\Http\Controllers\BiometricDeviceController@addEmployee')->name('finger_device.add.employee');
     Route::get('finger_device/{fingerDevice}/get/attendance', '\App\Http\Controllers\BiometricDeviceController@getAttendance')->name('finger_device.get.attendance');
-    // Temp Clear Attendance route
-    Route::get('finger_device/clear/attendance', function () {
-        $midnight = \Carbon\Carbon::createFromTime(23, 50, 00);
-        $diff = now()->diffInMinutes($midnight);
-        dispatch(new ClearAttendanceJob())->delay(now()->addMinutes($diff));
-        toast("Attendance Clearance Queue will run in 11:50 P.M}!", "success");
-
-        return back();
-    })->name('finger_device.clear.attendance');
+    // Temp Clear Attendance route (temporarily disabled due to missing dependencies)
+    // Route::get('finger_device/clear/attendance', function () {
+    //     $midnight = \Carbon\Carbon::createFromTime(23, 50, 00);
+    //     $diff = now()->diffInMinutes($midnight);
+    //     dispatch(new ClearAttendanceJob())->delay(now()->addMinutes($diff));
+    //     toast("Attendance Clearance Queue will run in 11:50 P.M}!", "success");
+    //     return back();
+    // })->name('finger_device.clear.attendance');
     
 
 });
