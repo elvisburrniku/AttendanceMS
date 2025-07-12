@@ -15,7 +15,7 @@ class ScheduleController extends Controller
         $schedules = Schedule::with(['employee', 'shift'])
                            ->orderBy('start_date', 'desc')
                            ->paginate(20);
-        
+
         return view('admin.schedules.index', compact('schedules'));
     }
 
@@ -23,7 +23,7 @@ class ScheduleController extends Controller
     {
         $employees = Employee::orderBy('first_name')->get();
         $shifts = Shift::orderBy('alias')->get();
-        
+
         return view('admin.schedules.create', compact('employees', 'shifts'));
     }
 
@@ -38,7 +38,7 @@ class ScheduleController extends Controller
 
         $employee = Employee::find($request->employee_id);
         $shift = Shift::find($request->shift_id);
-        
+
         $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
 
         Schedule::create([
@@ -56,7 +56,7 @@ class ScheduleController extends Controller
     public function show(Schedule $schedule)
     {
         $schedule->load(['employee', 'shift.timeIntervals']);
-        
+
         return view('admin.schedules.show', compact('schedule'));
     }
 
@@ -64,7 +64,7 @@ class ScheduleController extends Controller
     {
         $employees = Employee::orderBy('first_name')->get();
         $shifts = Shift::orderBy('alias')->get();
-        
+
         return view('admin.schedules.edit', compact('schedule', 'employees', 'shifts'));
     }
 
@@ -79,7 +79,7 @@ class ScheduleController extends Controller
 
         $employee = Employee::find($request->employee_id);
         $shift = Shift::find($request->shift_id);
-        
+
         $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
 
         $schedule->update([
@@ -97,7 +97,7 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule)
     {
         $schedule->delete();
-        
+
         return redirect()->route('schedules.index')
                         ->with('success', 'Schedule deleted successfully!');
     }
@@ -106,7 +106,7 @@ class ScheduleController extends Controller
     {
         $employees = Employee::orderBy('first_name')->get();
         $shifts = Shift::orderBy('alias')->get();
-        
+
         return view('admin.schedules.bulk', compact('employees', 'shifts'));
     }
 
@@ -114,18 +114,21 @@ class ScheduleController extends Controller
     {
         $request->validate([
             'employee_ids' => 'required|array',
-            'employee_ids.*' => 'exists:employees,id',
+            'employee_ids.*' => 'required|integer|exists:personnel_employee,id',
             'shift_id' => 'required|exists:att_attshift,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
-        $shift = Shift::find($request->shift_id);
         $createdCount = 0;
 
         foreach ($request->employee_ids as $employeeId) {
-            $employee = Employee::find($employeeId);
-            $slug = Str::slug($employee->first_name . '-' . $employee->last_name . '-' . $shift->alias . '-' . $request->start_date);
+            $slug = Str::slug($employeeId . '-' . $request->shift_id . '-' . $request->start_date);
+
+            // Check if schedule already exists
+            if (Schedule::where('slug', $slug)->exists()) {
+                continue; // Skip if already exists
+            }
 
             Schedule::create([
                 'slug' => $slug,
@@ -149,7 +152,7 @@ class ScheduleController extends Controller
                            ->where('employee_id', $employeeId)
                            ->orderBy('start_date', 'desc')
                            ->paginate(10);
-        
+
         return view('admin.schedules.employee', compact('employee', 'schedules'));
     }
 }
