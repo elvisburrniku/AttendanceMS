@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Attendance;
 use App\Models\Employee;
 use Carbon\Carbon;
+use App\Services\ShiftValidationService;
 
 class AttendanceController extends Controller
 {
@@ -31,18 +32,17 @@ class AttendanceController extends Controller
         $employee = Employee::find($request->employee_id);
         $today = Carbon::today();
 
-        // Check if already checked in today
-        $existingAttendance = \DB::table('attendances')
-            ->where('emp_id', $request->employee_id)
-            ->whereDate('attendance_date', $today)
-            ->where('state', 0) // Check-in state
-            ->first();
-
-        if ($existingAttendance) {
+        // Validate shift-based check-in rules
+        $shiftValidationService = new ShiftValidationService();
+        $validation = $shiftValidationService->canEmployeeCheckIn($request->employee_id);
+        
+        if (!$validation['allowed']) {
             return response()->json([
                 'success' => false,
-                'message' => 'Already checked in today'
-            ], 400);
+                'message' => $validation['reason'],
+                'details' => $validation['details'],
+                'shift_info' => $validation['shift_details'] ?? null
+            ], 403);
         }
 
         // Create attendance record

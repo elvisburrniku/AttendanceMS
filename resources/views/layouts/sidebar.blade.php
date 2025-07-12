@@ -43,6 +43,7 @@
                                     <li><a href="{{ route('shifts.index') }}">Shift Management</a></li>
                                     <li><a href="{{ route('time-intervals.index') }}">Time Intervals</a></li>
                                     <li><a href="{{ route('schedules.bulk') }}">Bulk Assignment</a></li>
+                                    <li><a href="{{ route('shift-validation.index') }}">Shift Validation</a></li>
                                 </ul>
                             </li>
                             <li>

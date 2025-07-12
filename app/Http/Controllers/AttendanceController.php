@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Carbon\CarbonInterval;
 use Carbon\Carbon;
+use App\Services\ShiftValidationService;
 
 class AttendanceController extends Controller
 {   
@@ -407,6 +408,21 @@ class AttendanceController extends Controller
         $random_attendance = Attendance::first();
         $type = $request->input('checkType', 'checkin');
         
+        // Validate shift-based check-in rules
+        if ($type == 'checkin') {
+            $shiftValidationService = new ShiftValidationService();
+            $validation = $shiftValidationService->canEmployeeCheckIn($employee->id);
+            
+            if (!$validation['allowed']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validation['reason'],
+                    'details' => $validation['details'],
+                    'shift_info' => $validation['shift_details'] ?? null
+                ], 403);
+            }
+        }
+        
         // Default values when no existing attendance record is found
         $defaultValues = [
             'verify_type' => 1,
@@ -599,6 +615,21 @@ class AttendanceController extends Controller
         $punchState = $request->input('punch_state');
         $latitude = $request->input('latitude');
         $longitude = $request->input('longitude');
+        
+        // Validate shift-based check-in rules for check-in punch state (0)
+        if ($punchState == 0) {
+            $shiftValidationService = new ShiftValidationService();
+            $validation = $shiftValidationService->canEmployeeCheckIn($employee->id);
+            
+            if (!$validation['allowed']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validation['reason'],
+                    'details' => $validation['details'],
+                    'shift_info' => $validation['shift_details'] ?? null
+                ], 403);
+            }
+        }
 
         // Get default attendance record for template
         $random_attendance = Attendance::first();

@@ -116,6 +116,15 @@ Route::group(['middleware' => ['auth', 'Role'], 'roles' => ['admin']], function 
     Route::post('calendar/delete', '\App\Http\Controllers\ShiftCalendarController@deleteSchedule')->name('calendar.delete');
     Route::get('calendar/week-data', '\App\Http\Controllers\ShiftCalendarController@getWeekData')->name('calendar.week-data');
     
+    // Shift Validation Routes
+    Route::prefix('shift-validation')->name('shift-validation.')->group(function () {
+        Route::get('/', '\App\Http\Controllers\ShiftValidationController@index')->name('index');
+        Route::post('/test', '\App\Http\Controllers\ShiftValidationController@testValidation')->name('test');
+        Route::get('/employee-report', '\App\Http\Controllers\ShiftValidationController@getEmployeeReport')->name('employee-report');
+        Route::post('/create-sample-data', '\App\Http\Controllers\ShiftValidationController@createSampleData')->name('create-sample-data');
+        Route::get('/stats', '\App\Http\Controllers\ShiftValidationController@getValidationStats')->name('stats');
+    });
+    
     // Legacy routes (keep for compatibility)
     Route::resource('/schedule', '\App\Http\Controllers\ScheduleController');
     Route::resource('/shift', '\App\Http\Controllers\ShiftController');
