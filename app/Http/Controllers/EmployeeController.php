@@ -17,26 +17,40 @@ class EmployeeController extends Controller
    
     public function index()
     {
-        // Using sample data for demo purposes - will be replaced with real database queries once models are properly configured
-        $employees = collect([
-            (object)['id' => 1, 'first_name' => 'Sarah', 'last_name' => 'Johnson', 'department' => (object)['name' => 'IT Department'], 'position' => (object)['name' => 'Senior Developer']],
-            (object)['id' => 2, 'first_name' => 'Mike', 'last_name' => 'Chen', 'department' => (object)['name' => 'Marketing'], 'position' => (object)['name' => 'UX Designer']],
-            (object)['id' => 3, 'first_name' => 'Emma', 'last_name' => 'Davis', 'department' => (object)['name' => 'Sales'], 'position' => (object)['name' => 'Sales Representative']],
-            (object)['id' => 4, 'first_name' => 'Alex', 'last_name' => 'Rodriguez', 'department' => (object)['name' => 'Human Resources'], 'position' => (object)['name' => 'HR Manager']],
-            (object)['id' => 5, 'first_name' => 'Lisa', 'last_name' => 'Park', 'department' => (object)['name' => 'Finance'], 'position' => (object)['name' => 'Financial Analyst']],
-            (object)['id' => 6, 'first_name' => 'John', 'last_name' => 'Smith', 'department' => (object)['name' => 'IT Department'], 'position' => (object)['name' => 'Project Manager']],
-        ]);
+        // Get real employees from database
+        $employees = Employee::all();
         
-        $employee_count = 156;
-        $departments = collect([
-            (object)['id' => 1, 'name' => 'IT Department'],
-            (object)['id' => 2, 'name' => 'Marketing'],
-            (object)['id' => 3, 'name' => 'Sales'],
-            (object)['id' => 4, 'name' => 'Human Resources'],
-            (object)['id' => 5, 'name' => 'Finance']
-        ]);
-        $positions = collect([]);
-        $areas = collect([]);
+        // Get real departments from database
+        $departments = collect();
+        $departmentRecords = \DB::table('personnel_department')->get();
+        foreach ($departmentRecords as $dept) {
+            $departments->push((object)[
+                'id' => $dept->id,
+                'name' => $dept->dept_name
+            ]);
+        }
+        
+        // Get real positions from database
+        $positions = collect();
+        $positionRecords = \DB::table('personnel_position')->get();
+        foreach ($positionRecords as $pos) {
+            $positions->push((object)[
+                'id' => $pos->id,
+                'name' => $pos->position_name
+            ]);
+        }
+        
+        // Get real areas from database
+        $areas = collect();
+        $areaRecords = \DB::table('personnel_area')->get();
+        foreach ($areaRecords as $area) {
+            $areas->push((object)[
+                'id' => $area->id,
+                'name' => $area->area_name
+            ]);
+        }
+        
+        $employee_count = $employees->count();
         $total = $employee_count;
 
         return view('admin.modern-employees', compact('employees', 'employee_count', 'departments', 'positions', 'areas', 'total'));

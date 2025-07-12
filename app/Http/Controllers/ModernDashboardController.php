@@ -19,32 +19,41 @@ class ModernDashboardController extends Controller
 
     public function index()
     {
-        // Get dashboard statistics
-        $totalEmployees = User::where('role', 'employee')->count();
+        // Get dashboard statistics using real database tables
+        $totalEmployees = DB::table('employees')->count();
         $today = Carbon::today();
         
-        // Get today's attendance
-        $presentToday = Attendance::whereDate('clock_in', $today)
-            ->distinct('user_id')
+        // Get today's attendance from real attendance table
+        $presentToday = DB::table('attendances')
+            ->whereDate('attendance_date', $today)
+            ->distinct('emp_id')
             ->count();
             
-        // Get late arrivals today
-        $lateToday = Attendance::whereDate('clock_in', $today)
-            ->whereTime('clock_in', '>', '09:00:00') // Assuming 9 AM is the standard start time
+        // Get late arrivals today (attendance after 9:00 AM)
+        $lateToday = DB::table('attendances')
+            ->whereDate('attendance_date', $today)
+            ->where('attendance_time', '>', '09:00:00')
+            ->where('state', 0) // Check-in state
             ->count();
             
-        // Get employees on leave today
-        $onLeave = Leave::where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
-            ->where('status', 'approved')
-            ->count();
+        // Get employees on leave today (if leaves table exists)
+        $onLeave = 0;
+        if (DB::getSchemaBuilder()->hasTable('leaves')) {
+            $onLeave = DB::table('leaves')
+                ->where('start_date', '<=', $today)
+                ->where('end_date', '>=', $today)
+                ->where('status', 'approved')
+                ->count();
+        }
 
-        // Get department statistics
-        $departments = Department::withCount('employees')->get();
+        // Get department statistics from real database
+        $departments = DB::table('personnel_department')->get();
         
         // Get recent activity (last 10 attendance records)
-        $recentActivity = Attendance::with('user')
-            ->orderBy('created_at', 'desc')
+        $recentActivity = DB::table('attendances')
+            ->join('employees', 'attendances.emp_id', '=', 'employees.id')
+            ->select('attendances.*', 'employees.name as employee_name', 'employees.position')
+            ->orderBy('attendances.created_at', 'desc')
             ->limit(10)
             ->get();
 
@@ -52,8 +61,9 @@ class ModernDashboardController extends Controller
         $currentMonth = Carbon::now()->format('Y-m');
         $workingDaysThisMonth = $this->getWorkingDaysInMonth();
         $totalPossibleAttendance = $totalEmployees * $workingDaysThisMonth;
-        $actualAttendance = Attendance::whereRaw("DATE_FORMAT(clock_in, '%Y-%m') = ?", [$currentMonth])
-            ->distinct('user_id', DB::raw('DATE(clock_in)'))
+        $actualAttendance = DB::table('attendances')
+            ->whereRaw("strftime('%Y-%m', attendance_date) = ?", [$currentMonth])
+            ->distinct('emp_id')
             ->count();
         
         $attendanceRate = $totalPossibleAttendance > 0 ? 
@@ -93,17 +103,19 @@ class ModernDashboardController extends Controller
 
     public function getActivityData()
     {
-        $recentActivity = Attendance::with('user')
-            ->orderBy('created_at', 'desc')
+        $recentActivity = DB::table('attendances')
+            ->join('employees', 'attendances.emp_id', '=', 'employees.id')
+            ->select('attendances.*', 'employees.name as employee_name', 'employees.position')
+            ->orderBy('attendances.created_at', 'desc')
             ->limit(20)
             ->get()
             ->map(function ($attendance) {
                 return [
                     'id' => $attendance->id,
-                    'user_name' => $attendance->user->name ?? 'Unknown',
-                    'user_department' => $attendance->user->department->name ?? 'No Department',
+                    'user_name' => $attendance->employee_name ?? 'Unknown',
+                    'user_department' => $attendance->position ?? 'No Department',
                     'action' => $this->getActionType($attendance),
-                    'time' => $attendance->created_at->diffForHumans(),
+                    'time' => Carbon::parse($attendance->created_at)->diffForHumans(),
                     'status' => $this->getAttendanceStatus($attendance),
                 ];
             });
@@ -113,29 +125,30 @@ class ModernDashboardController extends Controller
 
     private function getActionType($attendance)
     {
-        if ($attendance->clock_in && !$attendance->clock_out) {
-            return 'check-in';
-        } elseif ($attendance->clock_out) {
-            return 'check-out';
-        } elseif ($attendance->break_out && !$attendance->break_in) {
-            return 'break-start';
-        } elseif ($attendance->break_in) {
-            return 'break-end';
+        switch ($attendance->state) {
+            case 0:
+                return 'check-in';
+            case 1:
+                return 'check-out';
+            case 2:
+                return 'break-start';
+            case 3:
+                return 'break-end';
+            default:
+                return 'unknown';
         }
-        
-        return 'unknown';
     }
 
     private function getAttendanceStatus($attendance)
     {
-        if (!$attendance->clock_in) {
+        if (!$attendance->attendance_time) {
             return 'absent';
         }
 
         $standardStartTime = Carbon::parse('09:00:00');
-        $clockInTime = Carbon::parse($attendance->clock_in);
+        $clockInTime = Carbon::parse($attendance->attendance_time);
 
-        if ($clockInTime->gt($standardStartTime)) {
+        if ($clockInTime->gt($standardStartTime) && $attendance->state == 0) {
             return 'late';
         }
 
@@ -149,17 +162,30 @@ class ModernDashboardController extends Controller
         $thisMonth = Carbon::now()->startOfMonth();
 
         $stats = [
-            'total_employees' => User::where('role', 'employee')->count(),
-            'present_today' => Attendance::whereDate('clock_in', $today)->distinct('user_id')->count(),
-            'late_today' => Attendance::whereDate('clock_in', $today)
-                ->whereTime('clock_in', '>', '09:00:00')
+            'total_employees' => DB::table('employees')->count(),
+            'present_today' => DB::table('attendances')
+                ->whereDate('attendance_date', $today)
+                ->distinct('emp_id')
                 ->count(),
-            'on_leave' => Leave::where('start_date', '<=', $today)
-                ->where('end_date', '>=', $today)
-                ->where('status', 'approved')
+            'late_today' => DB::table('attendances')
+                ->whereDate('attendance_date', $today)
+                ->where('attendance_time', '>', '09:00:00')
+                ->where('state', 0)
                 ->count(),
-            'weekly_attendance' => Attendance::where('clock_in', '>=', $thisWeek)->distinct('user_id')->count(),
-            'monthly_attendance' => Attendance::where('clock_in', '>=', $thisMonth)->distinct('user_id')->count(),
+            'on_leave' => DB::getSchemaBuilder()->hasTable('leaves') ? 
+                DB::table('leaves')
+                    ->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today)
+                    ->where('status', 'approved')
+                    ->count() : 0,
+            'weekly_attendance' => DB::table('attendances')
+                ->where('attendance_date', '>=', $thisWeek)
+                ->distinct('emp_id')
+                ->count(),
+            'monthly_attendance' => DB::table('attendances')
+                ->where('attendance_date', '>=', $thisMonth)
+                ->distinct('emp_id')
+                ->count(),
         ];
 
         return response()->json($stats);
