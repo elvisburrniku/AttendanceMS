@@ -200,6 +200,14 @@ This is a Laravel-based HR attendance management system designed to track employ
   - Added offline support capabilities and real-time data synchronization
   - Created comprehensive deployment documentation for App Store and Google Play
   - Tested API endpoints successfully - authentication and attendance tracking functional
+- July 12, 2025. Fixed critical shift calendar drag-and-drop off-by-one error:
+  - Identified and resolved drag-drop positioning issue where schedules dropped one day after intended target
+  - Enhanced ShiftCalendarController with improved date calculation logic and comprehensive debugging
+  - Added detailed JavaScript console logging to track drag-drop movements and date mappings
+  - Implemented proper schedule duration preservation during drag-drop operations
+  - Created test schedule data and verified calendar date structure (Monday 7th through Sunday 13th)
+  - System now correctly processes drag-drop from any day to any target day without off-by-one errors
+  - All drag-drop operations maintain original schedule duration and update dates accurately
 
 ## User Preferences
 

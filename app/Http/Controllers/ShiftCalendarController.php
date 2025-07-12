@@ -63,10 +63,25 @@ class ShiftCalendarController extends Controller
         // Calculate the duration of the original schedule (inclusive days)
         $originalStartDate = Carbon::parse($schedule->start_date);
         $originalEndDate = Carbon::parse($schedule->end_date);
+        
+        // For single-day schedules (start_date = end_date), duration is 0 days difference
+        // For multi-day schedules, we need the actual number of days between start and end
         $originalDuration = $originalStartDate->diffInDays($originalEndDate);
         
         // Update the schedule maintaining the same duration
+        // If it was a single day schedule (duration = 0), keep it single day
+        // If it was multi-day, maintain the same duration
         $endDate = $originalDuration === 0 ? $newDate->copy() : $newDate->copy()->addDays($originalDuration);
+        
+        // Debug logging to help identify drag-drop issues
+        \Log::info('Schedule Update:', [
+            'original_start' => $schedule->start_date,
+            'original_end' => $schedule->end_date,
+            'original_duration' => $originalDuration,
+            'new_date' => $newDate->format('Y-m-d'),
+            'calculated_end_date' => $endDate->format('Y-m-d'),
+            'request_data' => $request->all()
+        ]);
         
         $schedule->update([
             'employee_id' => $request->employee_id,
@@ -78,7 +93,12 @@ class ShiftCalendarController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Schedule updated successfully',
-            'schedule' => $schedule->load(['employee', 'shift.timeIntervals'])
+            'schedule' => $schedule->load(['employee', 'shift.timeIntervals']),
+            'debug' => [
+                'original_duration' => $originalDuration,
+                'new_start' => $newDate->format('Y-m-d'),
+                'new_end' => $endDate->format('Y-m-d')
+            ]
         ]);
     }
 

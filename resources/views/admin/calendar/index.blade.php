@@ -400,6 +400,16 @@ function renderCalendar() {
         return;
     }
     
+    // Debug calendar structure for drag-drop analysis
+    console.log('Calendar Week Structure:', {
+        weekDays: calendarData.weekDays.map(day => ({
+            date: day.date,
+            dayNumber: day.dayNumber,
+            day: day.day
+        })),
+        totalEmployees: calendarData.employees.length
+    });
+    
     // Create header row
     const headerRow = document.createElement('div');
     headerRow.className = 'calendar-row';
@@ -557,6 +567,10 @@ function handleDrop(e) {
     }
     
     if (!draggedElement || !targetCell) {
+        console.warn('Drop failed: missing draggedElement or targetCell', {
+            draggedElement: !!draggedElement,
+            targetCell: !!targetCell
+        });
         return;
     }
     
@@ -564,12 +578,32 @@ function handleDrop(e) {
     const newDate = targetCell.dataset.date;
     const newEmployeeId = targetCell.dataset.employeeId;
     
-    console.log('Dropping schedule', scheduleId, 'to date', newDate, 'employee', newEmployeeId);
+    // Enhanced debugging for drag-drop issues
+    console.log('Drag and Drop Debug:', {
+        scheduleId: scheduleId,
+        newDate: newDate,
+        newEmployeeId: newEmployeeId,
+        draggedElement: draggedElement,
+        targetCell: targetCell,
+        targetCellDataset: targetCell.dataset,
+        dropEvent: {
+            clientX: e.clientX,
+            clientY: e.clientY,
+            target: e.target
+        }
+    });
+    
+    // Get original date from parent cell for comparison
+    const originalCell = draggedElement.closest('.day-cell');
+    const originalDate = originalCell ? originalCell.dataset.date : 'unknown';
+    
+    console.log('Moving from', originalDate, 'to', newDate);
     
     // Visual feedback - temporarily move the element
     if (draggedElement && targetCell) {
         const clone = draggedElement.cloneNode(true);
         clone.style.opacity = '0.5';
+        clone.style.border = '2px dashed #007bff';
         targetCell.appendChild(clone);
         draggedElement.style.display = 'none';
     }
