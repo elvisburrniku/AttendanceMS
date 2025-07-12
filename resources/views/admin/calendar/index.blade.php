@@ -639,7 +639,7 @@ function updateSchedule(scheduleId, newDate, newEmployeeId, originalElement = nu
             _token: '{{ csrf_token() }}',
             schedule_id: scheduleId,
             new_date: newDate,
-            employee_id: employeeId
+            employee_id: newEmployeeId
         },
         success: function(response) {
             hideLoading();
