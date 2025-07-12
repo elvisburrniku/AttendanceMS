@@ -18,7 +18,7 @@ class EmployeeController extends Controller
     public function index()
     {
         // Get real employees from database
-        $employees = Employee::all();
+        $employees = Employee::paginate(50);
         
         // Get real departments from database
         $departments = collect();
@@ -84,5 +84,73 @@ class EmployeeController extends Controller
     public function destroy($id)
     {
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully!');
+    }
+
+    public function employeeDashboard()
+    {
+        // Get a real employee from database for demo
+        $employee = \DB::table('employees')->first();
+        
+        if (!$employee) {
+            // If no employees exist, redirect back with error
+            return redirect()->route('modern.dashboard')->with('error', 'No employees found in database');
+        }
+        
+        // Get real attendance data for this employee
+        $todayAttendance = \DB::table('attendances')
+            ->where('emp_id', $employee->id)
+            ->whereDate('attendance_date', today())
+            ->orderBy('attendance_time')
+            ->get();
+        
+        // Get check-in and check-out records
+        $checkin = $todayAttendance->where('state', 0)->first(); // Check-in
+        $checkout = $todayAttendance->where('state', 1)->first(); // Check-out
+        $breakin = $todayAttendance->where('state', 3)->first(); // Break-in
+        $breakout = $todayAttendance->where('state', 2)->first(); // Break-out
+        
+        // Get weekly attendance data
+        $weeklyAttendances = \DB::table('attendances')
+            ->where('emp_id', $employee->id)
+            ->whereBetween('attendance_date', [now()->startOfWeek(), now()->endOfWeek()])
+            ->orderBy('attendance_date')
+            ->orderBy('attendance_time')
+            ->get();
+        
+        // Calculate work time and break time
+        $workTime = 0;
+        $breakTime = 0;
+        
+        if ($checkin && $checkout) {
+            $checkInTime = \Carbon\Carbon::parse($checkin->attendance_time);
+            $checkOutTime = \Carbon\Carbon::parse($checkout->attendance_time);
+            $workTime = $checkInTime->diffInMinutes($checkOutTime);
+        }
+        
+        if ($breakout && $breakin) {
+            $breakOutTime = \Carbon\Carbon::parse($breakout->attendance_time);
+            $breakInTime = \Carbon\Carbon::parse($breakin->attendance_time);
+            $breakTime = $breakOutTime->diffInMinutes($breakInTime);
+        }
+        
+        // Create user object from employee data
+        $user = (object)[
+            'id' => $employee->id,
+            'name' => $employee->name,
+            'email' => $employee->email ?? 'employee@company.com',
+            'created_at' => $employee->created_at ?? now()
+        ];
+        
+        return view('employee.demo-dashboard', [
+            'user' => $user,
+            'employee' => $employee,
+            'checkin' => $checkin,
+            'checkout' => $checkout,
+            'breakin' => $breakin,
+            'breakout' => $breakout,
+            'weeklyAttendances' => $weeklyAttendances,
+            'workTime' => $workTime,
+            'breakTime' => $breakTime
+        ]);
     }
 }

@@ -32,30 +32,33 @@ class AttendanceController extends Controller
         $today = Carbon::today();
 
         // Check if already checked in today
-        $existingAttendance = Attendance::where('employee_id', $request->employee_id)
-            ->whereDate('date', $today)
+        $existingAttendance = \DB::table('attendances')
+            ->where('emp_id', $request->employee_id)
+            ->whereDate('attendance_date', $today)
+            ->where('state', 0) // Check-in state
             ->first();
 
-        if ($existingAttendance && $existingAttendance->check_in) {
+        if ($existingAttendance) {
             return response()->json([
                 'success' => false,
                 'message' => 'Already checked in today'
             ], 400);
         }
 
-        $attendance = Attendance::updateOrCreate(
-            [
-                'employee_id' => $request->employee_id,
-                'date' => $today
-            ],
-            [
-                'check_in' => Carbon::now(),
-                'latitude_in' => $request->latitude,
-                'longitude_in' => $request->longitude,
-                'location_in' => $request->location_address,
-                'status' => 'present'
-            ]
-        );
+        // Create attendance record
+        $attendanceId = \DB::table('attendances')->insertGetId([
+            'uid' => $request->employee_id . '-' . $today->format('Ymd') . '-checkin',
+            'emp_id' => $request->employee_id,
+            'state' => 0, // Check-in state
+            'attendance_time' => Carbon::now()->format('H:i:s'),
+            'attendance_date' => $today->format('Y-m-d'),
+            'status' => 1,
+            'type' => 'mobile',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+        
+        $attendance = \DB::table('attendances')->where('id', $attendanceId)->first();
 
         return response()->json([
             'success' => true,
@@ -85,18 +88,26 @@ class AttendanceController extends Controller
         }
 
         $today = Carbon::today();
-        $attendance = Attendance::where('employee_id', $request->employee_id)
-            ->whereDate('date', $today)
+        $checkInAttendance = \DB::table('attendances')
+            ->where('emp_id', $request->employee_id)
+            ->whereDate('attendance_date', $today)
+            ->where('state', 0) // Check-in state
             ->first();
 
-        if (!$attendance || !$attendance->check_in) {
+        if (!$checkInAttendance) {
             return response()->json([
                 'success' => false,
                 'message' => 'No check-in record found for today'
             ], 400);
         }
 
-        if ($attendance->check_out) {
+        $checkOutAttendance = \DB::table('attendances')
+            ->where('emp_id', $request->employee_id)
+            ->whereDate('attendance_date', $today)
+            ->where('state', 1) // Check-out state
+            ->first();
+
+        if ($checkOutAttendance) {
             return response()->json([
                 'success' => false,
                 'message' => 'Already checked out today'
@@ -104,15 +115,23 @@ class AttendanceController extends Controller
         }
 
         $checkOutTime = Carbon::now();
-        $workHours = $checkOutTime->diffInHours($attendance->check_in);
+        $checkInTime = Carbon::parse($checkInAttendance->attendance_time);
+        $workHours = $checkOutTime->diffInHours($checkInTime);
 
-        $attendance->update([
-            'check_out' => $checkOutTime,
-            'latitude_out' => $request->latitude,
-            'longitude_out' => $request->longitude,
-            'location_out' => $request->location_address,
-            'work_hours' => $workHours
+        // Create checkout attendance record
+        $attendanceId = \DB::table('attendances')->insertGetId([
+            'uid' => $request->employee_id . '-' . $today->format('Ymd') . '-checkout',
+            'emp_id' => $request->employee_id,
+            'state' => 1, // Check-out state
+            'attendance_time' => $checkOutTime->format('H:i:s'),
+            'attendance_date' => $today->format('Y-m-d'),
+            'status' => 1,
+            'type' => 'mobile',
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
+        
+        $attendance = \DB::table('attendances')->where('id', $attendanceId)->first();
 
         return response()->json([
             'success' => true,
@@ -139,10 +158,25 @@ class AttendanceController extends Controller
         }
 
         $today = Carbon::today();
-        $attendance = Attendance::where('employee_id', $request->employee_id)
-            ->whereDate('date', $today)
-            ->with('employee')
-            ->first();
+        $attendances = \DB::table('attendances')
+            ->join('employees', 'attendances.emp_id', '=', 'employees.id')
+            ->where('attendances.emp_id', $request->employee_id)
+            ->whereDate('attendances.attendance_date', $today)
+            ->select('attendances.*', 'employees.name as employee_name', 'employees.position')
+            ->get();
+        
+        // Format attendance data for API response
+        $checkIn = $attendances->where('state', 0)->first();
+        $checkOut = $attendances->where('state', 1)->first();
+        
+        $attendance = [
+            'check_in' => $checkIn,
+            'check_out' => $checkOut,
+            'employee_name' => $checkIn->employee_name ?? null,
+            'employee_position' => $checkIn->position ?? null,
+            'work_hours' => $checkIn && $checkOut ? 
+                Carbon::parse($checkOut->attendance_time)->diffInHours(Carbon::parse($checkIn->attendance_time)) : 0
+        ];
 
         return response()->json([
             'success' => true,
@@ -168,18 +202,23 @@ class AttendanceController extends Controller
             ], 400);
         }
 
-        $query = Attendance::where('employee_id', $request->employee_id);
+        $query = \DB::table('attendances')
+            ->join('employees', 'attendances.emp_id', '=', 'employees.id')
+            ->where('attendances.emp_id', $request->employee_id)
+            ->select('attendances.*', 'employees.name as employee_name', 'employees.position');
 
         if ($request->start_date) {
-            $query->whereDate('date', '>=', $request->start_date);
+            $query->whereDate('attendances.attendance_date', '>=', $request->start_date);
         }
 
         if ($request->end_date) {
-            $query->whereDate('date', '<=', $request->end_date);
+            $query->whereDate('attendances.attendance_date', '<=', $request->end_date);
         }
 
-        $attendances = $query->orderBy('date', 'desc')
-            ->paginate(30);
+        $attendances = $query->orderBy('attendances.attendance_date', 'desc')
+            ->orderBy('attendances.attendance_time', 'desc')
+            ->limit(30)
+            ->get();
 
         return response()->json([
             'success' => true,
